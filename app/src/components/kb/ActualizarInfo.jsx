@@ -120,7 +120,12 @@ export default function ActualizarInfo() {
         ))}
       </div>
 
-      <input ref={fileRef} type="file" accept="image/*" className="text-sm" />
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        className="rounded-xl border border-dashed border-terracota-200 bg-crema-100 text-sm text-noche-900/60 file:mr-3 file:rounded-full file:border-0 file:bg-terracota-600 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white"
+      />
 
       <textarea
         value={texto}

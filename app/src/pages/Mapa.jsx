@@ -4,18 +4,26 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { PINES, CATEGORIAS, googleMapsDirectionsUrl } from '../data/pines.js'
 
-// react-leaflet no trae los íconos por defecto correctamente empaquetados con Vite;
-// se reconstruyen apuntando a los assets servidos por leaflet vía CDN de unpkg (mismo paquete,
-// sin llave ni costo) para evitar el bug clásico de "íconos rotos".
-const icon = new L.Icon({
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-})
+// Los íconos default de Leaflet dependen de assets externos que se rompen fácil con bundlers
+// (y verse como un pin azul genérico de Google Maps tampoco calza con el look de la app). En vez
+// de eso: un pin propio, un círculo de color con el emoji de la categoría, dibujado con divIcon
+// (sin imágenes externas, cero dependencia de red para el ícono en sí).
+function iconoPara(categoria) {
+  const color = CATEGORIAS[categoria]?.color || '#c45a3e'
+  const emoji = CATEGORIAS[categoria]?.emoji || '📍'
+  return L.divIcon({
+    className: '',
+    html: `<div style="
+      width: 34px; height: 34px; border-radius: 50% 50% 50% 0;
+      background: ${color}; transform: rotate(-45deg);
+      box-shadow: 0 3px 8px rgba(0,0,0,.35); border: 2px solid white;
+      display: flex; align-items: center; justify-content: center;
+    "><span style="transform: rotate(45deg); font-size: 16px;">${emoji}</span></div>`,
+    iconSize: [34, 34],
+    iconAnchor: [17, 32],
+    popupAnchor: [0, -32]
+  })
+}
 
 export default function Mapa() {
   const [filtro, setFiltro] = useState('todas')
@@ -32,7 +40,10 @@ export default function Mapa() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex gap-2 overflow-x-auto p-3 pb-2">
+      <div
+        className="flex gap-2 overflow-x-auto p-3 pb-2"
+        style={{ maskImage: 'linear-gradient(to right, black 92%, transparent)' }}
+      >
         <FiltroChip label="Todas" active={filtro === 'todas'} onClick={() => setFiltro('todas')} emoji="📍" />
         {Object.entries(CATEGORIAS).map(([key, cat]) => (
           <FiltroChip key={key} label={cat.label} emoji={cat.emoji} active={filtro === key} onClick={() => setFiltro(key)} />
@@ -46,7 +57,7 @@ export default function Mapa() {
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           {pinesFiltrados.map((pin) => (
-            <Marker key={pin.id} position={[pin.lat, pin.lng]} icon={icon}>
+            <Marker key={pin.id} position={[pin.lat, pin.lng]} icon={iconoPara(pin.categoria)}>
               <Popup>
                 <div className="max-w-[220px]">
                   <p className="font-semibold">{pin.nombre}</p>
