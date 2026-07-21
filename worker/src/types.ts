@@ -1,6 +1,5 @@
 export interface Env {
   KV: KVNamespace
-  DB: D1Database
 
   // secrets (wrangler secret put ...)
   ANTHROPIC_API_KEY: string

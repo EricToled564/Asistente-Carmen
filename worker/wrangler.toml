@@ -3,16 +3,14 @@ main = "src/index.ts"
 compatibility_date = "2024-12-01"
 compatibility_flags = ["nodejs_compat"]
 
-# --- KV: suscripciones push + estado simple (ver README para cómo crear estos namespaces) ---
+# --- KV: suscripciones push + estado simple ---
 [[kv_namespaces]]
 binding = "KV"
-id = "REEMPLAZA_CON_TU_KV_ID"
+id = "84bc612d19634b5683c9ada11835394c" # namespace "Asistente_Carmen"
 
-# --- D1: log de cambios de KB / gastos opcional (ver README) ---
-[[d1_databases]]
-binding = "DB"
-database_name = "companion-db"
-database_id = "REEMPLAZA_CON_TU_D1_ID"
+# D1 (log de cambios de KB) no está en uso todavía en el código v1 — se agrega aquí solo si
+# más adelante se implementa esa función. Por ahora se omite para no bloquear el deploy con
+# un database_id inválido.
 
 # --- Cron Triggers ---
 # KB1-4 (planes de estudio, alojamiento, campus): semestral, 1-ago y 1-ene
