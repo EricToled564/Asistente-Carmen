@@ -1,0 +1,54 @@
+name = "companion-worker"
+main = "src/index.ts"
+compatibility_date = "2024-12-01"
+compatibility_flags = ["nodejs_compat"]
+
+# --- KV: suscripciones push + estado simple (ver README para cómo crear estos namespaces) ---
+[[kv_namespaces]]
+binding = "KV"
+id = "REEMPLAZA_CON_TU_KV_ID"
+
+# --- D1: log de cambios de KB / gastos opcional (ver README) ---
+[[d1_databases]]
+binding = "DB"
+database_name = "companion-db"
+database_id = "REEMPLAZA_CON_TU_D1_ID"
+
+# --- Cron Triggers ---
+# KB1-4 (planes de estudio, alojamiento, campus): semestral, 1-ago y 1-ene
+# KB5-6 (movilidad, trámites): mensual
+# Recordatorios de subir horario (KB8): 25-ago y 20-dic
+# Check-in proactivo diario: cada mañana
+[triggers]
+crons = [
+  "0 6 1 8 *",   # KB1-4 auto-investigación (agosto)
+  "0 6 1 1 *",   # KB1-4 auto-investigación (enero)
+  "0 6 1 * *",   # KB5-6 auto-investigación (mensual)
+  "0 8 25 8 *",  # recordatorio: sube tu horario (antes de semestre otoño)
+  "0 8 20 12 *", # recordatorio: sube tu horario (antes de semestre primavera)
+  "0 9 * * *"    # check-in proactivo diario (radar académico, ánimo, etc.)
+]
+
+# --- Variables de entorno / secretos ---
+# Configura los secretos reales con:
+#   wrangler secret put ANTHROPIC_API_KEY
+#   wrangler secret put ELEVENLABS_API_KEY
+#   wrangler secret put ELEVENLABS_AGENT_ID
+#   wrangler secret put TELEGRAM_BOT_TOKEN
+#   wrangler secret put RESEND_API_KEY
+#   wrangler secret put VAPID_PUBLIC_KEY
+#   wrangler secret put VAPID_PRIVATE_KEY
+# Ver /README.md para la lista completa y de dónde sacar cada una.
+[vars]
+FAMILIA_EMAIL_DESTINO = "REEMPLAZA_CON_EMAIL_DE_LA_FAMILIA"
+RESIDENCIA_DIRECCION = "REEMPLAZA_CON_DIRECCION_REAL"
+# IDs de documento del Knowledge Base en ElevenLabs (Conversational AI). Uno por cada tipo que
+# puede subir el mecanismo B (self-service) y por cada doc que mantiene el mecanismo A (cron).
+KB_DOC_ID_HORARIO = "REEMPLAZA_CON_ID_KB8"
+KB_DOC_ID_TRAMITE = "REEMPLAZA_CON_ID_KB6"
+KB_DOC_ID_OTRO = "REEMPLAZA_CON_ID_KB7"
+KB_DOC_ID_GRADO_DISENO = "REEMPLAZA_CON_ID_KB1"
+KB_DOC_ID_ING_DISENO = "REEMPLAZA_CON_ID_KB2"
+KB_DOC_ID_ALOJAMIENTO = "REEMPLAZA_CON_ID_KB3"
+KB_DOC_ID_CAMPUS = "REEMPLAZA_CON_ID_KB4"
+KB_DOC_ID_MOVILIDAD = "REEMPLAZA_CON_ID_KB5"

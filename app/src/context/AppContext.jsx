@@ -1,0 +1,73 @@
+import { createContext, useContext, useMemo, useState } from 'react'
+import { readJSON, writeJSON } from '../lib/storage.js'
+
+const AppContext = createContext(null)
+
+const DEFAULT_CHECKLIST = [
+  { id: 'sos-nativo', label: 'Configura Emergencia SOS nativo del iPhone (contactos + info médica)', done: false },
+  { id: 'empadronamiento', label: 'Agenda cita de empadronamiento', done: false },
+  { id: 'tie', label: 'Agenda cita de TIE (no puede pasar de 1 mes desde llegada)', done: false },
+  { id: 'banco', label: 'Abre cuenta bancaria', done: false },
+  { id: 'sanidad', label: 'Trámite de tarjeta sanitaria', done: false },
+  { id: 'movil', label: 'Línea de móvil española', done: false },
+  { id: 'villavesa', label: 'Saca tu tarjeta de transporte (villavesa)', done: false },
+  { id: 'horario', label: 'Sube tu horario del semestre en "Actualizar mi info"', done: false }
+]
+
+export function AppProvider({ children }) {
+  const [onboardingDone, setOnboardingDone] = useState(() => readJSON('onboardingDone', false))
+  const [checklist, setChecklist] = useState(() => readJSON('checklist', DEFAULT_CHECKLIST))
+  const [permissions, setPermissions] = useState(() =>
+    readJSON('permissions', { location: 'unknown', notifications: 'unknown' })
+  )
+
+  const config = useMemo(
+    () => ({
+      elevenLabsAgentId: import.meta.env.VITE_ELEVENLABS_AGENT_ID || '',
+      whatsappNumero: import.meta.env.VITE_SOS_WHATSAPP_NUMERO || '',
+      consuladoTel: import.meta.env.VITE_SOS_CONSULADO_TEL || '',
+      residenciaDireccion: import.meta.env.VITE_RESIDENCIA_DIRECCION || 'Configura tu dirección en Ajustes',
+      vapidPublicKey: import.meta.env.VITE_VAPID_PUBLIC_KEY || ''
+    }),
+    []
+  )
+
+  function completeOnboarding() {
+    setOnboardingDone(true)
+    writeJSON('onboardingDone', true)
+  }
+
+  function toggleChecklistItem(id) {
+    setChecklist((prev) => {
+      const next = prev.map((item) => (item.id === id ? { ...item, done: !item.done } : item))
+      writeJSON('checklist', next)
+      return next
+    })
+  }
+
+  function updatePermission(kind, status) {
+    setPermissions((prev) => {
+      const next = { ...prev, [kind]: status }
+      writeJSON('permissions', next)
+      return next
+    })
+  }
+
+  const value = {
+    onboardingDone,
+    completeOnboarding,
+    checklist,
+    toggleChecklistItem,
+    permissions,
+    updatePermission,
+    config
+  }
+
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>
+}
+
+export function useApp() {
+  const ctx = useContext(AppContext)
+  if (!ctx) throw new Error('useApp must be used within AppProvider')
+  return ctx
+}
