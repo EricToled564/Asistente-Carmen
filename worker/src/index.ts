@@ -28,8 +28,7 @@ export default {
 
   async scheduled(event: ScheduledEvent, env: Env, ctx: ExecutionContext) {
     switch (event.cron) {
-      case '0 6 1 8 *':
-      case '0 6 1 1 *':
+      case '0 6 1 1,8 *':
         ctx.waitUntil(ejecutarAutoInvestigacionSemestral(env))
         break
       case '0 6 1 * *':
