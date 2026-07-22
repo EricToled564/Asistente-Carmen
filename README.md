@@ -31,8 +31,8 @@ texto/fondo están verificados contra WCAG AA.
 | # | Módulo | Estado |
 |---|---|---|
 | 1 | Esqueleto PWA + sistema de diseño lavanda (manifest, SW, 6 tabs) | ✅ |
-| 2 | Widget de Maite embebido + variables dinámicas (Vía 2 fallback) | ✅ (necesita `agent_id`) |
-| 3 | Mapa con pines curados (CampusHome real) + deep links a Google Maps | ✅ |
+| 2 | Widget de Maite embebido + variables dinámicas (Vía 2 fallback) | ✅ (`agent_id` ya configurado) |
+| 3 | Mapa con pines curados (CampusHome real) + deep links a Google Maps (modo transporte público, "desde donde estoy" por GPS) + apps oficiales de transporte | ✅ |
 | 4 | Foto → información (visión Claude) | ✅ |
 | 5 | Académico: radar de fechas, índice interactivo de materias, tutor (vía Maite), captura rápida | ✅ |
 | 6 | Botones "Grabar clase"/"Terminar clase" (Atajos iOS) | ✅ (ver limitación abajo) |

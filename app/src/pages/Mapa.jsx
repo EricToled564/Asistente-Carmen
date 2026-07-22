@@ -6,6 +6,7 @@ import { PINES, CATEGORIAS, googleMapsDirectionsUrl, googleMapsDirectionsDesdeUb
 import PlanoEdificio from '../components/mapa/PlanoEdificio.jsx'
 import RutaInterior from '../components/mapa/RutaInterior.jsx'
 import { getCurrentPosition } from '../hooks/useGeolocation.js'
+import { APPS_TRANSPORTE } from '../data/appsTransporte.js'
 
 // Los íconos default de Leaflet dependen de assets externos que se rompen fácil con bundlers
 // (y verse como un pin azul genérico de Google Maps tampoco calza con el look de la app). En vez
@@ -76,6 +77,8 @@ export default function Mapa() {
           <FiltroChip key={key} label={cat.label} emoji={cat.emoji} active={filtro === key} onClick={() => setFiltro(key)} />
         ))}
       </div>
+
+      {filtro === 'transporte' && <AppsTransporte />}
 
       <div className="relative flex-1 overflow-hidden">
         <div className="absolute right-3 top-3 z-[1000] flex flex-col items-end gap-2">
@@ -151,6 +154,32 @@ export default function Mapa() {
           ))}
         </MapContainer>
       </div>
+    </div>
+  )
+}
+
+function AppsTransporte() {
+  return (
+    <div className="flex flex-col gap-2 px-3 pb-3">
+      {APPS_TRANSPORTE.map((app) => (
+        <div key={app.id} className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-soft">
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-lavanda-100 text-xl">
+            {app.emoji}
+          </span>
+          <div className="min-w-0 flex-1">
+            <p className="font-semibold text-morado-900">{app.nombre}</p>
+            <p className="text-xs text-morado-900/60">{app.descripcion}</p>
+          </div>
+          <div className="flex shrink-0 flex-col gap-1">
+            <a href={app.ios} target="_blank" rel="noreferrer" className="rounded-full bg-lavanda-50 px-2.5 py-1 text-center text-[11px] font-semibold text-lavanda-800">
+              iOS
+            </a>
+            <a href={app.android} target="_blank" rel="noreferrer" className="rounded-full bg-lavanda-50 px-2.5 py-1 text-center text-[11px] font-semibold text-lavanda-800">
+              Android
+            </a>
+          </div>
+        </div>
+      ))}
     </div>
   )
 }
