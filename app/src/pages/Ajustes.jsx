@@ -3,10 +3,12 @@ import { useApp } from '../context/AppContext.jsx'
 import { usePush } from '../hooks/usePush.js'
 import ActualizarInfo from '../components/kb/ActualizarInfo.jsx'
 import DatosEmergenciaForm from '../components/emergencia/DatosEmergenciaForm.jsx'
+import PreguntasActualizacion from '../components/kb/PreguntasActualizacion.jsx'
 
 const SECCIONES = [
   { id: 'checklist', label: '✅ Primeros 30 días' },
   { id: 'kb', label: '🔄 Actualizar mi info' },
+  { id: 'preguntas', label: '🗨️ Preguntas' },
   { id: 'emergencia', label: '🩸 Emergencia' },
   { id: 'notificaciones', label: '🔔 Notificaciones' },
   { id: 'ayuda', label: 'ℹ️ Ayuda' }
@@ -58,6 +60,8 @@ export default function Ajustes() {
         )}
 
         {seccion === 'kb' && <ActualizarInfo />}
+
+        {seccion === 'preguntas' && <PreguntasActualizacion />}
 
         {seccion === 'emergencia' && <DatosEmergenciaForm />}
 

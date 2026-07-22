@@ -7,7 +7,13 @@
 1. En el dashboard de ElevenLabs → tu agente Maite → Knowledge Base → sube cada `.md` de esta
    carpeta (arrastrar y soltar o pegar contenido)
 2. Copia el `document_id` que ElevenLabs le asigna a cada uno
-3. Pégalo en `manifest.json`, en el campo correspondiente al nombre del archivo
+3. Pégalo **en dos lugares** (sirven para cosas distintas, ambos lo necesitan):
+   - En `manifest.json` de esta carpeta, en el campo correspondiente al nombre del archivo — lo
+     usa `kb/sync.mjs` (el script que corres tú, a mano, cuando editas un `.md`)
+   - En el registro de KV del Worker, con el código corto del doc (KB1, KB3, KB8, KB9-4, etc):
+     `npx wrangler kv key put --binding=KV "kb-doc-id:KB1" "<document_id>"` — lo usan
+     `/kb-upload`, `/kb-answer` y el cron de auto-investigación (todo lo que corre en vivo desde
+     la app o los crons)
 
 ## Después de la primera vez
 

@@ -2,14 +2,17 @@ import { Hono } from 'hono'
 import type { Env } from '../types.js'
 import { describeImage, structureText } from '../lib/claude.js'
 import { updateKbDocument } from '../lib/elevenlabs.js'
+import { getKbDocId } from '../lib/kbRegistry.js'
 
 export const kbUpload = new Hono<{ Bindings: Env }>()
 
-const TIPOS_A_DOC = (env: Env): Record<string, string> => ({
-  horario: env.KB_DOC_ID_HORARIO,
-  tramite: env.KB_DOC_ID_TRAMITE,
-  otro: env.KB_DOC_ID_OTRO
-})
+// Mecanismo B (self-service): a qué código de KB corresponde cada tipo del selector. El
+// document_id real de cada código vive en el registro de KV (ver lib/kbRegistry.ts), no aquí.
+const TIPO_A_KB_CODE: Record<string, string> = {
+  horario: 'KB8',
+  tramite: 'KB6',
+  otro: 'KB7'
+}
 
 const EXTRACCION_PROMPT = `Eres Maite. Te suben una foto o texto para actualizar el Knowledge Base de \
 tu propio agente. Extrae el contenido útil y estructurable. Si NO reconoces esto como información \
@@ -57,9 +60,10 @@ kbUpload.post('/kb-upload', async (c) => {
 kbUpload.post('/kb-confirm', async (c) => {
   const body = await c.req.json<{ uploadId: string; markdown: string; tipo: string }>()
 
-  const documentId = TIPOS_A_DOC(c.env)[body.tipo]
-  if (!documentId || documentId.startsWith('REEMPLAZA')) {
-    return c.json({ error: `Falta configurar KB_DOC_ID_${body.tipo.toUpperCase()} en el Worker` }, 500)
+  const kbCode = TIPO_A_KB_CODE[body.tipo]
+  const documentId = kbCode ? await getKbDocId(c.env, kbCode) : null
+  if (!documentId) {
+    return c.json({ error: `Falta cargar el document_id de ${kbCode || body.tipo} en el registro de KV` }, 500)
   }
 
   try {

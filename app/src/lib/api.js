@@ -27,5 +27,7 @@ export const api = {
   kbUpload: (formData) => request('/kb-upload', { method: 'POST', body: formData }),
   kbConfirm: (payload) => request('/kb-confirm', { method: 'POST', body: JSON.stringify(payload) }),
   emergenciaGuardar: (payload) => request('/emergency-data', { method: 'POST', body: JSON.stringify(payload) }),
-  emergenciaObtener: () => request('/emergency-data', { method: 'GET' })
+  emergenciaObtener: () => request('/emergency-data', { method: 'GET' }),
+  kbAnswerCatalogo: () => request('/kb-answer/catalogo', { method: 'GET' }),
+  kbAnswer: (payload) => request('/kb-answer', { method: 'POST', body: JSON.stringify(payload) })
 }

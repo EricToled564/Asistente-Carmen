@@ -42,16 +42,27 @@ texto/fondo están verificados contra WCAG AA.
 | 10 | Onboarding (permisos + checklist 30 días) | ✅ |
 | 11 | Datos de emergencia (nombre legal + tipo de sangre, separados del KB) | ✅ |
 | 12 | Memoria persistente de Maite (`/memory/retrieve` + `/memory/add`) | ✅ (falta registrar los server tools, ver abajo) |
-| — | Worker: `/vision /audio /telegram /sos /push/subscribe /kb-upload /kb-confirm /emergency-data /memory/*` + crons | ✅ |
+| — | Mecanismo C: preguntas de actualización (`/kb-answer`, Ajustes → Preguntas) | ✅ |
+| — | Registro flexible de document_id del KB (KV, ya no env vars fijas) | ✅ |
+| — | Worker: `/vision /audio /telegram /sos /push/subscribe /kb-upload /kb-confirm /emergency-data /memory/* /kb-answer*` + crons | ✅ |
 | — | KB: 27 documentos + `kb/manifest.json` + `kb/sync.mjs` | ✅ |
 
 **Memoria persistente:** el código ya está, pero para que el agente realmente la use tienes que
 registrar `retrieve_memories` y `add_memories` como server tools en el dashboard de ElevenLabs —
 el schema exacto está en `/docs/memoria-server-tools.md`.
 
-**Pendiente del prompt v2** (siguiente en la fila): preguntas de actualización (Mecanismo C,
-`/kb-answer`), y el registro flexible de `KB_DOC_ID_*` para escalar más allá de los 3 tipos
-actuales del self-service upload.
+**Registro de KB docs:** los `document_id` ya no van en `wrangler.toml` — se cargan uno por uno
+en KV después de subir cada documento a mano en ElevenLabs:
+```bash
+npx wrangler kv key put --binding=KV "kb-doc-id:KB1" "<document_id>"
+```
+Repite para cada código (`KB1`...`KB9-19`) que ya tengas subido. Sin esto, `/kb-upload`,
+`/kb-answer` y el cron de auto-investigación (mecanismo A) no van a poder actualizar ese
+documento — pero no rompen nada, solo lo loguean y lo omiten.
+
+**Todo lo del prompt v2 está construido.** Lo único 100% pendiente de tu lado es la configuración
+externa: crear el agente en ElevenLabs, registrar los server tools de memoria, cargar los
+document_id, y las cuentas/keys de las APIs (ver "Configuración pendiente" abajo).
 
 Todo el código está escrito y el frontend **compila limpio** (`npm run build`) y el Worker
 **typechequea limpio** (`tsc --noEmit`) y **bundlea limpio** (`wrangler deploy --dry-run`). Lo que
@@ -102,9 +113,13 @@ npx wrangler secret put VAPID_PRIVATE_KEY
 
 Y en `worker/wrangler.toml`, reemplaza los `REEMPLAZA_CON_...` de `[vars]`:
 - `FAMILIA_EMAIL_DESTINO`, `RESIDENCIA_DIRECCION`
-- `KB_DOC_ID_*` — solo quedan mapeados aquí los 3 tipos del self-service upload (horario/trámite/
-  otro). Los 27 documentos completos (KB1-KB8 + KB9-1 a KB9-19) viven en `/kb` y se mapean en
-  `kb/manifest.json`, no en `wrangler.toml` — ver sección KB más abajo.
+
+Los `document_id` del KB **no** van en `wrangler.toml` — van en un registro de KV, uno por cada
+código (`KB1`, `KB3`, `KB8`, `KB9-4`, etc), cargados así después de subir cada documento a mano
+en ElevenLabs:
+```bash
+npx wrangler kv key put --binding=KV "kb-doc-id:KB1" "<document_id>"
+```
 
 ### 3. ElevenLabs — el agente Maite y su Knowledge Base
 1. Crea cuenta y un agente Conversational AI en elevenlabs.io, llámalo Maite

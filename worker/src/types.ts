@@ -13,14 +13,8 @@ export interface Env {
   // vars (wrangler.toml [vars])
   FAMILIA_EMAIL_DESTINO: string
   RESIDENCIA_DIRECCION: string
-  KB_DOC_ID_HORARIO: string
-  KB_DOC_ID_TRAMITE: string
-  KB_DOC_ID_OTRO: string
-  KB_DOC_ID_GRADO_DISENO: string
-  KB_DOC_ID_ING_DISENO: string
-  KB_DOC_ID_ALOJAMIENTO: string
-  KB_DOC_ID_CAMPUS: string
-  KB_DOC_ID_MOVILIDAD: string
+  // Los document_id del KB ya NO viven en env vars — ver lib/kbRegistry.ts (registro en KV,
+  // uno por código KB1/KB3/KB8/etc, escalable a los 27+ documentos y a los que se agreguen).
 }
 
 export interface PushSubscriptionRecord {

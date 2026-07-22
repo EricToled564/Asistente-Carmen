@@ -44,13 +44,8 @@ crons = [
 [vars]
 FAMILIA_EMAIL_DESTINO = "REEMPLAZA_CON_EMAIL_DE_LA_FAMILIA"
 RESIDENCIA_DIRECCION = "REEMPLAZA_CON_DIRECCION_REAL"
-# IDs de documento del Knowledge Base en ElevenLabs (Conversational AI). Uno por cada tipo que
-# puede subir el mecanismo B (self-service) y por cada doc que mantiene el mecanismo A (cron).
-KB_DOC_ID_HORARIO = "REEMPLAZA_CON_ID_KB8"
-KB_DOC_ID_TRAMITE = "REEMPLAZA_CON_ID_KB6"
-KB_DOC_ID_OTRO = "REEMPLAZA_CON_ID_KB7"
-KB_DOC_ID_GRADO_DISENO = "REEMPLAZA_CON_ID_KB1"
-KB_DOC_ID_ING_DISENO = "REEMPLAZA_CON_ID_KB2"
-KB_DOC_ID_ALOJAMIENTO = "REEMPLAZA_CON_ID_KB3"
-KB_DOC_ID_CAMPUS = "REEMPLAZA_CON_ID_KB4"
-KB_DOC_ID_MOVILIDAD = "REEMPLAZA_CON_ID_KB5"
+# Los document_id del KB (KB1, KB3, KB8, KB9-x, etc) YA NO van aquí como env vars — viven en un
+# registro en KV que escala a los 27+ documentos. Cárgalos así, uno por uno, después de subir
+# cada documento a mano en ElevenLabs:
+#   npx wrangler kv key put --binding=KV "kb-doc-id:KB1" "<document_id>"
+# Ver kb/README.md y worker/src/lib/kbRegistry.ts para el detalle completo.

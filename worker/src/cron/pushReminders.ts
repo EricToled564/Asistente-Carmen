@@ -28,6 +28,32 @@ export async function recordatorioSubirHorario(env: Env) {
   })
 }
 
+// Mecanismo C, catálogo 'residencia-check': mismas fechas que el recordatorio de horario
+// (25-ago/20-dic), así que se dispara desde el mismo cron trigger en vez de gastar uno nuevo
+// (el plan gratis de Cloudflare limita a 5). Ver docs/preguntas-actualizacion.md.
+export async function recordatorioResidenciaCheck(env: Env) {
+  await enviarATodos(env, 'ella', {
+    title: '¿Sigues en CampusHome?',
+    body: 'Contesta rapidísimo en Ajustes → Preguntas si cambiaste de residencia.',
+    url: '/',
+    tag: 'recordatorio-residencia-check'
+  })
+}
+
+// Mecanismo C, catálogo 'contacto-check': trimestral. Se engancha al cron mensual de KB5-6 (que
+// ya corre el día 1 de cada mes) y solo manda el push cada 3er mes — así tampoco necesita un
+// cron trigger nuevo.
+export async function recordatorioContactoCheckSiTrimestre(env: Env) {
+  const mes = new Date().getUTCMonth() // 0-11
+  if (mes % 3 !== 0) return // solo enero/abril/julio/octubre
+  await enviarATodos(env, 'ella', {
+    title: '¿Sigue igual tu contacto?',
+    body: 'Un check rápido en Ajustes → Preguntas: ¿cambió tu dirección de contacto?',
+    url: '/',
+    tag: 'recordatorio-contacto-check'
+  })
+}
+
 // Check-in proactivo genérico. Nota: el radar académico vive en localStorage del navegador,
 // no en el Worker — este cron NO puede saber sus fechas específicas de entrega/examen sin un
 // endpoint de sincronización adicional (no construido en v1). Ver README, sección "Limitaciones
