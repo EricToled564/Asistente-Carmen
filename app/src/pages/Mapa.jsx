@@ -2,9 +2,10 @@ import { useMemo, useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { PINES, CATEGORIAS, googleMapsDirectionsUrl, googleStreetViewUrl } from '../data/pines.js'
+import { PINES, CATEGORIAS, googleMapsDirectionsUrl, googleMapsDirectionsDesdeUbicacionUrl, googleStreetViewUrl } from '../data/pines.js'
 import PlanoEdificio from '../components/mapa/PlanoEdificio.jsx'
 import RutaInterior from '../components/mapa/RutaInterior.jsx'
+import { getCurrentPosition } from '../hooks/useGeolocation.js'
 
 // Los íconos default de Leaflet dependen de assets externos que se rompen fácil con bundlers
 // (y verse como un pin azul genérico de Google Maps tampoco calza con el look de la app). En vez
@@ -31,6 +32,20 @@ export default function Mapa() {
   const [filtro, setFiltro] = useState('todas')
   const [plano, setPlano] = useState(null)
   const [mostrarRuta, setMostrarRuta] = useState(false)
+  const [buscandoUbicacionPara, setBuscandoUbicacionPara] = useState(null)
+
+  // GPS real del navegador (no el posicionamiento indoor, que sí es inviable — este es
+  // outdoor, punto A → punto B en la ciudad, donde el GPS funciona normal). Si lo niega o falla,
+  // cae a abrir el link sin origen: Google Maps igual pregunta la ubicación por su cuenta.
+  async function irDesdeMiUbicacion(pin) {
+    setBuscandoUbicacionPara(pin.id)
+    const posicion = await getCurrentPosition()
+    setBuscandoUbicacionPara(null)
+    const url = posicion.ok
+      ? googleMapsDirectionsDesdeUbicacionUrl(posicion.lat, posicion.lng, pin.lat, pin.lng)
+      : googleMapsDirectionsUrl(pin.lat, pin.lng)
+    window.open(url, '_blank', 'noopener,noreferrer')
+  }
 
   const pinesFiltrados = useMemo(
     () => (filtro === 'todas' ? PINES : PINES.filter((p) => p.categoria === filtro)),
@@ -98,6 +113,13 @@ export default function Mapa() {
                     >
                       Cómo llegar →
                     </a>
+                    <button
+                      onClick={() => irDesdeMiUbicacion(pin)}
+                      disabled={buscandoUbicacionPara === pin.id}
+                      className="inline-block rounded-full bg-lavanda-50 px-3 py-1 text-xs font-semibold text-lavanda-800 disabled:opacity-60"
+                    >
+                      {buscandoUbicacionPara === pin.id ? 'Ubicándote…' : '📍 Desde donde estoy'}
+                    </button>
                     <a
                       href={googleStreetViewUrl(pin.lat, pin.lng)}
                       target="_blank"

@@ -99,8 +99,18 @@ export const PINES = [
   }
 ]
 
+// travelmode=transit para que abra directo en modo transporte público (Villavesa) — Pamplona ya
+// tiene sus datos de autobuses integrados en Google Transit, así que Google Maps calcula rutas
+// reales en bus sin que nosotros tengamos que integrar nada aparte.
 export function googleMapsDirectionsUrl(lat, lng) {
-  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
+  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=transit`
+}
+
+// Misma idea pero con origen explícito (la ubicación real de Carmen en ese momento, vía GPS del
+// navegador) en vez de dejar que Google Maps pregunte por su cuenta — ver botón "📍 Desde donde
+// estoy" en Mapa.jsx.
+export function googleMapsDirectionsDesdeUbicacionUrl(origenLat, origenLng, destinoLat, destinoLng) {
+  return `https://www.google.com/maps/dir/?api=1&origin=${origenLat},${origenLng}&destination=${destinoLat},${destinoLng}&travelmode=transit`
 }
 
 // URL scheme oficial de Google Maps para abrir Street View directo (sin API key, sin costo —
