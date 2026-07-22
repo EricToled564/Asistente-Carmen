@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { PINES, CATEGORIAS, googleMapsDirectionsUrl } from '../data/pines.js'
+import PlanoEdificio from '../components/mapa/PlanoEdificio.jsx'
 
 // Los íconos default de Leaflet dependen de assets externos que se rompen fácil con bundlers
 // (y verse como un pin azul genérico de Google Maps tampoco calza con el look de la app). En vez
@@ -27,6 +28,7 @@ function iconoPara(categoria) {
 
 export default function Mapa() {
   const [filtro, setFiltro] = useState('todas')
+  const [plano, setPlano] = useState(null)
 
   const pinesFiltrados = useMemo(
     () => (filtro === 'todas' ? PINES : PINES.filter((p) => p.categoria === filtro)),
@@ -37,6 +39,16 @@ export default function Mapa() {
     const campus = PINES.find((p) => p.id === 'escuela-arquitectura')
     return [campus.lat, campus.lng]
   }, [])
+
+  if (plano) {
+    return (
+      <PlanoEdificio
+        src="/planos/escuela-arquitectura.jpg"
+        alt="Plano — Escuela Técnica Superior de Arquitectura"
+        onClose={() => setPlano(null)}
+      />
+    )
+  }
 
   return (
     <div className="flex h-full flex-col">
@@ -50,7 +62,14 @@ export default function Mapa() {
         ))}
       </div>
 
-      <div className="flex-1 overflow-hidden">
+      <div className="relative flex-1 overflow-hidden">
+        <button
+          onClick={() => setPlano(true)}
+          className="absolute right-3 top-3 z-[1000] flex items-center gap-1.5 rounded-full bg-white px-3 py-2 text-xs font-semibold text-lavanda-800 shadow-soft"
+        >
+          🏛️ Plano del edificio
+        </button>
+
         <MapContainer center={centro} zoom={14} scrollWheelZoom className="h-full w-full">
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -62,14 +81,24 @@ export default function Mapa() {
                 <div className="max-w-[220px]">
                   <p className="font-semibold">{pin.nombre}</p>
                   <p className="mt-1 text-xs text-morado-900/70">{pin.nota}</p>
-                  <a
-                    href={googleMapsDirectionsUrl(pin.lat, pin.lng)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="mt-2 inline-block rounded-full bg-lavanda-700 px-3 py-1 text-xs font-semibold text-white"
-                  >
-                    Cómo llegar →
-                  </a>
+                  <div className="mt-2 flex gap-2">
+                    <a
+                      href={googleMapsDirectionsUrl(pin.lat, pin.lng)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-block rounded-full bg-lavanda-700 px-3 py-1 text-xs font-semibold text-white"
+                    >
+                      Cómo llegar →
+                    </a>
+                    {pin.id === 'escuela-arquitectura' && (
+                      <button
+                        onClick={() => setPlano(true)}
+                        className="inline-block rounded-full bg-lavanda-50 px-3 py-1 text-xs font-semibold text-lavanda-800"
+                      >
+                        Ver plano
+                      </button>
+                    )}
+                  </div>
                 </div>
               </Popup>
             </Marker>
