@@ -10,8 +10,10 @@ const DEFAULT_CHECKLIST = [
   { id: 'banco', label: 'Abre cuenta bancaria', done: false },
   { id: 'sanidad', label: 'Trámite de tarjeta sanitaria', done: false },
   { id: 'movil', label: 'Línea de móvil española', done: false },
-  { id: 'villavesa', label: 'Saca tu tarjeta de transporte (villavesa)', done: false },
-  { id: 'horario', label: 'Sube tu horario del semestre en "Actualizar mi info"', done: false }
+  { id: 'villavesa', label: 'Saca tu tarjeta de transporte (villavesa)', done: false }
+  // El horario del 1er semestre ya está cargado en el KB (KB8-horario.md) — no hace falta
+  // pedírselo en el checklist de los primeros 30 días. El de 2º semestre se pide vía push
+  // reminder en diciembre (ver worker/src/cron/pushReminders.ts), no aquí.
 ]
 
 export function AppProvider({ children }) {

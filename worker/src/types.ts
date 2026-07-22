@@ -30,3 +30,11 @@ export interface PushSubscriptionRecord {
   grupo?: 'ella' | 'familia'
   guardadoEn: string
 }
+
+// Datos de emergencia: viven SOLO en KV bajo la key 'emergencia:datos', separados por completo
+// del Knowledge Base — Maite nunca los ve, solo los lee el módulo SOS/modo emergencia.
+export interface DatosEmergencia {
+  nombreLegal: string
+  tipoSangre: string // '' o 'no proporcionado' si no la dio — nunca bloqueante
+  actualizadoEn: string
+}

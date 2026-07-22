@@ -40,14 +40,14 @@ texto/fondo están verificados contra WCAG AA.
 | 8 | Notificaciones push (Web Push + cron de check-ins) | ✅ |
 | 9 | "Actualizar mi info" (KB self-service con vista previa editable) | ✅ |
 | 10 | Onboarding (permisos + checklist 30 días) | ✅ |
-| — | Worker: `/vision /audio /telegram /sos /push/subscribe /kb-upload /kb-confirm` + crons | ✅ |
+| 11 | Datos de emergencia (nombre legal + tipo de sangre, separados del KB) | ✅ |
+| — | Worker: `/vision /audio /telegram /sos /push/subscribe /kb-upload /kb-confirm /emergency-data` + crons | ✅ |
 | — | KB: 27 documentos + `kb/manifest.json` + `kb/sync.mjs` | ✅ |
 
-**Pendiente del prompt v2** (no incluido en esta pasada, siguiente en la fila): datos de
-emergencia en onboarding (nombre legal + tipo de sangre, separado del KB), memoria persistente
-de Maite (`/memory/retrieve` + `/memory/add` + server tools), preguntas de actualización
-(Mecanismo C, `/kb-answer`), y el registro flexible de `KB_DOC_ID_*` para escalar más allá de los
-3 tipos actuales del self-service upload.
+**Pendiente del prompt v2** (siguiente en la fila): memoria persistente de Maite
+(`/memory/retrieve` + `/memory/add` + server tools), preguntas de actualización (Mecanismo C,
+`/kb-answer`), y el registro flexible de `KB_DOC_ID_*` para escalar más allá de los 3 tipos
+actuales del self-service upload.
 
 Todo el código está escrito y el frontend **compila limpio** (`npm run build`) y el Worker
 **typechequea limpio** (`tsc --noEmit`) y **bundlea limpio** (`wrangler deploy --dry-run`). Lo que

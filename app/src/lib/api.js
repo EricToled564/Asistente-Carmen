@@ -25,5 +25,7 @@ export const api = {
   sos: (payload) => request('/sos', { method: 'POST', body: JSON.stringify(payload) }),
   pushSubscribe: (payload) => request('/push/subscribe', { method: 'POST', body: JSON.stringify(payload) }),
   kbUpload: (formData) => request('/kb-upload', { method: 'POST', body: formData }),
-  kbConfirm: (payload) => request('/kb-confirm', { method: 'POST', body: JSON.stringify(payload) })
+  kbConfirm: (payload) => request('/kb-confirm', { method: 'POST', body: JSON.stringify(payload) }),
+  emergenciaGuardar: (payload) => request('/emergency-data', { method: 'POST', body: JSON.stringify(payload) }),
+  emergenciaObtener: () => request('/emergency-data', { method: 'GET' })
 }

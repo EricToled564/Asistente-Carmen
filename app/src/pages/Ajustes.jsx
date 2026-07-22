@@ -2,10 +2,12 @@ import { useState } from 'react'
 import { useApp } from '../context/AppContext.jsx'
 import { usePush } from '../hooks/usePush.js'
 import ActualizarInfo from '../components/kb/ActualizarInfo.jsx'
+import DatosEmergenciaForm from '../components/emergencia/DatosEmergenciaForm.jsx'
 
 const SECCIONES = [
   { id: 'checklist', label: '✅ Primeros 30 días' },
   { id: 'kb', label: '🔄 Actualizar mi info' },
+  { id: 'emergencia', label: '🩸 Emergencia' },
   { id: 'notificaciones', label: '🔔 Notificaciones' },
   { id: 'ayuda', label: 'ℹ️ Ayuda' }
 ]
@@ -56,6 +58,8 @@ export default function Ajustes() {
         )}
 
         {seccion === 'kb' && <ActualizarInfo />}
+
+        {seccion === 'emergencia' && <DatosEmergenciaForm />}
 
         {seccion === 'notificaciones' && (
           <div className="flex flex-col gap-3 px-5">

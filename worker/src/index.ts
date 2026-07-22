@@ -7,6 +7,7 @@ import { telegram } from './routes/telegram.js'
 import { sos } from './routes/sos.js'
 import { push } from './routes/push.js'
 import { kbUpload } from './routes/kbUpload.js'
+import { emergencia } from './routes/emergencia.js'
 import { ejecutarAutoInvestigacionSemestral, ejecutarAutoInvestigacionMensual } from './cron/kbAutoResearch.js'
 import { recordatorioSubirHorario, checkInProactivo } from './cron/pushReminders.js'
 
@@ -22,6 +23,7 @@ app.route('/', telegram)
 app.route('/', sos)
 app.route('/', push)
 app.route('/', kbUpload)
+app.route('/', emergencia)
 
 export default {
   fetch: app.fetch,

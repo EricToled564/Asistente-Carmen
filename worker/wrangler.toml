@@ -17,14 +17,17 @@ id = "84bc612d19634b5683c9ada11835394c" # namespace "Asistente_Carmen"
 # KB1-4 (semestral, 1-ago y 1-ene) va en UNA sola expresión usando "1,8" en el campo de mes,
 # en vez de dos triggers separados.
 # KB5-6 (movilidad, trámites): mensual
-# Recordatorios de subir horario (KB8): 25-ago y 20-dic
+# Recordatorios de subir horario (KB8): 25-ago y 20-dic. NOTA: el de 25-ago ya no aplica para
+# el año 2026-2027 — el horario del 1er semestre se investigó y cargó directo a KB8-horario.md
+# antes de la entrega (no hizo falta que ella lo subiera). El de 20-dic sigue vigente: el 2o
+# semestre (inicia enero 2027) todavía no está documentado.
 # Check-in proactivo diario: cada mañana
 [triggers]
 crons = [
   "0 6 1 1,8 *", # KB1-4 auto-investigación (1-ene y 1-ago, misma expresión)
   "0 6 1 * *",   # KB5-6 auto-investigación (mensual)
-  "0 8 25 8 *",  # recordatorio: sube tu horario (antes de semestre otoño)
-  "0 8 20 12 *", # recordatorio: sube tu horario (antes de semestre primavera)
+  "0 8 25 8 *",  # recordatorio: sube tu horario (ver nota — moot para 2026, útil en años futuros)
+  "0 8 20 12 *", # recordatorio: sube tu horario del 2o semestre (sí aplica, vigente)
   "0 9 * * *"    # check-in proactivo diario (radar académico, ánimo, etc.)
 ]
 

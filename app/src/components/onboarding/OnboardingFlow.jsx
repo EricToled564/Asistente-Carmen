@@ -1,11 +1,17 @@
 import { useState } from 'react'
 import { useApp } from '../../context/AppContext.jsx'
+import { api } from '../../lib/api.js'
 
-const STEPS = ['bienvenida', 'permisos', 'checklist']
+const STEPS = ['bienvenida', 'permisos', 'emergencia', 'checklist']
+
+const TIPOS_SANGRE = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
 
 export default function OnboardingFlow({ onGoTo }) {
   const { completeOnboarding, updatePermission, permissions, checklist, toggleChecklistItem } = useApp()
   const [step, setStep] = useState(0)
+  const [nombreLegal, setNombreLegal] = useState('Carmen Toledano Peláez')
+  const [tipoSangre, setTipoSangre] = useState('')
+  const [guardandoEmergencia, setGuardandoEmergencia] = useState(false)
 
   async function askLocation() {
     if (!('geolocation' in navigator)) {
@@ -29,6 +35,20 @@ export default function OnboardingFlow({ onGoTo }) {
       updatePermission('notifications', result)
     } catch {
       updatePermission('notifications', 'denied')
+    }
+  }
+
+  async function siguienteDesdeEmergencia() {
+    setGuardandoEmergencia(true)
+    try {
+      await api.emergenciaGuardar({ nombreLegal, tipoSangre })
+    } catch (err) {
+      // Nunca bloqueante: si el Worker no está listo todavía, seguimos el onboarding igual.
+      // Ella puede volver a intentarlo desde Ajustes más adelante.
+      console.error('No se pudo guardar datos de emergencia', err)
+    } finally {
+      setGuardandoEmergencia(false)
+      setStep((s) => s + 1)
     }
   }
 
@@ -80,6 +100,46 @@ export default function OnboardingFlow({ onGoTo }) {
       )}
 
       {step === 2 && (
+        <div className="flex flex-1 flex-col justify-center gap-5">
+          <div>
+            <h2 className="font-display text-2xl font-bold">Por si alguna vez pasa algo</h2>
+            <p className="mt-2 text-sm text-crema-100/80">
+              Esto NUNCA lo ve Maite ni se sube a su Knowledge Base — solo lo usa la pantalla de
+              emergencia si algún día activas el SOS. Es opcional, no tienes que llenarlo ahorita.
+            </p>
+          </div>
+
+          <label className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium">Nombre legal completo</span>
+            <input
+              value={nombreLegal}
+              onChange={(e) => setNombreLegal(e.target.value)}
+              className="rounded-xl bg-white/10 px-4 py-2.5 text-crema-50 placeholder:text-crema-100/50"
+            />
+          </label>
+
+          <label className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium">Tipo de sangre (opcional)</span>
+            <p className="text-xs text-crema-100/70">Por si alguna vez necesitas atención médica de urgencia.</p>
+            <select
+              value={tipoSangre}
+              onChange={(e) => setTipoSangre(e.target.value)}
+              className="rounded-xl bg-white/10 px-4 py-2.5 text-crema-50"
+            >
+              <option value="" className="text-morado-900">
+                Prefiero no decir / no lo sé
+              </option>
+              {TIPOS_SANGRE.map((t) => (
+                <option key={t} value={t} className="text-morado-900">
+                  {t}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      )}
+
+      {step === 3 && (
         <div className="flex flex-1 flex-col gap-4 overflow-y-auto">
           <h2 className="font-display text-2xl font-bold">Tus primeros 30 días</h2>
           <p className="text-sm text-crema-100/80">
@@ -110,7 +170,15 @@ export default function OnboardingFlow({ onGoTo }) {
             <span key={i} className={`h-1.5 w-6 rounded-full ${i === step ? 'bg-white' : 'bg-white/30'}`} />
           ))}
         </div>
-        {step < STEPS.length - 1 ? (
+        {step === 2 ? (
+          <button
+            onClick={siguienteDesdeEmergencia}
+            disabled={guardandoEmergencia}
+            className="rounded-full bg-white px-6 py-2.5 font-semibold text-lavanda-800 disabled:opacity-60"
+          >
+            {guardandoEmergencia ? 'Guardando…' : 'Siguiente'}
+          </button>
+        ) : step < STEPS.length - 1 ? (
           <button
             onClick={() => setStep((s) => s + 1)}
             className="rounded-full bg-white px-6 py-2.5 font-semibold text-lavanda-800"
