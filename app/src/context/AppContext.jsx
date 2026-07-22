@@ -1,5 +1,6 @@
 import { createContext, useContext, useMemo, useState } from 'react'
 import { readJSON, writeJSON } from '../lib/storage.js'
+import { CIUDAD_REFERENCIA_DEFAULT } from '../data/ciudadesReferencia.js'
 
 const AppContext = createContext(null)
 
@@ -22,6 +23,9 @@ export function AppProvider({ children }) {
   const [permissions, setPermissions] = useState(() =>
     readJSON('permissions', { location: 'unknown', notifications: 'unknown' })
   )
+  // Ciudad del reloj secundario en Inicio — Ciudad de México por default (familia), cambiable si
+  // Carmen viaja y quiere comparar la hora de otro lugar en vez de la de casa.
+  const [ciudadReferencia, setCiudadReferenciaState] = useState(() => readJSON('ciudadReferencia', CIUDAD_REFERENCIA_DEFAULT))
 
   const config = useMemo(
     () => ({
@@ -60,6 +64,11 @@ export function AppProvider({ children }) {
     })
   }
 
+  function setCiudadReferencia(ciudad) {
+    setCiudadReferenciaState(ciudad)
+    writeJSON('ciudadReferencia', ciudad)
+  }
+
   const value = {
     onboardingDone,
     completeOnboarding,
@@ -67,6 +76,8 @@ export function AppProvider({ children }) {
     toggleChecklistItem,
     permissions,
     updatePermission,
+    ciudadReferencia,
+    setCiudadReferencia,
     config
   }
 
