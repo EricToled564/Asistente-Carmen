@@ -1,6 +1,8 @@
 # Knowledge Base de Maite
 
-27 documentos: KB1-KB8 (núcleo) + KB9-1 a KB9-19 (guías docentes, una por asignatura de 1º-2º curso).
+45 documentos: KB1-KB8 (núcleo) + KB9-1 a KB9-37 (guías docentes de 1º a 4º curso, incluyendo
+optativas y las 3 menciones de 3º-4º). El índice interactivo de la app (`Académico → Índice`)
+usa estos mismos códigos para dar contexto a Maite cuando Carmen pregunta por una materia.
 
 ## Primera vez (una sola vez por documento)
 
@@ -29,6 +31,6 @@ sincronizar solo uno: `node kb/sync.mjs KB8-horario.md`.
 
 ## Guías docentes faltantes
 
-Al momento de esta versión, faltan las guías docentes de 3º-4º curso (dependen de la mención
-elegida — Producto/Moda/Servicios — y de las optativas). Se agregan a esta carpeta y a
-`manifest.json` conforme Carmen avance de curso.
+Solo falta 4º curso, 2º semestre: Estrategias de Comunicación & Web, Business management, Market
+strategies, Creative leadership workshop y el TFG — no tienen guía docente todavía. Se agregan a
+esta carpeta, a `manifest.json` y a `app/src/data/indiceAcademico.js` conforme existan.

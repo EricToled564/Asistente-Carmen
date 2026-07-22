@@ -22,7 +22,7 @@ texto/fondo están verificados contra WCAG AA.
 ```
 /app      → Frontend: React + Vite + Tailwind, PWA instalable, mobile-first
 /worker   → Backend: Cloudflare Worker (Hono) — todos los proxies, webhooks y crons
-/kb       → Los 27 documentos del Knowledge Base de Maite + script de sync a ElevenLabs
+/kb       → Los 45 documentos del Knowledge Base de Maite + script de sync a ElevenLabs
 /docs     → Documentación de apoyo (Atajos de iOS, este README, diseño original)
 ```
 
@@ -34,7 +34,7 @@ texto/fondo están verificados contra WCAG AA.
 | 2 | Widget de Maite embebido + variables dinámicas (Vía 2 fallback) | ✅ (necesita `agent_id`) |
 | 3 | Mapa con pines curados (CampusHome real) + deep links a Google Maps | ✅ |
 | 4 | Foto → información (visión Claude) | ✅ |
-| 5 | Académico: radar de fechas, tutor (vía Maite), captura rápida | ✅ |
+| 5 | Académico: radar de fechas, índice interactivo de materias, tutor (vía Maite), captura rápida | ✅ |
 | 6 | Botones "Grabar clase"/"Terminar clase" (Atajos iOS) | ✅ (ver limitación abajo) |
 | 7 | Módulo SOS (countdown, GPS, 3 canales, modo emergencia) | ✅ |
 | 8 | Notificaciones push (Web Push + cron de check-ins) | ✅ |
@@ -45,7 +45,7 @@ texto/fondo están verificados contra WCAG AA.
 | — | Mecanismo C: preguntas de actualización (`/kb-answer`, Ajustes → Preguntas) | ✅ |
 | — | Registro flexible de document_id del KB (KV, ya no env vars fijas) | ✅ |
 | — | Worker: `/vision /audio /telegram /sos /push/subscribe /kb-upload /kb-confirm /emergency-data /memory/* /kb-answer*` + crons | ✅ |
-| — | KB: 27 documentos + `kb/manifest.json` + `kb/sync.mjs` | ✅ |
+| — | KB: 45 documentos + `kb/manifest.json` + `kb/sync.mjs` | ✅ |
 
 **Memoria persistente:** el código ya está, pero para que el agente realmente la use tienes que
 registrar `retrieve_memories` y `add_memories` como server tools en el dashboard de ElevenLabs —
@@ -56,7 +56,7 @@ en KV después de subir cada documento a mano en ElevenLabs:
 ```bash
 npx wrangler kv key put --binding=KV "kb-doc-id:KB1" "<document_id>"
 ```
-Repite para cada código (`KB1`...`KB9-19`) que ya tengas subido. Sin esto, `/kb-upload`,
+Repite para cada código (`KB1`...`KB9-37`) que ya tengas subido. Sin esto, `/kb-upload`,
 `/kb-answer` y el cron de auto-investigación (mecanismo A) no van a poder actualizar ese
 documento — pero no rompen nada, solo lo loguean y lo omiten.
 
@@ -129,7 +129,7 @@ npx wrangler kv key put --binding=KV "kb-doc-id:KB1" "<document_id>"
 4. Configura `{{system__time}}` con timezone **Europe/Madrid** en la plataforma (esto resuelve la
    hora del agente sin necesitar código — ver `VITE_AGENTE_VIA2_HORA` en `.env.example` para el
    fallback si esto falla en pruebas)
-5. Sube los 27 documentos de `/kb` (ver `/kb/README.md` para el flujo completo con
+5. Sube los 45 documentos de `/kb` (ver `/kb/README.md` para el flujo completo con
    `kb/manifest.json` y `kb/sync.mjs`)
 6. Copia el `agent_id` → `app/.env` (`VITE_ELEVENLABS_AGENT_ID`) y el Worker secret
 

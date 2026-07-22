@@ -3,9 +3,11 @@ import RadarFechas from '../components/academico/RadarFechas.jsx'
 import CapturaRapida from '../components/academico/CapturaRapida.jsx'
 import BotonesAtajos from '../components/academico/BotonesAtajos.jsx'
 import ElevenLabsWidget from '../components/agente/ElevenLabsWidget.jsx'
+import IndiceAcademico from '../components/academico/IndiceAcademico.jsx'
 
 const SECCIONES = [
   { id: 'radar', label: '📅 Radar' },
+  { id: 'indice', label: '📖 Índice' },
   { id: 'tutor', label: '🎓 Tutor' },
   { id: 'captura', label: '🎙️ Captura' }
 ]
@@ -35,6 +37,8 @@ export default function Academico() {
 
       <div className="flex-1 overflow-y-auto px-5 pb-8">
         {seccion === 'radar' && <RadarFechas />}
+
+        {seccion === 'indice' && <IndiceAcademico />}
 
         {seccion === 'tutor' && (
           <div className="flex h-full flex-col gap-3">
