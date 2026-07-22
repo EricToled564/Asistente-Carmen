@@ -67,10 +67,8 @@ confirmación.
 ## Datos pendientes de confirmar
 
 Los datos del edificio (`worker/src/data/edificioArquitectura.ts`) salen de capturas reales del
-Google My Maps que armaste, pero quedaron dos cosas sin confirmar:
+Google My Maps que armaste. Queda una cosa sin confirmar:
 
-- **Biblioteca** y **Taller Moda** aparecen en la leyenda de Planta 0 pero no se alcanzaron a ver
-  etiquetados en las capturas — no están incluidos como paradas todavía.
 - No quedó confirmado si **Planta 1 es el último piso** del edificio, o si hay más plantas arriba.
 - **Planta -1 no tiene ascensor** registrado (solo la escalera junto a Seminario 3) — si en
   realidad sí lo hay, o si Carmen necesita ruta accesible en esa planta, hay que agregarlo.

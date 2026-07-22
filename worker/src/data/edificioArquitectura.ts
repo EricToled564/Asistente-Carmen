@@ -52,8 +52,23 @@ const PLANTA_0: Parada[] = [
   { id: 'p0-aula06', nombre: 'Aula 06', planta: 0, tipo: 'aula' },
   { id: 'p0-aula05', nombre: 'Aula 05', planta: 0, tipo: 'aula' },
   { id: 'p0-aula04', nombre: 'Aula 04', planta: 0, tipo: 'aula' },
-  { id: 'p0-salas-0340-0330', nombre: 'Aulas 0340 / 0330 / 0341 / 0342', planta: 0, tipo: 'aula', salas: ['0340', '0330', '0341', '0342'] },
-  { id: 'p0-aula0', nombre: 'Aula 0', planta: 0, tipo: 'aula', salas: ['0230', '0270'] },
+  {
+    id: 'p0-taller-moda',
+    nombre: 'Taller de Moda',
+    planta: 0,
+    tipo: 'aula',
+    salas: ['0340', '0330', '0341', '0342'],
+    nota: 'Zona grande junto al pasillo central, entre Aula 05/04 y Aula 0.'
+  },
+  { id: 'p0-aula0', nombre: 'Aula 0', planta: 0, tipo: 'aula', salas: ['0230'] },
+  {
+    id: 'p0-biblioteca',
+    nombre: 'Biblioteca',
+    planta: 0,
+    tipo: 'servicio',
+    salas: ['0270'],
+    nota: 'Junto al Taller de Moda, entre Aula 0 y Conserjería.'
+  },
   { id: 'p0-aula02', nombre: 'Aula 02', planta: 0, tipo: 'aula', salas: ['0490', '0500'] },
   { id: 'p0-pasillo-escaleras', nombre: 'Escaleras (pasillo central)', planta: 0, tipo: 'conector', grupo: 'centro' },
   { id: 'p0-ascensor', nombre: 'Ascensor', planta: 0, tipo: 'conector', grupo: 'centro', esAscensor: true },
@@ -89,8 +104,6 @@ const PLANTA_0: Parada[] = [
   { id: 'p0-aseo-masculino-ne', nombre: 'Aseo masculino (ala noreste)', planta: 0, tipo: 'servicio' },
   { id: 'p0-innovation-factory', nombre: 'Innovation Factory — Centro de Innovación', planta: 0, tipo: 'servicio' },
   { id: 'p0-seminario01', nombre: 'Seminario 01', planta: 0, tipo: 'aula', salas: ['0130', '0140', '0150', '0170', '0180'] }
-  // Biblioteca y Taller Moda aparecen en la leyenda de Planta 0 pero no se alcanzan a ver
-  // etiquelados en la foto — pendiente confirmar con el usuario en qué zona caen exactamente.
 ]
 
 // --- Planta 1 ------------------------------------------------------------
