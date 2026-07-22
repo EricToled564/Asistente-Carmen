@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { PINES, CATEGORIAS, googleMapsDirectionsUrl } from '../data/pines.js'
+import { PINES, CATEGORIAS, googleMapsDirectionsUrl, googleStreetViewUrl } from '../data/pines.js'
 import PlanoEdificio from '../components/mapa/PlanoEdificio.jsx'
 
 // Los íconos default de Leaflet dependen de assets externos que se rompen fácil con bundlers
@@ -81,7 +81,7 @@ export default function Mapa() {
                 <div className="max-w-[220px]">
                   <p className="font-semibold">{pin.nombre}</p>
                   <p className="mt-1 text-xs text-morado-900/70">{pin.nota}</p>
-                  <div className="mt-2 flex gap-2">
+                  <div className="mt-2 flex flex-wrap gap-1.5">
                     <a
                       href={googleMapsDirectionsUrl(pin.lat, pin.lng)}
                       target="_blank"
@@ -89,6 +89,14 @@ export default function Mapa() {
                       className="inline-block rounded-full bg-lavanda-700 px-3 py-1 text-xs font-semibold text-white"
                     >
                       Cómo llegar →
+                    </a>
+                    <a
+                      href={googleStreetViewUrl(pin.lat, pin.lng)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-block rounded-full bg-lavanda-50 px-3 py-1 text-xs font-semibold text-lavanda-800"
+                    >
+                      👁️ Street View
                     </a>
                     {pin.id === 'escuela-arquitectura' && (
                       <button

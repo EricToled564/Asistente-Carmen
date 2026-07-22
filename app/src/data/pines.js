@@ -102,3 +102,11 @@ export const PINES = [
 export function googleMapsDirectionsUrl(lat, lng) {
   return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
 }
+
+// URL scheme oficial de Google Maps para abrir Street View directo (sin API key, sin costo —
+// mismo patrón que googleMapsDirectionsUrl, solo con map_action=pano). Útil para que reconozca
+// la fachada de un lugar ANTES de ir la primera vez — Google no siempre tiene cobertura exacta
+// en el punto pedido; si no hay imagen ahí, Google salta a la más cercana disponible.
+export function googleStreetViewUrl(lat, lng) {
+  return `https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${lat},${lng}`
+}
