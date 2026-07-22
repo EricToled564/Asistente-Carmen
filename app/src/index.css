@@ -2,13 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
-html, body, #root {
+html, body {
   height: 100%;
 }
 
 body {
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior-y: none;
+  min-height: 100dvh;
+}
+
+#root {
+  height: 100%;
+  min-height: 100dvh;
+}
+
+/* Mobile-first: por defecto la app ocupa todo el ancho (así se ve en el iPhone real).
+   Solo a partir de un viewport de escritorio le ponemos tope de ancho y la enmarcamos,
+   para que no se vea rota/estirada si alguien la abre en una computadora. */
+@media (min-width: 640px) {
+  body {
+    display: flex;
+    justify-content: center;
+    background: #EFE4F9;
+  }
+
+  #root {
+    width: 100%;
+    max-width: 480px;
+    box-shadow:
+      0 0 0 1px rgba(124, 77, 188, 0.15),
+      0 40px 80px -30px rgba(43, 27, 61, 0.35);
+  }
 }
 
 .safe-top {
@@ -16,4 +41,12 @@ body {
 }
 .safe-bottom {
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

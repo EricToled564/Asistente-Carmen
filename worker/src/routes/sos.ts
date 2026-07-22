@@ -52,7 +52,7 @@ async function notificarFamiliaEmail(env: Env, mapsLink: string | null, bateria:
   if (!env.FAMILIA_EMAIL_DESTINO || env.FAMILIA_EMAIL_DESTINO.startsWith('REEMPLAZA')) return
   await enviarEmail(env.RESEND_API_KEY, {
     to: env.FAMILIA_EMAIL_DESTINO,
-    from: 'Nava <sos@resend.dev>',
+    from: 'Maite <sos@resend.dev>',
     subject: '🆘 Alerta SOS',
     html: `
       <p>Se activó el botón SOS.</p>

@@ -50,7 +50,7 @@ Plan A:
 
 Fallback si "Detener grabación" no existe o no encuentra el archivo automáticamente:
 - El Atajo abre **Notas de Voz** y le pide a ella compartir manualmente la última grabación
-  usando el botón de compartir nativo de iOS → elegir la app "Nava" (necesitarías registrar
+  usando el botón de compartir nativo de iOS → elegir la app "Maite" (necesitarías registrar
   la PWA como target del share sheet, lo cual iOS permite de forma limitada para PWAs) o,
   más simple, compartir el archivo por Telegram al bot (que ya tiene el mismo pipeline en
   `/audio` vía el webhook `/telegram`) — esto ya funciona sin configuración adicional de Atajos.

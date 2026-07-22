@@ -37,8 +37,8 @@ export default function SOSButton({ onDisparar }) {
         <div className="flex h-40 w-40 items-center justify-center rounded-full bg-red-600 text-6xl font-bold text-white shadow-soft">
           {restante}
         </div>
-        <p className="text-sm text-noche-900/60">Enviando SOS en {restante}…</p>
-        <button onClick={cancelar} className="rounded-full bg-noche-900/10 px-6 py-2.5 text-sm font-semibold">
+        <p className="text-sm text-morado-900/60">Enviando SOS en {restante}…</p>
+        <button onClick={cancelar} className="rounded-full bg-morado-900/10 px-6 py-2.5 text-sm font-semibold">
           Cancelar
         </button>
       </div>
@@ -48,7 +48,7 @@ export default function SOSButton({ onDisparar }) {
   return (
     <button
       onClick={iniciar}
-      className="flex h-40 w-40 flex-col items-center justify-center gap-1 rounded-full bg-terracota-600 text-white shadow-soft active:scale-95"
+      className="flex h-40 w-40 flex-col items-center justify-center gap-1 rounded-full bg-red-600 text-white shadow-soft active:scale-95"
     >
       <span className="text-4xl">🆘</span>
       <span className="text-lg font-bold">SOS</span>

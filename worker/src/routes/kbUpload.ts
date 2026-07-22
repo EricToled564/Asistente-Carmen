@@ -11,7 +11,7 @@ const TIPOS_A_DOC = (env: Env): Record<string, string> => ({
   otro: env.KB_DOC_ID_OTRO
 })
 
-const EXTRACCION_PROMPT = `Eres Nava. Te suben una foto o texto para actualizar el Knowledge Base de \
+const EXTRACCION_PROMPT = `Eres Maite. Te suben una foto o texto para actualizar el Knowledge Base de \
 tu propio agente. Extrae el contenido útil y estructurable. Si NO reconoces esto como información \
 estructurable (por ejemplo es una foto irrelevante o texto sin sentido), responde EXACTAMENTE con \
 la palabra "ACLARACION" seguido de una pregunta corta pidiendo que se lo describan — nunca inventes \

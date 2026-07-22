@@ -35,37 +35,37 @@ export default function RadarFechas() {
   return (
     <div className="flex flex-col gap-4">
       <form onSubmit={agregar} className="flex flex-col gap-2 rounded-2xl bg-white p-4 shadow-soft">
-        <p className="text-sm font-semibold text-terracota-700">Agregar entrega o examen</p>
+        <p className="text-sm font-semibold text-lavanda-800">Agregar entrega o examen</p>
         <input
           value={form.titulo}
           onChange={(e) => setForm((f) => ({ ...f, titulo: e.target.value }))}
           placeholder="Ej. Entrega Taller de Diseño I"
-          className="rounded-xl border border-terracota-100 px-3 py-2 text-sm"
+          className="rounded-xl border border-lavanda-100 px-3 py-2 text-sm"
         />
         <div className="flex gap-2">
           <input
             type="date"
             value={form.fecha}
             onChange={(e) => setForm((f) => ({ ...f, fecha: e.target.value }))}
-            className="flex-1 rounded-xl border border-terracota-100 px-3 py-2 text-sm"
+            className="flex-1 rounded-xl border border-lavanda-100 px-3 py-2 text-sm"
           />
           <select
             value={form.tipo}
             onChange={(e) => setForm((f) => ({ ...f, tipo: e.target.value }))}
-            className="rounded-xl border border-terracota-100 px-3 py-2 text-sm"
+            className="rounded-xl border border-lavanda-100 px-3 py-2 text-sm"
           >
             <option value="entrega">Entrega</option>
             <option value="examen">Examen</option>
           </select>
         </div>
-        <button type="submit" className="rounded-xl bg-terracota-600 py-2 text-sm font-semibold text-white">
+        <button type="submit" className="rounded-xl bg-lavanda-700 py-2 text-sm font-semibold text-white">
           Agregar
         </button>
       </form>
 
       <div className="flex flex-col gap-2">
         {ordenadas.length === 0 && (
-          <p className="text-center text-sm text-noche-900/50">Aún no tienes fechas cargadas.</p>
+          <p className="text-center text-sm text-morado-900/50">Aún no tienes fechas cargadas.</p>
         )}
         {ordenadas.map((f) => {
           const dias = diasRestantes(f.fecha)
@@ -75,17 +75,17 @@ export default function RadarFechas() {
                 <p className="text-sm font-medium">
                   {f.tipo === 'examen' ? '📝' : '📦'} {f.titulo}
                 </p>
-                <p className="text-xs text-noche-900/50">{f.fecha}</p>
+                <p className="text-xs text-morado-900/50">{f.fecha}</p>
               </div>
               <div className="flex items-center gap-3">
                 <span
                   className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                    dias <= 3 ? 'bg-terracota-600 text-white' : 'bg-terracota-50 text-terracota-700'
+                    dias <= 3 ? 'bg-lavanda-700 text-white' : 'bg-lavanda-50 text-lavanda-800'
                   }`}
                 >
                   {dias === 0 ? 'Hoy' : dias > 0 ? `${dias}d` : 'Pasó'}
                 </span>
-                <button onClick={() => eliminar(f.id)} className="text-noche-900/30">
+                <button onClick={() => eliminar(f.id)} className="text-morado-900/30">
                   ✕
                 </button>
               </div>

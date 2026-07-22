@@ -33,25 +33,25 @@ export default function FotoCapture() {
 
       <button
         onClick={() => inputRef.current?.click()}
-        className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-terracota-300 bg-terracota-50 p-8 text-terracota-700"
+        className="flex flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-lavanda-300 bg-lavanda-50 p-8 text-lavanda-800"
       >
         <span className="text-3xl">📷</span>
         <span className="font-medium">Tomar o subir foto</span>
-        <span className="text-xs text-noche-900/50">Un letrero, un menú, un formulario, lo que sea</span>
+        <span className="text-xs text-morado-900/50">Un letrero, un menú, un formulario, lo que sea</span>
       </button>
 
       {preview && (
         <img src={preview} alt="Foto seleccionada" className="max-h-64 w-full rounded-2xl object-cover shadow-soft" />
       )}
 
-      {loading && <p className="text-center text-sm text-noche-900/60">Nava está viendo la foto…</p>}
+      {loading && <p className="text-center text-sm text-morado-900/60">Maite está viendo la foto…</p>}
 
       {error && <p className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{error}</p>}
 
       {respuesta && (
         <div className="rounded-2xl bg-white p-4 shadow-soft">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-terracota-600">Nava dice</p>
-          <p className="whitespace-pre-wrap text-sm text-noche-900/90">{respuesta}</p>
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-lavanda-700">Maite dice</p>
+          <p className="whitespace-pre-wrap text-sm text-morado-900/90">{respuesta}</p>
         </div>
       )}
     </div>

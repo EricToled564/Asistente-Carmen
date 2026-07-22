@@ -38,12 +38,12 @@ export default function OnboardingFlow({ onGoTo }) {
   }
 
   return (
-    <div className="flex h-full flex-col justify-between bg-gradient-to-b from-terracota-500 to-terracota-700 p-6 text-crema-50 safe-top safe-bottom">
+    <div className="flex h-full flex-col justify-between bg-gradient-to-br from-lavanda-400 via-lavanda-600 to-morado-900 p-6 text-crema-50 safe-top safe-bottom">
       {step === 0 && (
         <div className="flex flex-1 flex-col items-center justify-center text-center">
-          <h1 className="font-display text-4xl font-semibold">Hola 👋</h1>
+          <h1 className="font-display text-5xl font-bold tracking-tight text-balance">Hola 👋</h1>
           <p className="mt-4 max-w-xs text-crema-100/90">
-            Soy Nava, tu companion en Pamplona. Te ayudo con el día a día, tus trámites y tu carrera —
+            Soy Maite, tu companion en Pamplona. Te ayudo con el día a día, tus trámites y tu carrera —
             y estoy aquí si algo se pone difícil. Vamos a configurar un par de cosas antes de empezar.
           </p>
         </div>
@@ -51,7 +51,7 @@ export default function OnboardingFlow({ onGoTo }) {
 
       {step === 1 && (
         <div className="flex flex-1 flex-col justify-center gap-6">
-          <h2 className="font-display text-2xl font-semibold">Necesito dos permisos</h2>
+          <h2 className="font-display text-2xl font-bold">Necesito dos permisos</h2>
           <div className="rounded-2xl bg-white/10 p-4">
             <p className="font-medium">📍 Ubicación</p>
             <p className="mt-1 text-sm text-crema-100/80">
@@ -59,7 +59,7 @@ export default function OnboardingFlow({ onGoTo }) {
             </p>
             <button
               onClick={askLocation}
-              className="mt-3 rounded-full bg-white px-4 py-2 text-sm font-semibold text-terracota-700"
+              className="mt-3 rounded-full bg-white px-4 py-2 text-sm font-semibold text-lavanda-800"
             >
               {permissions.location === 'granted' ? 'Concedido ✓' : 'Permitir ubicación'}
             </button>
@@ -71,7 +71,7 @@ export default function OnboardingFlow({ onGoTo }) {
             </p>
             <button
               onClick={askNotifications}
-              className="mt-3 rounded-full bg-white px-4 py-2 text-sm font-semibold text-terracota-700"
+              className="mt-3 rounded-full bg-white px-4 py-2 text-sm font-semibold text-lavanda-800"
             >
               {permissions.notifications === 'granted' ? 'Concedido ✓' : 'Permitir notificaciones'}
             </button>
@@ -81,7 +81,7 @@ export default function OnboardingFlow({ onGoTo }) {
 
       {step === 2 && (
         <div className="flex flex-1 flex-col gap-4 overflow-y-auto">
-          <h2 className="font-display text-2xl font-semibold">Tus primeros 30 días</h2>
+          <h2 className="font-display text-2xl font-bold">Tus primeros 30 días</h2>
           <p className="text-sm text-crema-100/80">
             La tarea #1 es la más importante: configura la Emergencia SOS nativa del iPhone. Todo lo demás
             lo puedes ir marcando desde Ajustes cuando quieras.
@@ -113,12 +113,12 @@ export default function OnboardingFlow({ onGoTo }) {
         {step < STEPS.length - 1 ? (
           <button
             onClick={() => setStep((s) => s + 1)}
-            className="rounded-full bg-white px-6 py-2.5 font-semibold text-terracota-700"
+            className="rounded-full bg-white px-6 py-2.5 font-semibold text-lavanda-800"
           >
             Siguiente
           </button>
         ) : (
-          <button onClick={finish} className="rounded-full bg-white px-6 py-2.5 font-semibold text-terracota-700">
+          <button onClick={finish} className="rounded-full bg-white px-6 py-2.5 font-semibold text-lavanda-800">
             Empezar
           </button>
         )}

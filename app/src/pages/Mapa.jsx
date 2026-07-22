@@ -61,12 +61,12 @@ export default function Mapa() {
               <Popup>
                 <div className="max-w-[220px]">
                   <p className="font-semibold">{pin.nombre}</p>
-                  <p className="mt-1 text-xs text-noche-900/70">{pin.nota}</p>
+                  <p className="mt-1 text-xs text-morado-900/70">{pin.nota}</p>
                   <a
                     href={googleMapsDirectionsUrl(pin.lat, pin.lng)}
                     target="_blank"
                     rel="noreferrer"
-                    className="mt-2 inline-block rounded-full bg-terracota-600 px-3 py-1 text-xs font-semibold text-white"
+                    className="mt-2 inline-block rounded-full bg-lavanda-700 px-3 py-1 text-xs font-semibold text-white"
                   >
                     Cómo llegar →
                   </a>
@@ -85,7 +85,7 @@ function FiltroChip({ label, emoji, active, onClick }) {
     <button
       onClick={onClick}
       className={`flex shrink-0 items-center gap-1 rounded-full border px-3 py-1.5 text-sm font-medium ${
-        active ? 'border-terracota-600 bg-terracota-600 text-white' : 'border-terracota-200 bg-white text-noche-900/70'
+        active ? 'border-lavanda-700 bg-lavanda-700 text-white' : 'border-lavanda-200 bg-white text-morado-900/70'
       }`}
     >
       <span>{emoji}</span>

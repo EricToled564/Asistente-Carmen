@@ -64,13 +64,13 @@ export default function CapturaRapida() {
 
   return (
     <div className="flex flex-col items-center gap-3 rounded-2xl bg-white p-4 shadow-soft">
-      <p className="text-sm font-semibold text-terracota-700">Captura rápida post-clase (máx. 2 min)</p>
+      <p className="text-sm font-semibold text-lavanda-800">Captura rápida post-clase (máx. 2 min)</p>
 
       {!grabando ? (
         <button
           onClick={iniciar}
           disabled={procesando}
-          className="flex h-16 w-16 items-center justify-center rounded-full bg-terracota-600 text-2xl text-white shadow-soft disabled:opacity-50"
+          className="flex h-16 w-16 items-center justify-center rounded-full bg-lavanda-700 text-2xl text-white shadow-soft disabled:opacity-50"
         >
           🎙️
         </button>
@@ -83,8 +83,8 @@ export default function CapturaRapida() {
         </button>
       )}
 
-      {grabando && <p className="text-sm text-noche-900/60">{segundos}s / 120s</p>}
-      {procesando && <p className="text-sm text-noche-900/60">Nava está estructurando tus apuntes…</p>}
+      {grabando && <p className="text-sm text-morado-900/60">{segundos}s / 120s</p>}
+      {procesando && <p className="text-sm text-morado-900/60">Maite está estructurando tus apuntes…</p>}
       {error && <p className="text-sm text-red-700">{error}</p>}
 
       {resultado && (

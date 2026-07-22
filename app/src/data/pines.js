@@ -1,26 +1,27 @@
 // Coordenadas aproximadas de lugares públicos de Pamplona/Iruña.
-// ⚠️ Verifica/ajusta antes de entregar, sobre todo "residencia" (depende del colegio mayor
-// que ella elija) y las paradas de villavesa exactas más cercanas a su domicilio real.
-// La dirección/coords de "residencia" también se pueden sobreescribir por variables de
-// entorno VITE_RESIDENCIA_LAT / VITE_RESIDENCIA_LNG / VITE_RESIDENCIA_DIRECCION.
+// ⚠️ No se pudieron verificar en un mapa en vivo durante la construcción (sandbox sin acceso a
+// internet general) — antes de entregar, abre cada una en Google Maps y ajusta si el pin no
+// cae exactamente en el lugar. Sobre todo "residencia": la dirección (Av. de Pío XII, 28) es la
+// confirmada en el KB, pero las coordenadas exactas son una aproximación de esa calle.
+// Se pueden sobreescribir por variables de entorno VITE_RESIDENCIA_LAT / VITE_RESIDENCIA_LNG.
 
-const residenciaLat = Number(import.meta.env.VITE_RESIDENCIA_LAT) || 42.8083
-const residenciaLng = Number(import.meta.env.VITE_RESIDENCIA_LNG) || -1.6136
+const residenciaLat = Number(import.meta.env.VITE_RESIDENCIA_LAT) || 42.8062
+const residenciaLng = Number(import.meta.env.VITE_RESIDENCIA_LNG) || -1.6428
 
 export const CATEGORIAS = {
-  residencia: { label: 'Residencia', emoji: '🏠', color: '#a84630' },
-  campus: { label: 'Campus', emoji: '🎓', color: '#c45a3e' },
-  tramites: { label: 'Trámites', emoji: '📋', color: '#5f2619' },
-  transporte: { label: 'Transporte', emoji: '🚌', color: '#873627' },
-  vida: { label: 'Vida y pintxos', emoji: '🍷', color: '#d17a54' }
+  residencia: { label: 'Residencia', emoji: '🏠', color: '#7C4DBC' },
+  campus: { label: 'Campus', emoji: '🎓', color: '#9C63CE' },
+  tramites: { label: 'Trámites', emoji: '📋', color: '#442A54' },
+  transporte: { label: 'Transporte', emoji: '🚌', color: '#63397D' },
+  vida: { label: 'Vida y pintxos', emoji: '🍷', color: '#E8813F' }
 }
 
 export const PINES = [
   {
     id: 'residencia',
     categoria: 'residencia',
-    nombre: 'Mi residencia',
-    nota: 'Configura la dirección real en Ajustes cuando elijas colegio mayor o residencia.',
+    nombre: 'CampusHome (mi residencia)',
+    nota: 'Av. de Pío XII, 28, 31008 Pamplona — barrio Iturrama. Alianza oficial con la Universidad de Navarra.',
     lat: residenciaLat,
     lng: residenciaLng
   },

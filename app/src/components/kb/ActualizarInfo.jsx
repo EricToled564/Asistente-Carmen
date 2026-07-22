@@ -67,18 +67,18 @@ export default function ActualizarInfo() {
   if (estado === 'preview') {
     return (
       <div className="flex flex-col gap-3 p-5">
-        <p className="text-sm font-semibold text-terracota-700">Revisa antes de confirmar</p>
+        <p className="text-sm font-semibold text-lavanda-800">Revisa antes de confirmar</p>
         <textarea
           value={preview}
           onChange={(e) => setPreview(e.target.value)}
           rows={12}
-          className="w-full rounded-xl border border-terracota-100 p-3 font-mono text-xs"
+          className="w-full rounded-xl border border-lavanda-100 p-3 font-mono text-xs"
         />
         <div className="flex gap-2">
-          <button onClick={reiniciar} className="flex-1 rounded-xl bg-noche-900/10 py-2.5 text-sm font-semibold">
+          <button onClick={reiniciar} className="flex-1 rounded-xl bg-morado-900/10 py-2.5 text-sm font-semibold">
             Cancelar
           </button>
-          <button onClick={confirmar} className="flex-1 rounded-xl bg-terracota-600 py-2.5 text-sm font-semibold text-white">
+          <button onClick={confirmar} className="flex-1 rounded-xl bg-lavanda-700 py-2.5 text-sm font-semibold text-white">
             Confirmar
           </button>
         </div>
@@ -90,8 +90,8 @@ export default function ActualizarInfo() {
     return (
       <div className="flex flex-col items-center gap-4 p-8 text-center">
         <p className="text-4xl">✅</p>
-        <p className="text-sm font-medium text-noche-900/80">{mensaje}</p>
-        <button onClick={reiniciar} className="rounded-full bg-terracota-600 px-6 py-2.5 text-sm font-semibold text-white">
+        <p className="text-sm font-medium text-morado-900/80">{mensaje}</p>
+        <button onClick={reiniciar} className="rounded-full bg-lavanda-700 px-6 py-2.5 text-sm font-semibold text-white">
           Subir otra cosa
         </button>
       </div>
@@ -100,8 +100,8 @@ export default function ActualizarInfo() {
 
   return (
     <form onSubmit={procesar} className="flex flex-col gap-3 p-5">
-      <p className="text-sm text-noche-900/60">
-        Sube una foto/screenshot o pega texto — Nava lo formatea y actualiza lo que sabe tu agente. Nunca se
+      <p className="text-sm text-morado-900/60">
+        Sube una foto/screenshot o pega texto — Maite lo formatea y actualiza lo que sabe tu agente. Nunca se
         actualiza sin que lo revises primero.
       </p>
 
@@ -112,7 +112,7 @@ export default function ActualizarInfo() {
             key={t.value}
             onClick={() => setTipo(t.value)}
             className={`flex-1 rounded-xl py-2 text-sm font-medium ${
-              tipo === t.value ? 'bg-terracota-600 text-white' : 'bg-terracota-50 text-terracota-700'
+              tipo === t.value ? 'bg-lavanda-700 text-white' : 'bg-lavanda-50 text-lavanda-800'
             }`}
           >
             {t.label}
@@ -124,7 +124,7 @@ export default function ActualizarInfo() {
         ref={fileRef}
         type="file"
         accept="image/*"
-        className="rounded-xl border border-dashed border-terracota-200 bg-crema-100 text-sm text-noche-900/60 file:mr-3 file:rounded-full file:border-0 file:bg-terracota-600 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white"
+        className="rounded-xl border border-dashed border-lavanda-200 bg-crema-100 text-sm text-morado-900/60 file:mr-3 file:rounded-full file:border-0 file:bg-lavanda-700 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-white"
       />
 
       <textarea
@@ -132,19 +132,19 @@ export default function ActualizarInfo() {
         onChange={(e) => setTexto(e.target.value)}
         placeholder="…o pega el texto aquí"
         rows={5}
-        className="w-full rounded-xl border border-terracota-100 p-3 text-sm"
+        className="w-full rounded-xl border border-lavanda-100 p-3 text-sm"
       />
 
       <button
         type="submit"
         disabled={estado === 'procesando'}
-        className="rounded-xl bg-terracota-600 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+        className="rounded-xl bg-lavanda-700 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
       >
         {estado === 'procesando' ? 'Procesando…' : 'Procesar'}
       </button>
 
       {estado === 'aclaracion' && (
-        <p className="rounded-xl bg-terracota-50 p-3 text-sm text-terracota-700">{mensaje}</p>
+        <p className="rounded-xl bg-lavanda-50 p-3 text-sm text-lavanda-800">{mensaje}</p>
       )}
       {estado === 'error' && <p className="rounded-xl bg-red-50 p-3 text-sm text-red-700">{mensaje}</p>}
     </form>

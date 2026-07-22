@@ -4,8 +4,8 @@ export default function ModoEmergencia({ onSalir }) {
   const { config } = useApp()
 
   return (
-    <div className="flex h-full flex-col gap-4 bg-noche-900 p-6 text-crema-50 safe-top safe-bottom">
-      <p className="text-center text-sm uppercase tracking-wide text-terracota-300">Modo emergencia activo</p>
+    <div className="flex h-full flex-col gap-4 bg-morado-900 p-6 text-crema-50 safe-top safe-bottom">
+      <p className="text-center text-sm uppercase tracking-wide text-red-300">Modo emergencia activo</p>
 
       <a
         href="tel:112"

@@ -13,7 +13,7 @@ import FotoInfo from './pages/FotoInfo.jsx'
 const TABS = {
   inicio: { label: 'Inicio', icon: '🏠', Component: Inicio },
   mapa: { label: 'Mapa', icon: '🗺️', Component: Mapa },
-  agente: { label: 'Agente', icon: '💬', Component: Agente },
+  agente: { label: 'Maite', icon: '💬', Component: Agente },
   academico: { label: 'Académico', icon: '📚', Component: Academico },
   sos: { label: 'SOS', icon: '🆘', Component: SOS },
   ajustes: { label: 'Ajustes', icon: '⚙️', Component: Ajustes }
@@ -44,7 +44,7 @@ export default function App() {
   if (overlay) {
     const Overlay = OVERLAYS[overlay]
     return (
-      <div className="flex h-full flex-col bg-crema-50">
+      <div className="flex h-full flex-col bg-lavanda-50">
         <main className="flex-1 overflow-y-auto safe-top">
           <Overlay onNavigate={navigate} onClose={() => setOverlay(null)} />
         </main>
@@ -55,7 +55,7 @@ export default function App() {
   const { Component } = TABS[active]
 
   return (
-    <div className="flex h-full flex-col bg-crema-50">
+    <div className="flex h-full flex-col bg-lavanda-50">
       <main className="flex-1 overflow-y-auto safe-top">
         <Component onNavigate={navigate} />
       </main>

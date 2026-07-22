@@ -41,7 +41,7 @@ const MENSAJES_CHECKIN = [
 export async function checkInProactivo(env: Env) {
   const mensaje = MENSAJES_CHECKIN[Math.floor(Math.random() * MENSAJES_CHECKIN.length)]
   await enviarATodos(env, 'ella', {
-    title: 'Nava',
+    title: 'Maite',
     body: mensaje,
     url: '/',
     tag: 'checkin-diario'

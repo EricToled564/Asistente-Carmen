@@ -21,7 +21,7 @@ export default function Ajustes() {
   return (
     <div className="flex h-full flex-col">
       <header className="p-5 pb-2">
-        <h1 className="font-display text-2xl font-semibold text-terracota-700">Ajustes</h1>
+        <h1 className="font-display text-2xl font-bold text-lavanda-800">Ajustes</h1>
       </header>
 
       <div className="flex gap-2 overflow-x-auto px-5 pb-3">
@@ -30,7 +30,7 @@ export default function Ajustes() {
             key={s.id}
             onClick={() => setSeccion(s.id)}
             className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-medium ${
-              seccion === s.id ? 'bg-terracota-600 text-white' : 'bg-terracota-50 text-terracota-700'
+              seccion === s.id ? 'bg-lavanda-700 text-white' : 'bg-lavanda-50 text-lavanda-800'
             }`}
           >
             {s.label}
@@ -48,7 +48,7 @@ export default function Ajustes() {
                   className="flex w-full items-start gap-3 rounded-xl bg-white p-3 text-left text-sm shadow-soft"
                 >
                   <span>{item.done ? '✅' : '⬜️'}</span>
-                  <span className={item.done ? 'text-noche-900/40 line-through' : ''}>{item.label}</span>
+                  <span className={item.done ? 'text-morado-900/40 line-through' : ''}>{item.label}</span>
                 </button>
               </li>
             ))}
@@ -59,12 +59,12 @@ export default function Ajustes() {
 
         {seccion === 'notificaciones' && (
           <div className="flex flex-col gap-3 px-5">
-            <p className="text-sm text-noche-900/60">
+            <p className="text-sm text-morado-900/60">
               Permiso actual: <span className="font-medium">{permissions.notifications}</span>
             </p>
             <button
               onClick={suscribir}
-              className="rounded-xl bg-terracota-600 py-2.5 text-sm font-semibold text-white"
+              className="rounded-xl bg-lavanda-700 py-2.5 text-sm font-semibold text-white"
             >
               {estadoPush === 'suscrito' ? 'Suscrito ✓' : 'Activar notificaciones push'}
             </button>
@@ -76,7 +76,7 @@ export default function Ajustes() {
             {estadoPush === 'error' && (
               <p className="text-xs text-red-700">No se pudo activar. Revisa permisos del sitio en Ajustes de iOS.</p>
             )}
-            <p className="text-xs text-noche-900/40">
+            <p className="text-xs text-morado-900/40">
               {esFamilia
                 ? 'Activando como dispositivo de familia — recibirás las alertas SOS.'
                 : 'Papá/familia: abran esta misma app con "?familia=1" al final del link para activarse como destinatarios de SOS.'}
@@ -85,7 +85,7 @@ export default function Ajustes() {
         )}
 
         {seccion === 'ayuda' && (
-          <div className="flex flex-col gap-3 px-5 text-sm text-noche-900/70">
+          <div className="flex flex-col gap-3 px-5 text-sm text-morado-900/70">
             <p>
               Los botones "Grabar clase" / "Terminar clase" del tab Académico dependen de dos Atajos de iOS
               que se crean una sola vez. Ve <code>/docs/atajos-ios.md</code> en el repo para la guía completa.

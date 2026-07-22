@@ -1,37 +1,53 @@
-# Nava — companion PWA para Pamplona
+# Maite — companion PWA para Carmen en Pamplona
 
-Regalo de despedida: PWA instalable + Cloudflare Worker + bot de Telegram, companion de una
-estudiante de primer año del Grado en Diseño en la Universidad de Navarra. Construido siguiendo
-`prompt-maestro-claude-code.md` y `arquitectura-agente-navarra.md` (documentos de diseño
-originales, incluidos en este repo bajo `/docs/diseño-original/` para referencia).
+Regalo de despedida: PWA instalable + Cloudflare Worker + bot de Telegram, companion de Carmen,
+estudiante mexicana de primer año del Grado en Diseño en la Universidad de Navarra, viviendo en
+CampusHome (Iturrama, Pamplona). Construido siguiendo el **PROMPT MAESTRO v2 (DEFINITIVO)** —
+único documento fuente de verdad; el v1 y su addendum quedan solo en `/docs/diseño-original/`
+como referencia histórica.
 
-**Principio no negociable del diseño:** la app nunca inventa información de campus/trámites/
-ciudad — todo eso vive en el Knowledge Base del agente de voz (ElevenLabs), consumido vía widget
+**Principio no negociable del diseño:** la app y el agente nunca inventan información de campus/
+trámites/ciudad — todo eso vive en el Knowledge Base de Maite (ElevenLabs), consumido vía widget
 embebido, no reimplementado aquí.
+
+**Dirección visual:** paleta lavanda predominante + morado profundo + neutros cálidos + un acento
+melocotón, inspirada en Mine/usemine.com (tipografía bold expresiva, tarjetas grandes, stats
+celebrados) con gradientes suaves estilo Luma y calidez de onboarding estilo Flo. El módulo SOS y
+el modo emergencia quedan **fuera** de esta paleta a propósito — ahí manda el rojo/blanco de alto
+contraste. Tipografía: Bricolage Grotesque (display) + Plus Jakarta Sans (body). Todos los pares
+texto/fondo están verificados contra WCAG AA.
 
 ## Estructura del repo
 
 ```
-/app      → Frontend: React + Vite + Tailwind, PWA instalable
+/app      → Frontend: React + Vite + Tailwind, PWA instalable, mobile-first
 /worker   → Backend: Cloudflare Worker (Hono) — todos los proxies, webhooks y crons
+/kb       → Los 27 documentos del Knowledge Base de Maite + script de sync a ElevenLabs
 /docs     → Documentación de apoyo (Atajos de iOS, este README, diseño original)
 ```
 
-## Qué se construyó (v1 completo, en el orden del prompt maestro)
+## Qué se construyó
 
 | # | Módulo | Estado |
 |---|---|---|
-| 1 | Esqueleto PWA (manifest, SW, 6 tabs, diseño distintivo) | ✅ |
-| 2 | Widget del agente ElevenLabs embebido | ✅ (necesita `agent_id`) |
-| 3 | Mapa con pines curados + deep links a Google Maps | ✅ |
+| 1 | Esqueleto PWA + sistema de diseño lavanda (manifest, SW, 6 tabs) | ✅ |
+| 2 | Widget de Maite embebido + variables dinámicas (Vía 2 fallback) | ✅ (necesita `agent_id`) |
+| 3 | Mapa con pines curados (CampusHome real) + deep links a Google Maps | ✅ |
 | 4 | Foto → información (visión Claude) | ✅ |
-| 5 | Académico: radar de fechas, tutor (vía agente), captura rápida | ✅ |
+| 5 | Académico: radar de fechas, tutor (vía Maite), captura rápida | ✅ |
 | 6 | Botones "Grabar clase"/"Terminar clase" (Atajos iOS) | ✅ (ver limitación abajo) |
 | 7 | Módulo SOS (countdown, GPS, 3 canales, modo emergencia) | ✅ |
 | 8 | Notificaciones push (Web Push + cron de check-ins) | ✅ |
 | 9 | "Actualizar mi info" (KB self-service con vista previa editable) | ✅ |
 | 10 | Onboarding (permisos + checklist 30 días) | ✅ |
 | — | Worker: `/vision /audio /telegram /sos /push/subscribe /kb-upload /kb-confirm` + crons | ✅ |
+| — | KB: 27 documentos + `kb/manifest.json` + `kb/sync.mjs` | ✅ |
+
+**Pendiente del prompt v2** (no incluido en esta pasada, siguiente en la fila): datos de
+emergencia en onboarding (nombre legal + tipo de sangre, separado del KB), memoria persistente
+de Maite (`/memory/retrieve` + `/memory/add` + server tools), preguntas de actualización
+(Mecanismo C, `/kb-answer`), y el registro flexible de `KB_DOC_ID_*` para escalar más allá de los
+3 tipos actuales del self-service upload.
 
 Todo el código está escrito y el frontend **compila limpio** (`npm run build`) y el Worker
 **typechequea limpio** (`tsc --noEmit`) y **bundlea limpio** (`wrangler deploy --dry-run`). Lo que
@@ -82,18 +98,21 @@ npx wrangler secret put VAPID_PRIVATE_KEY
 
 Y en `worker/wrangler.toml`, reemplaza los `REEMPLAZA_CON_...` de `[vars]`:
 - `FAMILIA_EMAIL_DESTINO`, `RESIDENCIA_DIRECCION`
-- `KB_DOC_ID_*` — los `document_id` de cada uno de los 8 documentos del Knowledge Base en
-  ElevenLabs (los ves en su dashboard después de crear el agente y subir los documentos).
+- `KB_DOC_ID_*` — solo quedan mapeados aquí los 3 tipos del self-service upload (horario/trámite/
+  otro). Los 27 documentos completos (KB1-KB8 + KB9-1 a KB9-19) viven en `/kb` y se mapean en
+  `kb/manifest.json`, no en `wrangler.toml` — ver sección KB más abajo.
 
-### 3. ElevenLabs — el agente y su Knowledge Base
-1. Crea cuenta y un agente Conversational AI en elevenlabs.io
-2. Sube los 7-8 documentos del KB (ver `arquitectura-agente-navarra.md` §4 para el contenido
-   exacto de cada uno — KB1 a KB7 se pueden redactar/investigar ahora; KB8 depende de que
-   captures el horario real del semestre)
-3. Copia el `agent_id` → `app/.env` (`VITE_ELEVENLABS_AGENT_ID`) y el Worker secret
-4. Copia el `document_id` de cada documento → `worker/wrangler.toml`
-5. Escribe el system prompt del agente con la persona y guardrails de §3 del documento de
-   arquitectura (identidad, dominios D1-D7, guardrails anti-alucinación)
+### 3. ElevenLabs — el agente Maite y su Knowledge Base
+1. Crea cuenta y un agente Conversational AI en elevenlabs.io, llámalo Maite
+2. Escribe/pega su system prompt (archivo aparte, ya redactado — no lo genera este repo)
+3. Configura el LLM del agente en Claude Sonnet 5, y el "First message" en blanco (Carmen habla
+   primero)
+4. Configura `{{system__time}}` con timezone **Europe/Madrid** en la plataforma (esto resuelve la
+   hora del agente sin necesitar código — ver `VITE_AGENTE_VIA2_HORA` en `.env.example` para el
+   fallback si esto falla en pruebas)
+5. Sube los 27 documentos de `/kb` (ver `/kb/README.md` para el flujo completo con
+   `kb/manifest.json` y `kb/sync.mjs`)
+6. Copia el `agent_id` → `app/.env` (`VITE_ELEVENLABS_AGENT_ID`) y el Worker secret
 
 **Sin verificar:** los endpoints exactos de la API de Knowledge Base de ElevenLabs
 (`worker/src/lib/elevenlabs.ts`) están escritos según la forma más plausible de su API pública al
@@ -125,16 +144,17 @@ en el Worker; la privada solo en el Worker.
 ```bash
 cd app
 npm run build
-npx wrangler pages deploy dist --project-name=nava-companion
+npx wrangler pages deploy dist --project-name=maite-companion
 ```
-O conecta el repo de GitHub directamente en el dashboard de Cloudflare Pages (build command
-`npm run build`, output `dist`, root directory `app`) para despliegue automático en cada push.
+O conecta el repo directamente en Vercel (root directory `app`, build command `npm run build`,
+output `dist` — ver `vercel.json` en la raíz) o en Cloudflare Pages, para despliegue automático
+en cada push. Este proyecto ya está desplegado en Vercel.
 
 ### 8. Datos personales a llenar
-- `app/.env`: `VITE_SOS_WHATSAPP_NUMERO`, `VITE_SOS_CONSULADO_TEL`, `VITE_RESIDENCIA_DIRECCION`,
-  `VITE_RESIDENCIA_LAT/LNG` (cuando sepan qué colegio mayor/residencia)
-- `app/src/data/pines.js`: revisa las coordenadas aproximadas de Pamplona — están basadas en
-  ubicaciones públicas conocidas pero no verificadas metro a metro; ajusta si algo no cuadra
+- `app/.env`: `VITE_SOS_WHATSAPP_NUMERO`, `VITE_SOS_CONSULADO_TEL` — `VITE_RESIDENCIA_DIRECCION`
+  y las coordenadas de CampusHome ya traen default correcto, solo llénalos si cambia de residencia
+- `app/src/data/pines.js`: el pin de CampusHome usa una coordenada aproximada de Av. de Pío XII
+  28 — no se pudo verificar en un mapa en vivo durante la construcción; confírmala en Google Maps
 - `worker/wrangler.toml`: `FAMILIA_EMAIL_DESTINO`, `RESIDENCIA_DIRECCION`
 
 ### 9. Atajos de iOS

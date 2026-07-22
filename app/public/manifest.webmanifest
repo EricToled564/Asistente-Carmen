@@ -1,13 +1,13 @@
 {
-  "name": "Nava — companion en Pamplona",
-  "short_name": "Nava",
+  "name": "Maite — companion en Pamplona",
+  "short_name": "Maite",
   "description": "Tu companion emocional, práctico y académico en Pamplona.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#fbf3ef",
-  "theme_color": "#c45a3e",
+  "background_color": "#F5EFFB",
+  "theme_color": "#7C4DBC",
   "lang": "es",
   "icons": [
     { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },

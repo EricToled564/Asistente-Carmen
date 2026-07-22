@@ -9,7 +9,7 @@ self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim(
 // --- Web Push ---------------------------------------------------------
 // Push payloads are sent as JSON by the Worker: { title, body, url, tag }
 self.addEventListener('push', (event) => {
-  let data = { title: 'Nava', body: 'Tienes una notificación nueva.' }
+  let data = { title: 'Maite', body: 'Tienes una notificación nueva.' }
   try {
     if (event.data) data = { ...data, ...event.data.json() }
   } catch {

@@ -16,7 +16,7 @@ export default function Academico() {
   return (
     <div className="flex h-full flex-col">
       <header className="p-5 pb-2">
-        <h1 className="font-display text-2xl font-semibold text-terracota-700">Académico</h1>
+        <h1 className="font-display text-2xl font-bold text-lavanda-800">Académico</h1>
       </header>
 
       <div className="flex gap-2 px-5 pb-3">
@@ -25,7 +25,7 @@ export default function Academico() {
             key={s.id}
             onClick={() => setSeccion(s.id)}
             className={`rounded-full px-3 py-1.5 text-sm font-medium ${
-              seccion === s.id ? 'bg-terracota-600 text-white' : 'bg-terracota-50 text-terracota-700'
+              seccion === s.id ? 'bg-lavanda-700 text-white' : 'bg-lavanda-50 text-lavanda-800'
             }`}
           >
             {s.label}
@@ -38,7 +38,7 @@ export default function Academico() {
 
         {seccion === 'tutor' && (
           <div className="flex h-full flex-col gap-3">
-            <p className="text-sm text-noche-900/60">
+            <p className="text-sm text-morado-900/60">
               El tutor vive dentro de tu agente — le doy contexto de "modo estudio" para que te ayude con
               quizzes y explicaciones de tus materias.
             </p>
