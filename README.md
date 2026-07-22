@@ -140,6 +140,12 @@ npx wrangler kv key put --binding=KV "kb-doc-id:KB1" "<document_id>"
 5. Sube los 45 documentos de `/kb` (ver `/kb/README.md` para el flujo completo con
    `kb/manifest.json` y `kb/sync.mjs`)
 6. Copia el `agent_id` → `app/.env` (`VITE_ELEVENLABS_AGENT_ID`) y el Worker secret
+7. Como KB8 (horario) ya viene con el del semestre 1 precargado desde este repo (no subido vía
+   "Actualizar mi info"), marca eso en KV para que el recordatorio push de horario no insista de
+   más — ver `worker/src/lib/horarioEstado.ts`:
+   ```bash
+   npx wrangler kv key put --binding=KV "horario:ultimaActualizacion" "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
+   ```
 
 **Sin verificar:** los endpoints exactos de la API de Knowledge Base de ElevenLabs
 (`worker/src/lib/elevenlabs.ts`) están escritos según la forma más plausible de su API pública al

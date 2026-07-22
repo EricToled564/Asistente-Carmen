@@ -3,6 +3,7 @@ import type { Env } from '../types.js'
 import { describeImage, structureText } from '../lib/claude.js'
 import { updateKbDocument } from '../lib/elevenlabs.js'
 import { getKbDocId } from '../lib/kbRegistry.js'
+import { marcarHorarioActualizado } from '../lib/horarioEstado.js'
 
 export const kbUpload = new Hono<{ Bindings: Env }>()
 
@@ -69,6 +70,9 @@ kbUpload.post('/kb-confirm', async (c) => {
   try {
     await updateKbDocument(c.env.ELEVENLABS_API_KEY, documentId, body.markdown)
     await c.env.KV.delete(`kb-upload:${body.uploadId}`)
+    if (body.tipo === 'horario') {
+      await marcarHorarioActualizado(c.env)
+    }
     return c.json({ ok: true })
   } catch (err) {
     console.error(err)

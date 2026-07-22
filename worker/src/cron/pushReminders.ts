@@ -1,5 +1,6 @@
 import type { Env, PushSubscriptionRecord } from '../types.js'
 import { enviarPush, type NotificacionPush } from '../lib/webpush.js'
+import { debeRecordarHorario } from '../lib/horarioEstado.js'
 
 async function enviarATodos(env: Env, grupo: 'ella' | 'familia', notificacion: NotificacionPush) {
   const list = await env.KV.list({ prefix: `push:${grupo}:` })
@@ -20,6 +21,9 @@ async function enviarATodos(env: Env, grupo: 'ella' | 'familia', notificacion: N
 }
 
 export async function recordatorioSubirHorario(env: Env) {
+  // No insistir si ya está cargado (ej. KB8 ya trae el horario del semestre en curso) — ver
+  // lib/horarioEstado.ts. Solo avisa si de verdad no se ha actualizado en un buen rato.
+  if (!(await debeRecordarHorario(env))) return
   await enviarATodos(env, 'ella', {
     title: 'Ya deben estar tus horarios',
     body: 'Súbelos en Ajustes → Actualizar mi info para que tu agente los conozca.',
