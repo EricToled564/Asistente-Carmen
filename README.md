@@ -41,11 +41,15 @@ texto/fondo están verificados contra WCAG AA.
 | 9 | "Actualizar mi info" (KB self-service con vista previa editable) | ✅ |
 | 10 | Onboarding (permisos + checklist 30 días) | ✅ |
 | 11 | Datos de emergencia (nombre legal + tipo de sangre, separados del KB) | ✅ |
-| — | Worker: `/vision /audio /telegram /sos /push/subscribe /kb-upload /kb-confirm /emergency-data` + crons | ✅ |
+| 12 | Memoria persistente de Maite (`/memory/retrieve` + `/memory/add`) | ✅ (falta registrar los server tools, ver abajo) |
+| — | Worker: `/vision /audio /telegram /sos /push/subscribe /kb-upload /kb-confirm /emergency-data /memory/*` + crons | ✅ |
 | — | KB: 27 documentos + `kb/manifest.json` + `kb/sync.mjs` | ✅ |
 
-**Pendiente del prompt v2** (siguiente en la fila): memoria persistente de Maite
-(`/memory/retrieve` + `/memory/add` + server tools), preguntas de actualización (Mecanismo C,
+**Memoria persistente:** el código ya está, pero para que el agente realmente la use tienes que
+registrar `retrieve_memories` y `add_memories` como server tools en el dashboard de ElevenLabs —
+el schema exacto está en `/docs/memoria-server-tools.md`.
+
+**Pendiente del prompt v2** (siguiente en la fila): preguntas de actualización (Mecanismo C,
 `/kb-answer`), y el registro flexible de `KB_DOC_ID_*` para escalar más allá de los 3 tipos
 actuales del self-service upload.
 
