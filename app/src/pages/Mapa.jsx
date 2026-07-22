@@ -41,13 +41,7 @@ export default function Mapa() {
   }, [])
 
   if (plano) {
-    return (
-      <PlanoEdificio
-        src="/planos/escuela-arquitectura.jpg"
-        alt="Plano — Escuela Técnica Superior de Arquitectura"
-        onClose={() => setPlano(null)}
-      />
-    )
+    return <PlanoEdificio onClose={() => setPlano(null)} />
   }
 
   return (
@@ -67,7 +61,7 @@ export default function Mapa() {
           onClick={() => setPlano(true)}
           className="absolute right-3 top-3 z-[1000] flex items-center gap-1.5 rounded-full bg-white px-3 py-2 text-xs font-semibold text-lavanda-800 shadow-soft"
         >
-          🏛️ Plano del edificio
+          🏛️ Mapa interior
         </button>
 
         <MapContainer center={centro} zoom={14} scrollWheelZoom className="h-full w-full">
@@ -103,7 +97,7 @@ export default function Mapa() {
                         onClick={() => setPlano(true)}
                         className="inline-block rounded-full bg-lavanda-50 px-3 py-1 text-xs font-semibold text-lavanda-800"
                       >
-                        Ver plano
+                        🏛️ Mapa interior
                       </button>
                     )}
                   </div>
