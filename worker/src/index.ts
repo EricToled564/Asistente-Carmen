@@ -10,6 +10,7 @@ import { kbUpload } from './routes/kbUpload.js'
 import { emergencia } from './routes/emergencia.js'
 import { memory } from './routes/memory.js'
 import { kbAnswer } from './routes/kbAnswer.js'
+import { ruta } from './routes/ruta.js'
 import { ejecutarAutoInvestigacionSemestral, ejecutarAutoInvestigacionMensual } from './cron/kbAutoResearch.js'
 import {
   recordatorioSubirHorario,
@@ -33,6 +34,7 @@ app.route('/', kbUpload)
 app.route('/', emergencia)
 app.route('/', memory)
 app.route('/', kbAnswer)
+app.route('/', ruta)
 
 export default {
   fetch: app.fetch,

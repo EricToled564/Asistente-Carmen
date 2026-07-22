@@ -29,5 +29,7 @@ export const api = {
   emergenciaGuardar: (payload) => request('/emergency-data', { method: 'POST', body: JSON.stringify(payload) }),
   emergenciaObtener: () => request('/emergency-data', { method: 'GET' }),
   kbAnswerCatalogo: () => request('/kb-answer/catalogo', { method: 'GET' }),
-  kbAnswer: (payload) => request('/kb-answer', { method: 'POST', body: JSON.stringify(payload) })
+  kbAnswer: (payload) => request('/kb-answer', { method: 'POST', body: JSON.stringify(payload) }),
+  rutaLugares: () => request('/ruta/lugares', { method: 'GET' }),
+  rutaIniciar: (payload) => request('/ruta/iniciar', { method: 'POST', body: JSON.stringify(payload) })
 }

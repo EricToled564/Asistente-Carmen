@@ -4,6 +4,7 @@ import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { PINES, CATEGORIAS, googleMapsDirectionsUrl, googleStreetViewUrl } from '../data/pines.js'
 import PlanoEdificio from '../components/mapa/PlanoEdificio.jsx'
+import RutaInterior from '../components/mapa/RutaInterior.jsx'
 
 // Los íconos default de Leaflet dependen de assets externos que se rompen fácil con bundlers
 // (y verse como un pin azul genérico de Google Maps tampoco calza con el look de la app). En vez
@@ -29,6 +30,7 @@ function iconoPara(categoria) {
 export default function Mapa() {
   const [filtro, setFiltro] = useState('todas')
   const [plano, setPlano] = useState(null)
+  const [mostrarRuta, setMostrarRuta] = useState(false)
 
   const pinesFiltrados = useMemo(
     () => (filtro === 'todas' ? PINES : PINES.filter((p) => p.categoria === filtro)),
@@ -44,6 +46,10 @@ export default function Mapa() {
     return <PlanoEdificio onClose={() => setPlano(null)} />
   }
 
+  if (mostrarRuta) {
+    return <RutaInterior onClose={() => setMostrarRuta(false)} />
+  }
+
   return (
     <div className="flex h-full flex-col">
       <div
@@ -57,12 +63,20 @@ export default function Mapa() {
       </div>
 
       <div className="relative flex-1 overflow-hidden">
-        <button
-          onClick={() => setPlano(true)}
-          className="absolute right-3 top-3 z-[1000] flex items-center gap-1.5 rounded-full bg-white px-3 py-2 text-xs font-semibold text-lavanda-800 shadow-soft"
-        >
-          🏛️ Mapa interior
-        </button>
+        <div className="absolute right-3 top-3 z-[1000] flex flex-col items-end gap-2">
+          <button
+            onClick={() => setPlano(true)}
+            className="flex items-center gap-1.5 rounded-full bg-white px-3 py-2 text-xs font-semibold text-lavanda-800 shadow-soft"
+          >
+            🏛️ Mapa interior
+          </button>
+          <button
+            onClick={() => setMostrarRuta(true)}
+            className="flex items-center gap-1.5 rounded-full bg-white px-3 py-2 text-xs font-semibold text-lavanda-800 shadow-soft"
+          >
+            🧭 ¿Cómo llego?
+          </button>
+        </div>
 
         <MapContainer center={centro} zoom={14} scrollWheelZoom className="h-full w-full">
           <TileLayer
@@ -93,12 +107,20 @@ export default function Mapa() {
                       👁️ Street View
                     </a>
                     {pin.id === 'escuela-arquitectura' && (
-                      <button
-                        onClick={() => setPlano(true)}
-                        className="inline-block rounded-full bg-lavanda-50 px-3 py-1 text-xs font-semibold text-lavanda-800"
-                      >
-                        🏛️ Mapa interior
-                      </button>
+                      <>
+                        <button
+                          onClick={() => setPlano(true)}
+                          className="inline-block rounded-full bg-lavanda-50 px-3 py-1 text-xs font-semibold text-lavanda-800"
+                        >
+                          🏛️ Mapa interior
+                        </button>
+                        <button
+                          onClick={() => setMostrarRuta(true)}
+                          className="inline-block rounded-full bg-lavanda-50 px-3 py-1 text-xs font-semibold text-lavanda-800"
+                        >
+                          🧭 ¿Cómo llego?
+                        </button>
+                      </>
                     )}
                   </div>
                 </div>

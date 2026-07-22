@@ -42,14 +42,22 @@ texto/fondo están verificados contra WCAG AA.
 | 10 | Onboarding (permisos + checklist 30 días) | ✅ |
 | 11 | Datos de emergencia (nombre legal + tipo de sangre, separados del KB) | ✅ |
 | 12 | Memoria persistente de Maite (`/memory/retrieve` + `/memory/add`) | ✅ (falta registrar los server tools, ver abajo) |
+| 13 | Mapa → "¿Cómo llego?": wayfinding interior por checkpoints de voz (Carmen indica origen/destino, Maite guía paso a paso) | ✅ (falta registrar `avanzar_ruta`, ver `/docs/ruta-interior.md`) |
 | — | Mecanismo C: preguntas de actualización (`/kb-answer`, Ajustes → Preguntas) | ✅ |
 | — | Registro flexible de document_id del KB (KV, ya no env vars fijas) | ✅ |
-| — | Worker: `/vision /audio /telegram /sos /push/subscribe /kb-upload /kb-confirm /emergency-data /memory/* /kb-answer*` + crons | ✅ |
+| — | Worker: `/vision /audio /telegram /sos /push/subscribe /kb-upload /kb-confirm /emergency-data /memory/* /kb-answer* /ruta/*` + crons | ✅ |
 | — | KB: 45 documentos + `kb/manifest.json` + `kb/sync.mjs` | ✅ |
 
 **Memoria persistente:** el código ya está, pero para que el agente realmente la use tienes que
 registrar `retrieve_memories` y `add_memories` como server tools en el dashboard de ElevenLabs —
 el schema exacto está en `/docs/memoria-server-tools.md`.
+
+**Wayfinding interior ("¿Cómo llego?"):** no hay posicionamiento automático dentro del edificio
+(no existe esa infraestructura) — Carmen le dice a la app dónde está y a dónde va, y Maite la
+guía en voz, un checkpoint a la vez, confirmando cada punto antes de dar el siguiente paso. Falta
+registrar la server tool `avanzar_ruta` en ElevenLabs (schema en `/docs/ruta-interior.md`), que
+también explica qué datos del edificio quedaron sin confirmar (Biblioteca/Taller Moda, si Planta 1
+es el último piso, accesibilidad en Planta -1).
 
 **Registro de KB docs:** los `document_id` ya no van en `wrangler.toml` — se cargan uno por uno
 en KV después de subir cada documento a mano en ElevenLabs:
