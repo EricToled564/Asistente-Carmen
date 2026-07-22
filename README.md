@@ -56,8 +56,8 @@ el schema exacto está en `/docs/memoria-server-tools.md`.
 (no existe esa infraestructura) — Carmen le dice a la app dónde está y a dónde va, y Maite la
 guía en voz, un checkpoint a la vez, confirmando cada punto antes de dar el siguiente paso. Falta
 registrar la server tool `avanzar_ruta` en ElevenLabs (schema en `/docs/ruta-interior.md`), que
-también explica qué datos del edificio quedaron sin confirmar (Biblioteca/Taller Moda, si Planta 1
-es el último piso, accesibilidad en Planta -1).
+también explica el único dato del edificio pendiente de confirmar (accesibilidad/ascensor en
+Planta -1).
 
 **Registro de KB docs:** los `document_id` ya no van en `wrangler.toml` — se cargan uno por uno
 en KV después de subir cada documento a mano en ElevenLabs:

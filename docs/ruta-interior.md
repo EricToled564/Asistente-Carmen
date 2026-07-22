@@ -64,14 +64,12 @@ confirmación.
 - **Respuesta si no ha terminado:** `{ "terminado": false, "paso": { "instruccion", "checkpoint" }, "indice", "total" }`
 - **Respuesta al llegar al destino:** `{ "terminado": true, "mensaje": "Listo, ya llegaste a ..." }`
 
-## Datos pendientes de confirmar
+## Datos del edificio
 
-Los datos del edificio (`worker/src/data/edificioArquitectura.ts`) salen de capturas reales del
-Google My Maps que armaste. Queda una cosa sin confirmar:
+Los datos (`worker/src/data/edificioArquitectura.ts`) salen de capturas reales del Google My Maps
+que armaste — Planta -1, 0 y 1 (confirmado, es el último piso), ya completas.
 
-- No quedó confirmado si **Planta 1 es el último piso** del edificio, o si hay más plantas arriba.
-- **Planta -1 no tiene ascensor** registrado (solo la escalera junto a Seminario 3) — si en
-  realidad sí lo hay, o si Carmen necesita ruta accesible en esa planta, hay que agregarlo.
-
-Si mandas la info que falta, se actualiza directo `edificioArquitectura.ts` (es un solo archivo
-de datos, no hay que tocar la lógica de rutas).
+Confirmado: **Planta -1 no tiene ascensor**, solo la escalera junto a Seminario 3. Por eso una
+ruta que empiece o termine en Planta -1 siempre usa esa escalera — no hay alternativa accesible en
+esa planta (`grupoComunEnCamino` en `rutaInterior.ts` ya lo refleja así, y avisa en vez de inventar
+una ruta si algún día se pide algo que no existe).
