@@ -4,8 +4,10 @@ import CapturaRapida from '../components/academico/CapturaRapida.jsx'
 import BotonesAtajos from '../components/academico/BotonesAtajos.jsx'
 import ElevenLabsWidget from '../components/agente/ElevenLabsWidget.jsx'
 import IndiceAcademico from '../components/academico/IndiceAcademico.jsx'
+import Horario from '../components/academico/Horario.jsx'
 
 const SECCIONES = [
+  { id: 'horario', label: '🗓️ Horario' },
   { id: 'radar', label: '📅 Radar' },
   { id: 'indice', label: '📖 Índice' },
   { id: 'tutor', label: '🎓 Tutor' },
@@ -13,7 +15,7 @@ const SECCIONES = [
 ]
 
 export default function Academico() {
-  const [seccion, setSeccion] = useState('radar')
+  const [seccion, setSeccion] = useState('horario')
 
   return (
     <div className="flex h-full flex-col">
@@ -36,6 +38,8 @@ export default function Academico() {
       </div>
 
       <div className="flex-1 overflow-y-auto px-5 pb-8">
+        {seccion === 'horario' && <Horario />}
+
         {seccion === 'radar' && <RadarFechas />}
 
         {seccion === 'indice' && <IndiceAcademico />}

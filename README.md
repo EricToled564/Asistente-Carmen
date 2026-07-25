@@ -45,7 +45,8 @@ texto/fondo están verificados contra WCAG AA.
 | 13 | Mapa → "¿Cómo llego?": wayfinding interior por checkpoints de voz (Carmen indica origen/destino, Maite guía paso a paso) | ✅ (falta registrar `avanzar_ruta`, ver `/docs/ruta-interior.md`) |
 | — | Mecanismo C: preguntas de actualización (`/kb-answer`, Ajustes → Preguntas) | ✅ |
 | — | Registro flexible de document_id del KB (KV, ya no env vars fijas) | ✅ |
-| — | Worker: `/vision /audio /telegram /sos /push/subscribe /kb-upload /kb-confirm /emergency-data /memory/* /kb-answer* /ruta/*` + crons | ✅ |
+| — | Worker: `/vision /audio /telegram /sos /push/subscribe /kb-upload /kb-confirm /emergency-data /memory/* /kb-answer* /ruta/* /horario` + crons | ✅ |
+| — | Académico → Horario: vista semanal visual (no solo conversación con Maite); "Actualizar mi info" la mantiene sincronizada | ✅ |
 | — | KB: 45 documentos + `kb/manifest.json` + `kb/sync.mjs` | ✅ |
 
 **Memoria persistente:** el código ya está, pero para que el agente realmente la use tienes que

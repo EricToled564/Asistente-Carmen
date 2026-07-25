@@ -59,7 +59,15 @@ export default function Mapa() {
   }, [])
 
   if (plano) {
-    return <PlanoEdificio onClose={() => setPlano(null)} />
+    return (
+      <PlanoEdificio
+        onClose={() => setPlano(null)}
+        onIrARuta={() => {
+          setPlano(null)
+          setMostrarRuta(true)
+        }}
+      />
+    )
   }
 
   if (mostrarRuta) {

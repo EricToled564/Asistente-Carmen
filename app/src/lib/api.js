@@ -31,5 +31,6 @@ export const api = {
   kbAnswerCatalogo: () => request('/kb-answer/catalogo', { method: 'GET' }),
   kbAnswer: (payload) => request('/kb-answer', { method: 'POST', body: JSON.stringify(payload) }),
   rutaLugares: () => request('/ruta/lugares', { method: 'GET' }),
-  rutaIniciar: (payload) => request('/ruta/iniciar', { method: 'POST', body: JSON.stringify(payload) })
+  rutaIniciar: (payload) => request('/ruta/iniciar', { method: 'POST', body: JSON.stringify(payload) }),
+  horarioObtener: () => request('/horario', { method: 'GET' })
 }

@@ -3,7 +3,7 @@ import type { Env } from '../types.js'
 import { describeImage, structureText } from '../lib/claude.js'
 import { updateKbDocument } from '../lib/elevenlabs.js'
 import { getKbDocId } from '../lib/kbRegistry.js'
-import { marcarHorarioActualizado } from '../lib/horarioEstado.js'
+import { marcarHorarioActualizado, guardarHorarioEstructurado, type HorarioEstructurado } from '../lib/horarioEstado.js'
 
 export const kbUpload = new Hono<{ Bindings: Env }>()
 
@@ -25,6 +25,38 @@ function formatoPrompt(tipo: string) {
   return `Formatea el siguiente contenido como un documento markdown limpio para el Knowledge Base \
 de un agente conversacional, tipo "${tipo}". Usa encabezados y viñetas donde tenga sentido. No \
 agregues información que no esté en el contenido original.`
+}
+
+// Además del markdown para Maite, "horario" necesita una versión JSON estricta para que la app
+// la pinte como tabla (ver components/academico/Horario.jsx) — es la única categoría de
+// "Actualizar mi info" que se muestra visualmente en la app, no solo se lee en conversación.
+const HORARIO_JSON_PROMPT = `A partir de este horario de clases en markdown, extrae los datos como JSON \
+estricto, SIN texto extra antes o después, con esta forma exacta:
+{"grupo": string, "cursoAcademico": string, "notas": string[], "clases": [{"dia": string, "hora": string, "materia": string, "aula": string}]}
+"dia" debe ser exactamente uno de: "Lunes", "Martes", "Miércoles", "Jueves", "Viernes". Si no \
+encuentras "grupo" o "cursoAcademico", usa cadena vacía. "notas" son advertencias o aclaraciones \
+que aparezcan en el texto (materias duplicadas, semestre faltante, etc.) — arreglo vacío si no hay. \
+No inventes clases que no estén en el texto original.`
+
+async function extraerHorarioEstructurado(apiKey: string, markdown: string): Promise<HorarioEstructurado | null> {
+  try {
+    const jsonTexto = await structureText(apiKey, HORARIO_JSON_PROMPT, markdown)
+    const parsed = JSON.parse(jsonTexto)
+    if (!Array.isArray(parsed?.clases)) return null
+    return {
+      grupo: String(parsed.grupo || ''),
+      cursoAcademico: String(parsed.cursoAcademico || ''),
+      actualizadoEn: new Date().toISOString(),
+      notas: Array.isArray(parsed.notas) ? parsed.notas.map(String) : [],
+      clases: parsed.clases
+    }
+  } catch (err) {
+    // Degradar con gracia: si la extracción JSON falla, el documento de Maite (markdown) ya se
+    // actualizó bien — solo la vista visual en la app se queda con el horario anterior hasta el
+    // siguiente intento. No vale la pena tumbar todo /kb-confirm por esto.
+    console.error('[horario] no se pudo extraer JSON estructurado', err)
+    return null
+  }
 }
 
 kbUpload.post('/kb-upload', async (c) => {
@@ -72,6 +104,8 @@ kbUpload.post('/kb-confirm', async (c) => {
     await c.env.KV.delete(`kb-upload:${body.uploadId}`)
     if (body.tipo === 'horario') {
       await marcarHorarioActualizado(c.env)
+      const estructurado = await extraerHorarioEstructurado(c.env.ANTHROPIC_API_KEY, body.markdown)
+      if (estructurado) await guardarHorarioEstructurado(c.env, estructurado)
     }
     return c.json({ ok: true })
   } catch (err) {

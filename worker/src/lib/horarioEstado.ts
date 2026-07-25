@@ -21,3 +21,33 @@ export async function debeRecordarHorario(env: Env): Promise<boolean> {
   const dias = (Date.now() - new Date(ultima).getTime()) / (1000 * 60 * 60 * 24)
   return dias >= DIAS_VIGENCIA
 }
+
+// Versión estructurada del horario (para que la app la RENDERICE como tabla, no solo para que
+// Maite la lea en conversación). Se llena cuando Carmen sube uno nuevo vía "Actualizar mi info";
+// si nunca se ha subido nada (ej. recién desplegado), GET /horario devuelve null y la app cae al
+// horario del semestre 1 precargado en app/src/data/horario.js.
+const KEY_DATOS = 'horario:datos'
+
+export interface ClaseHorario {
+  dia: string
+  hora: string
+  materia: string
+  aula: string
+}
+
+export interface HorarioEstructurado {
+  grupo: string
+  cursoAcademico: string
+  actualizadoEn: string
+  notas: string[]
+  clases: ClaseHorario[]
+}
+
+export async function guardarHorarioEstructurado(env: Env, datos: HorarioEstructurado): Promise<void> {
+  await env.KV.put(KEY_DATOS, JSON.stringify(datos))
+}
+
+export async function obtenerHorarioEstructurado(env: Env): Promise<HorarioEstructurado | null> {
+  const raw = await env.KV.get(KEY_DATOS)
+  return raw ? (JSON.parse(raw) as HorarioEstructurado) : null
+}
