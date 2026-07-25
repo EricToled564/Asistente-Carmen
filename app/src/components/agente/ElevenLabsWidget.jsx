@@ -58,6 +58,12 @@ export default function ElevenLabsWidget({ contextHint }) {
         containerRef.current.innerHTML = ''
         const el = document.createElement('elevenlabs-convai')
         el.setAttribute('agent-id', config.elevenLabsAgentId)
+        // Sin esto el widget se renderiza en su modo default "compact" — un botón flotante
+        // (como un chat bubble de soporte), no un chat acoplado dentro del contenedor. En las
+        // pantallas de esta app SIEMPRE lo embebemos dentro de una caja (Maite, Tutor, Índice
+        // por materia, Ruta interior) esperando que llene ese espacio, así que necesita el modo
+        // "expanded" — de lo contrario la caja se ve vacía/en blanco.
+        el.setAttribute('variant', 'expanded')
 
         const dynamicVars = {
           ...(contextHint ? { contexto: contextHint } : {}),
