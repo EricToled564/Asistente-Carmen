@@ -34,7 +34,7 @@ texto/fondo están verificados contra WCAG AA.
 | 2 | Widget de Maite embebido + variables dinámicas (Vía 2 fallback) | ✅ (`agent_id` ya configurado) |
 | 3 | Mapa con pines curados (CampusHome real) + deep links a Google Maps (modo transporte público, "desde donde estoy" por GPS) + apps oficiales de transporte | ✅ |
 | 4 | Foto → información (visión Claude) | ✅ |
-| 5 | Académico: radar de fechas, índice interactivo de materias, tutor (vía Maite), captura rápida | ✅ |
+| 5 | Académico: horario visual, radar de fechas, índice de materias con temario/evaluación real (leído de /kb), tutor (vía Maite), captura rápida | ✅ |
 | 6 | Botones "Grabar clase"/"Terminar clase" (Atajos iOS) | ✅ (ver limitación abajo) |
 | 7 | Módulo SOS (countdown, GPS, 3 canales, modo emergencia) | ✅ |
 | 8 | Notificaciones push (Web Push + cron de check-ins) | ✅ |

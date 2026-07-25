@@ -1,7 +1,7 @@
 // Índice de materias del Grado en Diseño, agrupado por curso/semestre según KB1-plan-grado-diseno.md.
-// Esto es SOLO un índice de navegación (nombre + código de KB) — el contenido real de cada
-// materia (temario, evaluación, bibliografía) vive en el KB de Maite y se consulta ahí, nunca se
-// duplica aquí, para no arriesgar que este índice quede desactualizado respecto al KB real.
+// Esto es SOLO el índice de navegación (nombre + código de KB) — el contenido real de cada
+// materia (temario, evaluación) se muestra en IndiceAcademico.jsx leyendo directo los archivos de
+// /kb (ver data/materiasContenido.js), no una copia mantenida a mano aquí.
 //
 // 4º curso, 2º semestre no tiene materias listadas: Estrategias de Comunicación & Web, Business
 // management, Market strategies, Creative leadership workshop y el TFG no tienen guía docente

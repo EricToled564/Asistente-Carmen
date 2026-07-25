@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useApp } from '../../context/AppContext.jsx'
 import { INDICE_ACADEMICO } from '../../data/indiceAcademico.js'
+import { obtenerContenidoMateria } from '../../data/materiasContenido.js'
 
 export default function IndiceAcademico() {
   const [cursoAbierto, setCursoAbierto] = useState(1)
@@ -10,13 +11,14 @@ export default function IndiceAcademico() {
   useEffect(() => {
     setContextoAgente(
       materiaActiva
-        ? `Carmen quiere información sobre la materia "${materiaActiva.titulo}" (${materiaActiva.kbCode}). Responde solo con lo que tengas en ese documento del KB.`
+        ? `Carmen está viendo el temario/evaluación de "${materiaActiva.titulo}" (${materiaActiva.kbCode}) en la pantalla — ya no hace falta que se lo repitas. Tu papel aquí es de tutora: ayúdale con explicaciones más a fondo, ejemplos o un quiz sobre ese contenido si te lo pide.`
         : null
     )
     return () => setContextoAgente(null)
   }, [materiaActiva, setContextoAgente])
 
   if (materiaActiva) {
+    const contenido = obtenerContenidoMateria(materiaActiva.kbCode)
     return (
       <div className="flex h-full flex-col gap-3">
         <button onClick={() => setMateriaActiva(null)} className="self-start text-sm text-lavanda-700">
@@ -25,12 +27,28 @@ export default function IndiceAcademico() {
         <div>
           <p className="text-xs font-semibold uppercase tracking-wide text-lavanda-700">{materiaActiva.kbCode}</p>
           <p className="text-lg font-semibold text-morado-900">{materiaActiva.titulo}</p>
+          {contenido?.metaLinea && <p className="mt-1 text-xs text-morado-900/50">{contenido.metaLinea}</p>}
         </div>
-        <div className="flex flex-col items-center gap-3 rounded-3xl bg-white p-6 text-center shadow-soft">
-          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-lavanda-100 text-3xl">💬</span>
-          <p className="text-sm text-morado-900/60">
-            Toca el botón de Maite (arriba a la derecha) y pregúntale lo que quieras de esta materia — temario,
-            evaluación, bibliografía. Ya sabe de cuál le estás hablando.
+
+        {!contenido ? (
+          <p className="rounded-2xl bg-crema-100 p-4 text-sm text-morado-900/60">
+            Todavía no hay guía docente cargada para esta materia.
+          </p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {contenido.secciones.map((s) => (
+              <div key={s.titulo} className="rounded-2xl bg-white p-4 shadow-soft">
+                <p className="text-xs font-semibold uppercase tracking-wide text-lavanda-700">{s.titulo}</p>
+                <p className="mt-1.5 text-sm text-morado-900/80">{s.cuerpo}</p>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="flex items-center gap-3 rounded-2xl bg-lavanda-50 p-3.5">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-lg">🎓</span>
+          <p className="text-xs text-morado-900/70">
+            ¿Quieres que te lo explique más a fondo o te haga un quiz? Toca el botón de Maite arriba a la derecha.
           </p>
         </div>
       </div>
@@ -40,7 +58,7 @@ export default function IndiceAcademico() {
   return (
     <div className="flex flex-col gap-3">
       <p className="text-sm text-morado-900/60">
-        Todas tus materias, curso por curso. Toca una para preguntarle a Maite sobre ella.
+        Todas tus materias, curso por curso. Toca una para ver su temario y evaluación.
       </p>
       {INDICE_ACADEMICO.map((c) => {
         const abierto = cursoAbierto === c.curso
