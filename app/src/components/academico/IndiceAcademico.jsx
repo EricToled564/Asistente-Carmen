@@ -1,10 +1,20 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useApp } from '../../context/AppContext.jsx'
 import { INDICE_ACADEMICO } from '../../data/indiceAcademico.js'
-import ElevenLabsWidget from '../agente/ElevenLabsWidget.jsx'
 
 export default function IndiceAcademico() {
   const [cursoAbierto, setCursoAbierto] = useState(1)
   const [materiaActiva, setMateriaActiva] = useState(null)
+  const { setContextoAgente } = useApp()
+
+  useEffect(() => {
+    setContextoAgente(
+      materiaActiva
+        ? `Carmen quiere información sobre la materia "${materiaActiva.titulo}" (${materiaActiva.kbCode}). Responde solo con lo que tengas en ese documento del KB.`
+        : null
+    )
+    return () => setContextoAgente(null)
+  }, [materiaActiva, setContextoAgente])
 
   if (materiaActiva) {
     return (
@@ -16,11 +26,12 @@ export default function IndiceAcademico() {
           <p className="text-xs font-semibold uppercase tracking-wide text-lavanda-700">{materiaActiva.kbCode}</p>
           <p className="text-lg font-semibold text-morado-900">{materiaActiva.titulo}</p>
         </div>
-        <p className="text-sm text-morado-900/60">
-          Pregúntale a Maite lo que quieras de esta materia — temario, evaluación, bibliografía.
-        </p>
-        <div className="min-h-[420px] flex-1 rounded-2xl bg-white shadow-soft">
-          <ElevenLabsWidget contextHint={`Carmen quiere información sobre la materia "${materiaActiva.titulo}" (${materiaActiva.kbCode}). Responde solo con lo que tengas en ese documento del KB.`} />
+        <div className="flex flex-col items-center gap-3 rounded-3xl bg-white p-6 text-center shadow-soft">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-lavanda-100 text-3xl">💬</span>
+          <p className="text-sm text-morado-900/60">
+            Toca el botón de Maite (arriba a la derecha) y pregúntale lo que quieras de esta materia — temario,
+            evaluación, bibliografía. Ya sabe de cuál le estás hablando.
+          </p>
         </div>
       </div>
     )

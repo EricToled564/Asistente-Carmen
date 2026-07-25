@@ -26,6 +26,11 @@ export function AppProvider({ children }) {
   // Ciudad del reloj secundario en Inicio — Ciudad de México por default (familia), cambiable si
   // Carmen viaja y quiere comparar la hora de otro lugar en vez de la de casa.
   const [ciudadReferencia, setCiudadReferenciaState] = useState(() => readJSON('ciudadReferencia', CIUDAD_REFERENCIA_DEFAULT))
+  // Contexto para el widget flotante de Maite (único, global — ver components/agente/MaiteFlotante.jsx).
+  // Cada pantalla que quiera darle contexto especial (modo estudio, una materia puntual, una ruta
+  // interior activa) llama setContextoAgente(...) al entrar y setContextoAgente(null) al salir —
+  // NO se monta un widget nuevo por pantalla, solo se actualiza el contexto del que ya existe.
+  const [contextoAgente, setContextoAgente] = useState(null)
 
   const config = useMemo(
     () => ({
@@ -80,6 +85,8 @@ export function AppProvider({ children }) {
     updatePermission,
     ciudadReferencia,
     setCiudadReferencia,
+    contextoAgente,
+    setContextoAgente,
     config
   }
 

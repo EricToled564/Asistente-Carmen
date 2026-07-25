@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from '../../lib/api.js'
-import ElevenLabsWidget from '../agente/ElevenLabsWidget.jsx'
+import { useApp } from '../../context/AppContext.jsx'
 
 // "¿Cómo llego?" — Carmen elige dónde está y a dónde quiere ir (ella misma, no hay
 // posicionamiento automático dentro del edificio — ver docs/ruta-interior.md sobre por qué).
@@ -13,6 +13,7 @@ export default function RutaInterior({ onClose }) {
   const [destinoId, setDestinoId] = useState('')
   const [ruta, setRuta] = useState(null) // { rutaId, paso, origenNombre, destinoNombre }
   const [iniciando, setIniciando] = useState(false)
+  const { setContextoAgente } = useApp()
 
   useEffect(() => {
     api
@@ -20,6 +21,14 @@ export default function RutaInterior({ onClose }) {
       .then((data) => setPlantas(data.plantas))
       .catch(() => setError('No se pudo cargar la lista de lugares del edificio.'))
   }, [])
+
+  useEffect(() => {
+    if (!ruta) return
+    setContextoAgente(
+      `Carmen quiere que la guíes paso a paso dentro del edificio, desde "${ruta.origenNombre}" hasta "${ruta.destinoNombre}". El id de esta ruta activa es "${ruta.rutaId}". Dile primero este paso, tal cual: "${ruta.paso.instruccion}". Cuando ella confirme por voz que llegó a "${ruta.paso.checkpoint}", llama la herramienta avanzar_ruta con rutaId="${ruta.rutaId}" para obtener el siguiente paso y díselo. Repite hasta que la herramienta indique que ya llegó al destino final.`
+    )
+    return () => setContextoAgente(null)
+  }, [ruta, setContextoAgente])
 
   async function iniciarRuta() {
     if (!origenId || !destinoId) return
@@ -36,8 +45,6 @@ export default function RutaInterior({ onClose }) {
   }
 
   if (ruta) {
-    const contextHint = `Carmen quiere que la guíes paso a paso dentro del edificio, desde "${ruta.origenNombre}" hasta "${ruta.destinoNombre}". El id de esta ruta activa es "${ruta.rutaId}". Dile primero este paso, tal cual: "${ruta.paso.instruccion}". Cuando ella confirme por voz que llegó a "${ruta.paso.checkpoint}", llama la herramienta avanzar_ruta con rutaId="${ruta.rutaId}" para obtener el siguiente paso y díselo. Repite hasta que la herramienta indique que ya llegó al destino final.`
-
     return (
       <div className="flex h-full flex-col gap-3 p-4">
         <button onClick={() => setRuta(null)} className="self-start text-sm text-lavanda-700">
@@ -50,11 +57,12 @@ export default function RutaInterior({ onClose }) {
             {ruta.origenNombre} → {ruta.destinoNombre}
           </p>
         </div>
-        <p className="text-sm text-morado-900/60">
-          Habla con Maite y dile cuándo vas llegando a cada punto — ella te va dando el siguiente paso.
-        </p>
-        <div className="min-h-[420px] flex-1 rounded-2xl bg-white shadow-soft">
-          <ElevenLabsWidget contextHint={contextHint} />
+        <div className="flex flex-col items-center gap-3 rounded-3xl bg-white p-6 text-center shadow-soft">
+          <span className="flex h-14 w-14 items-center justify-center rounded-full bg-lavanda-100 text-3xl">🧭</span>
+          <p className="text-sm text-morado-900/60">
+            Toca el botón de Maite (arriba a la derecha) y ve diciéndole cuándo vas llegando a cada punto —
+            ella te va dando el siguiente paso.
+          </p>
         </div>
       </div>
     )

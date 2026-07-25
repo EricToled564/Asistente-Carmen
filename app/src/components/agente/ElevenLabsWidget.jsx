@@ -38,60 +38,64 @@ function calcularVariablesDeHora() {
 }
 
 /**
- * Widget embebido del agente de voz (ElevenLabs Agents / Convai).
- * El agent_id se configura después vía VITE_ELEVENLABS_AGENT_ID — sin él, muestra un
- * placeholder explicando qué falta en vez de fallar en silencio.
+ * Widget flotante del agente de voz (ElevenLabs Agents / Convai) — instancia ÚNICA y GLOBAL,
+ * montada una sola vez en App.jsx.
  *
- * `contextHint` inyecta contexto extra al agente (p.ej. "modo estudio" desde el tab Académico)
- * sin reimplementar su lógica aquí.
+ * Importante (esto costó una sesión completa de debugging entenderlo): el custom element
+ * <elevenlabs-convai> se define internamente con `:host { position: fixed; inset: 0 }` — es
+ * SIEMPRE un overlay de posición fija sobre toda la pantalla, sin importar en qué <div> del DOM
+ * lo montes. NO es un componente que se pueda "empotrar" dentro de una caja/contenedor — por eso
+ * las pantallas que antes creaban su propia instancia dentro de una caja blanca (Agente, Tutor,
+ * cada materia del Índice, Ruta interior) siempre se veían vacías: el chat real aparecía flotando
+ * en su posición fija de siempre (o ni eso, si algo fallaba), nunca dentro de esa caja.
+ *
+ * La solución: una sola instancia para toda la app, que flota con `placement="top-right"` (para
+ * no chocar con la barra de tabs de abajo). Las pantallas que necesitan darle contexto especial
+ * (modo estudio, una materia puntual, una ruta activa) usan `setContextoAgente(...)` del
+ * AppContext en vez de montar su propio widget — eso solo actualiza el atributo
+ * `dynamic-variables` de la instancia que ya existe.
  */
-export default function ElevenLabsWidget({ contextHint }) {
+export default function ElevenLabsWidget() {
   const containerRef = useRef(null)
-  const { config } = useApp()
+  const elRef = useRef(null)
+  const { config, contextoAgente } = useApp()
 
+  // Crear el elemento UNA sola vez (mount-only) — nunca se destruye al navegar entre tabs.
   useEffect(() => {
-    if (!config.elevenLabsAgentId) return
+    if (!config.elevenLabsAgentId || !containerRef.current) return
     let cancelled = false
     loadWidgetScript()
       .then(() => {
-        if (cancelled || !containerRef.current) return
-        containerRef.current.innerHTML = ''
+        if (cancelled || !containerRef.current || elRef.current) return
         const el = document.createElement('elevenlabs-convai')
         el.setAttribute('agent-id', config.elevenLabsAgentId)
-        // Sin esto el widget se renderiza en su modo default "compact" — un botón flotante
-        // (como un chat bubble de soporte), no un chat acoplado dentro del contenedor. En las
-        // pantallas de esta app SIEMPRE lo embebemos dentro de una caja (Maite, Tutor, Índice
-        // por materia, Ruta interior) esperando que llene ese espacio, así que necesita el modo
-        // "expanded" — de lo contrario la caja se ve vacía/en blanco.
-        el.setAttribute('variant', 'expanded')
-
-        const dynamicVars = {
-          ...(contextHint ? { contexto: contextHint } : {}),
-          ...(config.agenteViaDosHora ? calcularVariablesDeHora() : {})
-        }
-        if (Object.keys(dynamicVars).length > 0) {
-          el.setAttribute('dynamic-variables', JSON.stringify(dynamicVars))
-        }
+        el.setAttribute('placement', 'top-right')
+        elRef.current = el
         containerRef.current.appendChild(el)
       })
       .catch((err) => console.error(err))
     return () => {
       cancelled = true
     }
-  }, [config.elevenLabsAgentId, config.agenteViaDosHora, contextHint])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [config.elevenLabsAgentId])
 
-  if (!config.elevenLabsAgentId) {
-    return (
-      <div className="m-4 rounded-2xl border border-dashed border-lavanda-300 bg-lavanda-50 p-5 text-sm text-morado-900/70">
-        <p className="font-semibold text-lavanda-800">El agente aún no está configurado</p>
-        <p className="mt-2">
-          Falta la variable de entorno <code className="rounded bg-white px-1">VITE_ELEVENLABS_AGENT_ID</code>.
-          Crea el agente en la plataforma de ElevenLabs, copia su <code>agent_id</code> y agrégalo en{' '}
-          <code className="rounded bg-white px-1">app/.env</code>.
-        </p>
-      </div>
-    )
-  }
+  // Actualizar el contexto (dynamic-variables) del elemento YA existente cuando cambie —
+  // sin recrearlo, para no cortar una conversación en curso al cambiar de pantalla.
+  useEffect(() => {
+    if (!elRef.current) return
+    const dynamicVars = {
+      ...(contextoAgente ? { contexto: contextoAgente } : {}),
+      ...(config.agenteViaDosHora ? calcularVariablesDeHora() : {})
+    }
+    if (Object.keys(dynamicVars).length > 0) {
+      elRef.current.setAttribute('dynamic-variables', JSON.stringify(dynamicVars))
+    } else {
+      elRef.current.removeAttribute('dynamic-variables')
+    }
+  }, [contextoAgente, config.agenteViaDosHora])
 
-  return <div ref={containerRef} className="h-full w-full" />
+  if (!config.elevenLabsAgentId) return null
+
+  return <div ref={containerRef} />
 }

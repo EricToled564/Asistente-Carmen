@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { useApp } from '../context/AppContext.jsx'
 import RadarFechas from '../components/academico/RadarFechas.jsx'
 import CapturaRapida from '../components/academico/CapturaRapida.jsx'
 import BotonesAtajos from '../components/academico/BotonesAtajos.jsx'
-import ElevenLabsWidget from '../components/agente/ElevenLabsWidget.jsx'
 import IndiceAcademico from '../components/academico/IndiceAcademico.jsx'
 import Horario from '../components/academico/Horario.jsx'
 
@@ -16,6 +16,14 @@ const SECCIONES = [
 
 export default function Academico() {
   const [seccion, setSeccion] = useState('horario')
+  const { setContextoAgente } = useApp()
+
+  useEffect(() => {
+    setContextoAgente(
+      seccion === 'tutor' ? 'modo estudio: ayuda con quiz y explicación de materias del Grado en Diseño (KB1/KB8)' : null
+    )
+    return () => setContextoAgente(null)
+  }, [seccion, setContextoAgente])
 
   return (
     <div className="flex h-full flex-col">
@@ -45,14 +53,13 @@ export default function Academico() {
         {seccion === 'indice' && <IndiceAcademico />}
 
         {seccion === 'tutor' && (
-          <div className="flex h-full flex-col gap-3">
+          <div className="flex flex-col items-center gap-3 rounded-3xl bg-white p-6 text-center shadow-soft">
+            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-lavanda-100 text-3xl">🎓</span>
+            <p className="font-display text-lg font-bold text-morado-900">Modo estudio activado</p>
             <p className="text-sm text-morado-900/60">
-              El tutor vive dentro de tu agente — le doy contexto de "modo estudio" para que te ayude con
-              quizzes y explicaciones de tus materias.
+              Toca el botón de Maite (flotando arriba a la derecha) y pídele un quiz o que te explique algo de
+              tus materias — ya sabe que estás en modo tutor.
             </p>
-            <div className="min-h-[420px] flex-1 rounded-2xl bg-white shadow-soft">
-              <ElevenLabsWidget contextHint="modo estudio: ayuda con quiz y explicación de materias del Grado en Diseño (KB1/KB8)" />
-            </div>
           </div>
         )}
 
