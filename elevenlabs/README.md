@@ -11,15 +11,19 @@ registrar-webhooks.mjs  Los crea/actualiza y los engancha al agente
 
 ```bash
 export ELEVENLABS_API_KEY=...        # elevenlabs.io → Settings → API keys
-export WORKER_URL=https://companion-worker.TU-SUBDOMINIO.workers.dev
+export WORKER_URL=https://asistentecarmen.erictoled564.workers.dev
 
 node elevenlabs/registrar-webhooks.mjs --dry-run   # ver qué se mandaría
 node elevenlabs/registrar-webhooks.mjs             # hacerlo
 node elevenlabs/registrar-webhooks.mjs --verificar # ver cómo quedó
 ```
 
-`WORKER_URL` es la URL que te devolvió `npm run deploy` dentro de `/worker`, sin barra final.
-El script se niega a arrancar si todavía trae el placeholder `TU-SUBDOMINIO`: una URL sin
+`WORKER_URL` es la URL pública del Worker, sin barra final. La de arriba es la real de esta
+cuenta (ver `CLAUDE.md`); queda pendiente confirmar que el código corre ahí y no en un Worker
+aparte llamado `companion-worker` — abre la URL en un navegador y comprueba que devuelve
+`{"ok":true,"servicio":"companion-worker"}` antes de fiarte.
+
+El script se niega a arrancar si la URL trae un placeholder tipo `TU-SUBDOMINIO`: una URL sin
 sustituir no da error de configuración, falla en silencio a mitad de una conversación.
 
 El `agent_id` por defecto es el de Maite (`agent_8701kyeepa7tffmr5475esyq7rtq`). Si recreas el

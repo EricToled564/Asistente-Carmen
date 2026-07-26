@@ -10,7 +10,7 @@ Cloudflare Workers antes de pegar nada).
 
 > **No hace falta pegar nada a mano.** Los 8 están escritos en código y se registran por API:
 > ```bash
-> ELEVENLABS_API_KEY=... WORKER_URL=https://companion-worker.TU-SUBDOMINIO.workers.dev \
+> ELEVENLABS_API_KEY=... WORKER_URL=https://asistentecarmen.erictoled564.workers.dev \
 >   node elevenlabs/registrar-webhooks.mjs
 > ```
 > Ver [`/elevenlabs/README.md`](../elevenlabs/README.md). Este documento sigue siendo la

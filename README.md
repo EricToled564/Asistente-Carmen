@@ -55,7 +55,7 @@ un Worker local. **El registro en ElevenLabs ya no es manual: se hace por API co
 (ver [`/elevenlabs/README.md`](elevenlabs/README.md)):
 
 ```bash
-ELEVENLABS_API_KEY=... WORKER_URL=https://companion-worker.TU-SUBDOMINIO.workers.dev \
+ELEVENLABS_API_KEY=... WORKER_URL=https://asistentecarmen.erictoled564.workers.dev \
   node elevenlabs/registrar-webhooks.mjs
 ```
 
@@ -170,7 +170,7 @@ npx wrangler kv key put --binding=KV "kb-doc-id:KB1" "<document_id>"
    `kb/manifest.json` y `kb/sync.mjs`)
 6. Registra los 8 server tools (webhooks) — por API, con el Worker ya desplegado:
    ```bash
-   ELEVENLABS_API_KEY=... WORKER_URL=https://companion-worker.TU-SUBDOMINIO.workers.dev \
+   ELEVENLABS_API_KEY=... WORKER_URL=https://asistentecarmen.erictoled564.workers.dev \
      node elevenlabs/registrar-webhooks.mjs
    ```
    Ver `/elevenlabs/README.md`. Compruébalo con `--verificar` y haz la prueba de humo en voz de
