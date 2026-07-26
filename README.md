@@ -132,7 +132,9 @@ npx wrangler kv key put --binding=KV "kb-doc-id:KB1" "<document_id>"
 
 ### 3. ElevenLabs — el agente Maite y su Knowledge Base
 1. Crea cuenta y un agente Conversational AI en elevenlabs.io, llámalo Maite
-2. Escribe/pega su system prompt (archivo aparte, ya redactado — no lo genera este repo)
+2. Pega su system prompt: está en `/docs/system-prompt-maite.md` (copia el bloque entre
+   `---INICIO---` y `---FIN---`). Ese archivo es la fuente de verdad — si hay que cambiar cómo se
+   comporta Maite, se edita ahí y se vuelve a pegar, no al revés.
 3. Configura el LLM del agente en Claude Sonnet 5, y el "First message" en blanco (Carmen habla
    primero)
 4. Configura `{{system__time}}` con timezone **Europe/Madrid** en la plataforma (esto resuelve la
