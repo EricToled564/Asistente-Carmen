@@ -47,18 +47,35 @@ export interface ResultadoFusion {
 // mano; es preferible a perder el documento sin enterarse.
 const PROPORCION_MINIMA = 0.6
 
+// El guardia mide INFORMACIÓN, no marcado.
+//
+// ElevenLabs no guarda los documentos como se subieron: los convierte a HTML
+// (`<h1>...</h1><p>...</p>`). La fusión, en cambio, devuelve markdown. Comparar las longitudes
+// crudas compararía dos formatos distintos y el HTML siempre pesa más por las etiquetas, así que
+// una fusión perfectamente correcta podría parecer una pérdida del 20% y quedar bloqueada.
+//
+// Quitando etiquetas y espacio sobrante, los dos lados quedan medidos en lo único que importa:
+// cuánto texto real tiene el documento.
+function largoDeTexto(contenido: string): number {
+  return contenido
+    .replace(/<[^>]*>/g, ' ') // etiquetas HTML
+    .replace(/[#*_`>|-]/g, ' ') // marcado de markdown
+    .replace(/\s+/g, ' ')
+    .trim().length
+}
+
 export async function fusionarYActualizarKb(
   env: Env,
   documentId: string,
   informacionNueva: string
 ): Promise<ResultadoFusion> {
   const actual = await getKbDocument(env.ELEVENLABS_API_KEY, documentId)
-  const largoAntes = actual.trim().length
+  const largoAntes = largoDeTexto(actual)
 
   // Documento vacío: no hay nada que fusionar ni que perder.
   if (largoAntes === 0) {
     await updateKbDocument(env.ELEVENLABS_API_KEY, documentId, informacionNueva)
-    return { ok: true, largoAntes: 0, largoDespues: informacionNueva.length }
+    return { ok: true, largoAntes: 0, largoDespues: largoDeTexto(informacionNueva) }
   }
 
   const fusionado = (
@@ -69,7 +86,7 @@ export async function fusionarYActualizarKb(
     )
   ).trim()
 
-  const largoDespues = fusionado.length
+  const largoDespues = largoDeTexto(fusionado)
 
   if (largoDespues < largoAntes * PROPORCION_MINIMA) {
     return {
