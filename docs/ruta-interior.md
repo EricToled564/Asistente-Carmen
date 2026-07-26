@@ -13,11 +13,15 @@ un checkpoint a la vez**: dice el primer paso, espera a que Carmen confirme por 
 solo entonces da el siguiente. Así el "no sé exactamente dónde estás en cada segundo" deja de ser
 un problema — es Carmen quien avisa cuándo avanzó.
 
-Las instrucciones nunca dicen "izquierda/derecha": esa información depende de hacia dónde esté
-viendo Carmen en cada momento y no la podemos garantizar desde un plano visto desde arriba. En
-cambio, cada paso nombra los lugares reales que va a pasar en el camino (ej. "camina pasando
-Aula 05 y Aula 04 hasta llegar a la Cafetería") y, al cambiar de planta, qué escalera/ascensor
-tomar y cuántos pisos.
+Las instrucciones sí dicen "izquierda/derecha" — cada parada tiene un campo `lado` (norte/sur,
+ver `edificioArquitectura.ts`) sacado de su posición real en las capturas, y el edificio es una
+sola nave con un pasillo central (confirmado con el Río Sadar corriendo por el norte en las tres
+plantas, o sea las fotos sí están orientadas con el norte arriba). Caminando hacia el este, lado
+norte queda a la izquierda y lado sur a la derecha (al revés caminando hacia el oeste) — es
+geometría simple, no una suposición. Cuando el punto de partida es una escalera/ascensor (que no
+tiene un lado propio), en vez de inventar hacia dónde queda mirando Carmen al salir, se da el giro
+de LLEGADA al destino en su lugar (ver `girarHacia` en `rutaInterior.ts`) — nunca se inventa un
+giro sin dato real detrás.
 
 ## Cómo funciona técnicamente
 

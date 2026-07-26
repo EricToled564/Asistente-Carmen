@@ -1,4 +1,4 @@
-import { PLANTAS, buscarParada, type Parada, type GrupoConector } from '../data/edificioArquitectura.js'
+import { PLANTAS, buscarParada, type Parada, type GrupoConector, type Lado } from '../data/edificioArquitectura.js'
 
 export interface PasoRuta {
   instruccion: string
@@ -57,16 +57,41 @@ function nombresIntermedios(planta: -1 | 0 | 1, indiceA: number, indiceB: number
   return paradas.slice(desde + 1, hasta).map((p) => p.nombre)
 }
 
+// De qué lado toca girar para pasar del eje del pasillo a una parada de lado `lado`, caminando
+// en dirección `hacia` — es la misma cuenta ya sea para SALIR de una parada hacia el pasillo o
+// para ENTRAR desde el pasillo a una parada (geometría: caminando al este, norte queda a tu
+// izquierda y sur a tu derecha; caminando al oeste es al revés). Ver comentario en
+// data/edificioArquitectura.ts sobre por qué esto sí es confiable (no es una suposición).
+function girarHacia(lado: Lado, hacia: 'este' | 'oeste'): 'izquierda' | 'derecha' {
+  const norteEsIzquierda = hacia === 'este'
+  if (lado === 'norte') return norteEsIzquierda ? 'izquierda' : 'derecha'
+  return norteEsIzquierda ? 'derecha' : 'izquierda'
+}
+
 function pasoCaminandoMismaPlanta(planta: -1 | 0 | 1, origen: Parada, destino: Parada): PasoRuta {
   const paradas = PLANTAS[planta]
   const indiceOrigen = paradas.findIndex((p) => p.id === origen.id)
   const indiceDestino = paradas.findIndex((p) => p.id === destino.id)
   const intermedios = nombresIntermedios(planta, indiceOrigen, indiceDestino)
-
-  const instruccion =
+  const hacia = indiceDestino > indiceOrigen ? 'este' : 'oeste'
+  const trayecto =
     intermedios.length > 0
-      ? `Desde ${origen.nombre}, camina por el pasillo de ${NOMBRE_PLANTA[planta]} pasando junto a: ${intermedios.join(', ')}, hasta llegar a ${destino.nombre}.`
-      : `Desde ${origen.nombre}, camina por el pasillo de ${NOMBRE_PLANTA[planta]} directo hasta ${destino.nombre}.`
+      ? `por el pasillo de ${NOMBRE_PLANTA[planta]} pasando junto a: ${intermedios.join(', ')}`
+      : `por el pasillo de ${NOMBRE_PLANTA[planta]}`
+
+  let instruccion: string
+  if (origen.lado) {
+    // Se conoce el lado de origen (es una sala/servicio, no una escalera/ascensor) — se da el
+    // giro de SALIDA, igual que lo describirías tú misma: "sal a la izquierda y camina...".
+    instruccion = `Desde ${origen.nombre}, gira a la ${girarHacia(origen.lado, hacia)} y camina ${trayecto}, hasta llegar a ${destino.nombre}.`
+  } else if (destino.lado) {
+    // Se sale de un conector (escalera/ascensor) — no sabemos hacia qué lado queda mirando
+    // Carmen al salir de ahí, así que en vez de inventar el giro de salida, se da el giro de
+    // LLEGADA (de qué lado del pasillo toca entrar al destino), que sí se conoce con certeza.
+    instruccion = `Desde ${origen.nombre}, camina ${trayecto}, y gira a la ${girarHacia(destino.lado, hacia)} para llegar a ${destino.nombre}.`
+  } else {
+    instruccion = `Desde ${origen.nombre}, camina ${trayecto}, hasta llegar a ${destino.nombre}.`
+  }
 
   return { instruccion, checkpoint: destino.nombre }
 }
