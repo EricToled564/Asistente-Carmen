@@ -55,6 +55,10 @@ ruta.post('/ruta/iniciar', async (c) => {
     origenNombre: estado.origenNombre,
     destinoNombre: estado.destinoNombre,
     paso: estado.pasos[0],
+    // Todos los pasos, no solo el primero: la app los muestra escritos en pantalla para que
+    // Carmen pueda seguirlos aunque adentro del edificio no haya señal de datos (hablar con
+    // Maite sí requiere conexión; leer la ruta ya cargada, no).
+    pasos: estado.pasos,
     indice: 0,
     total: estado.pasos.length,
     terminado: estado.pasos.length <= 1

@@ -96,6 +96,62 @@ export const PINES = [
     nota: 'Zona de pintxos, salir con amigos, ambiente de San Fermín.',
     lat: 42.8168,
     lng: -1.6432
+  },
+  {
+    id: 'calle-estafeta',
+    categoria: 'vida',
+    nombre: 'Calle Estafeta',
+    nota: 'La calle del encierro de San Fermín; llena de bares de pintxos.',
+    lat: 42.8180,
+    lng: -1.6418
+  },
+  {
+    id: 'calle-san-nicolas',
+    categoria: 'vida',
+    nombre: 'Calle San Nicolás',
+    nota: 'Otra clásica de pintxos, muy cerca de Plaza del Castillo.',
+    lat: 42.8161,
+    lng: -1.6452
+  },
+  {
+    id: 'catedral',
+    categoria: 'vida',
+    nombre: 'Catedral de Santa María',
+    nota: 'Gótica, con claustro; de lo más bonito del Casco Viejo.',
+    lat: 42.8194,
+    lng: -1.6410
+  },
+  {
+    id: 'ciudadela',
+    categoria: 'vida',
+    nombre: 'La Ciudadela',
+    nota: 'Fortaleza renacentista convertida en parque; conciertos y exposiciones.',
+    lat: 42.8137,
+    lng: -1.6512
+  },
+  {
+    id: 'taconera',
+    categoria: 'vida',
+    nombre: 'Parque de la Taconera',
+    nota: 'El parque más antiguo de Pamplona, con animales en los fosos.',
+    lat: 42.8189,
+    lng: -1.6487
+  },
+  {
+    id: 'parque-yamaguchi',
+    categoria: 'vida',
+    nombre: 'Parque Yamaguchi',
+    nota: 'Parque japonés junto al campus — bueno para despejarse entre clases.',
+    lat: 42.8062,
+    lng: -1.6395
+  },
+  {
+    id: 'mercado-santo-domingo',
+    categoria: 'vida',
+    nombre: 'Mercado de Santo Domingo',
+    nota: 'Mercado tradicional para comprar fresco y barato.',
+    lat: 42.8199,
+    lng: -1.6446
   }
 ]
 

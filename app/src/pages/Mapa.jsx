@@ -33,7 +33,9 @@ export default function Mapa() {
   const [filtro, setFiltro] = useState('todas')
   const [plano, setPlano] = useState(null)
   const [mostrarRuta, setMostrarRuta] = useState(false)
+  const [destinoPrellenado, setDestinoPrellenado] = useState('')
   const [mostrarLista, setMostrarLista] = useState(false)
+  const [filtrosAbiertos, setFiltrosAbiertos] = useState(false)
   const [buscandoUbicacionPara, setBuscandoUbicacionPara] = useState(null)
   const mapRef = useRef(null)
   const marcadoresRef = useRef({})
@@ -74,8 +76,11 @@ export default function Mapa() {
     return (
       <PlanoEdificio
         onClose={() => setPlano(null)}
-        onIrARuta={() => {
+        // El lugar que ya eligió en el plano llega prellenado como destino de la ruta — no tiene
+        // sentido hacerla buscarlo otra vez en un select.
+        onIrARuta={(destinoId) => {
           setPlano(null)
+          setDestinoPrellenado(destinoId || '')
           setMostrarRuta(true)
         }}
       />
@@ -83,19 +88,62 @@ export default function Mapa() {
   }
 
   if (mostrarRuta) {
-    return <RutaInterior onClose={() => setMostrarRuta(false)} />
+    return (
+      <RutaInterior
+        destinoInicial={destinoPrellenado}
+        onClose={() => {
+          setMostrarRuta(false)
+          setDestinoPrellenado('')
+        }}
+      />
+    )
   }
+
+  const categoriaActiva = filtro === 'todas' ? null : CATEGORIAS[filtro]
 
   return (
     <div className="flex h-full flex-col">
-      <div
-        className="flex gap-2 overflow-x-auto p-3 pb-2"
-        style={{ maskImage: 'linear-gradient(to right, black 92%, transparent)' }}
-      >
-        <FiltroChip label="Todas" active={filtro === 'todas'} onClick={() => setFiltro('todas')} emoji="📍" />
-        {Object.entries(CATEGORIAS).map(([key, cat]) => (
-          <FiltroChip key={key} label={cat.label} emoji={cat.emoji} active={filtro === key} onClick={() => setFiltro(key)} />
-        ))}
+      {/* Filtro colapsable: en móvil una fila de chips con scroll horizontal se maneja mal
+          (hay que arrastrar a ciegas para ver las categorías de la derecha). Colapsado ocupa una
+          sola línea y al abrirlo se ven todas de golpe. */}
+      <div className="p-3 pb-2">
+        <button
+          onClick={() => setFiltrosAbiertos((v) => !v)}
+          className="flex w-full items-center justify-between rounded-2xl bg-white px-4 py-2.5 shadow-soft"
+        >
+          <span className="flex items-center gap-2 text-sm font-semibold text-morado-900">
+            <span>{categoriaActiva ? categoriaActiva.emoji : '📍'}</span>
+            {categoriaActiva ? categoriaActiva.label : 'Todas las categorías'}
+            <span className="text-xs font-normal text-morado-900/40">({pinesFiltrados.length})</span>
+          </span>
+          <span className={`text-lavanda-700 transition-transform ${filtrosAbiertos ? 'rotate-180' : ''}`}>⌄</span>
+        </button>
+
+        {filtrosAbiertos && (
+          <div className="mt-2 grid grid-cols-2 gap-2 rounded-2xl bg-white p-2 shadow-soft">
+            <FiltroChip
+              label="Todas"
+              emoji="📍"
+              active={filtro === 'todas'}
+              onClick={() => {
+                setFiltro('todas')
+                setFiltrosAbiertos(false)
+              }}
+            />
+            {Object.entries(CATEGORIAS).map(([key, cat]) => (
+              <FiltroChip
+                key={key}
+                label={cat.label}
+                emoji={cat.emoji}
+                active={filtro === key}
+                onClick={() => {
+                  setFiltro(key)
+                  setFiltrosAbiertos(false)
+                }}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {filtro === 'transporte' && <AppsTransporte />}
@@ -255,12 +303,12 @@ function FiltroChip({ label, emoji, active, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium shadow-soft transition-transform active:scale-95 ${
-        active ? 'bg-gradient-to-r from-lavanda-700 to-lavanda-600 text-white' : 'bg-white text-morado-900/70'
+      className={`flex items-center gap-1.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-transform active:scale-95 ${
+        active ? 'bg-gradient-to-r from-lavanda-700 to-lavanda-600 text-white' : 'bg-lavanda-50 text-morado-900/70'
       }`}
     >
       <span>{emoji}</span>
-      {label}
+      <span className="truncate">{label}</span>
     </button>
   )
 }

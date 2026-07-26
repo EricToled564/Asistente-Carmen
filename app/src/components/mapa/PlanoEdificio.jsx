@@ -261,7 +261,7 @@ export default function PlanoEdificio({ onClose, onIrARuta }) {
           </div>
           {onIrARuta && (
             <button
-              onClick={onIrARuta}
+              onClick={() => onIrARuta(seleccionado.id)}
               className="mt-3 w-full rounded-full bg-gradient-to-r from-lavanda-700 to-lavanda-600 px-4 py-2.5 text-sm font-semibold text-white active:scale-[0.98]"
             >
               🧭 Guíame hasta aquí
