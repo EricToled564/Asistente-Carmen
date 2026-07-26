@@ -45,13 +45,19 @@ texto/fondo están verificados contra WCAG AA.
 | 13 | Mapa → "¿Cómo llego?": wayfinding interior por checkpoints de voz (Carmen indica origen/destino, Maite guía paso a paso) | ✅ (falta registrar `avanzar_ruta`, ver `/docs/ruta-interior.md`) |
 | — | Mecanismo C: preguntas de actualización (`/kb-answer`, Ajustes → Preguntas) | ✅ |
 | — | Registro flexible de document_id del KB (KV, ya no env vars fijas) | ✅ |
-| — | Worker: `/vision /audio /telegram /sos /push/subscribe /kb-upload /kb-confirm /emergency-data /memory/* /kb-answer* /ruta/* /horario` + crons | ✅ |
+| — | Worker: `/vision /audio /telegram /sos /push/subscribe /kb-upload /kb-confirm /emergency-data /memory/* /kb-answer* /ruta/* /horario /notas* /hora` + crons | ✅ |
 | — | Académico → Horario: vista semanal visual (no solo conversación con Maite); "Actualizar mi info" la mantiene sincronizada | ✅ |
 | — | KB: 45 documentos + `kb/manifest.json` + `kb/sync.mjs` | ✅ |
 
-**Memoria persistente:** el código ya está, pero para que el agente realmente la use tienes que
-registrar `retrieve_memories` y `add_memories` como server tools en el dashboard de ElevenLabs —
-el schema exacto está en `/docs/memoria-server-tools.md`.
+**Server tools de Maite (4 en total).** El código de todas está listo; falta registrarlas en el
+dashboard de ElevenLabs para que el agente pueda llamarlas. Schemas exactos en cada doc:
+
+| Tool | Para qué | Doc |
+|---|---|---|
+| `retrieve_memories` | Recordar conversaciones anteriores | `/docs/memoria-server-tools.md` |
+| `add_memories` | Guardar algo para después | `/docs/memoria-server-tools.md` |
+| `avanzar_ruta` | Siguiente paso al guiarla dentro del edificio | `/docs/ruta-interior.md` |
+| `consultar_hora` | Hora en cualquier ciudad del mundo | `/docs/hora-server-tool.md` |
 
 **Wayfinding interior ("¿Cómo llego?"):** no hay posicionamiento automático dentro del edificio
 (no existe esa infraestructura) — Carmen le dice a la app dónde está y a dónde va, y Maite la
