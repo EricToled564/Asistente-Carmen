@@ -1,49 +1,54 @@
 // Tips académicos, leídos de kb/KB10-tips-academicos.md — la MISMA fuente que consulta Maite,
 // nunca una copia. Si el documento se edita, la pantalla se actualiza sola en el próximo build.
 //
-// Formato real del documento (importante): agrupa por CURSO, y dentro por bloque de materias.
-//   ## 1o CURSO
+// Formato del documento: 8 secciones (4 cursos × 2 semestres), cada una con sus materias.
+//   ## 1o curso - 1er semestre
 //   ### Art Culture of the Last Century
 //   tip...
-//   ### Comprehensive Lab I / Design Studio I     <- un bloque puede cubrir varias materias
-//   tip...
-//
-// La especificación original pedía navegar curso → semestre → materia, pero KB10 no distingue
-// semestres: sus bloques a veces cruzan ambos (ej. "Antropologia I y II", "Etica I y II"). Se
-// respeta la estructura del documento en vez de inventar una división por semestre que la fuente
-// no tiene — si algún día KB10 se reorganiza por semestre, este parser se ajusta.
 const archivos = import.meta.glob('../../../kb/KB10-*.md', { query: '?raw', import: 'default', eager: true })
 
 const MARKDOWN = Object.values(archivos)[0] || null
 
 export const HAY_TIPS = Boolean(MARKDOWN)
 
+// "1o curso - 2o semestre" -> { curso: 1, semestre: 2 }
+function parsearEncabezado(titulo) {
+  const curso = titulo.match(/([1-4])\s*[oº]?\s*curso/i)
+  const semestre = titulo.match(/([12])\s*[oº]?\s*(?:er|do)?\s*semestre/i)
+  if (!curso || !semestre) return null
+  return { curso: Number(curso[1]), semestre: Number(semestre[1]) }
+}
+
 function parsear(markdown) {
   if (!markdown) return []
-  const cursos = []
-  let cursoActual = null
-  let bloqueActual = null
+  const secciones = []
+  let seccionActual = null
+  let materiaActual = null
 
   for (const linea of markdown.split('\n')) {
     if (linea.startsWith('## ')) {
-      const titulo = linea.slice(3).trim()
-      const num = titulo.match(/([1-4])\s*[oº]?\s*CURSO/i)
-      if (num) {
-        cursoActual = { curso: Number(num[1]), titulo, bloques: [] }
-        cursos.push(cursoActual)
-      } else {
-        cursoActual = null // "Notas de uso para el agente" y demás: no es contenido para Carmen
-      }
-      bloqueActual = null
-    } else if (linea.startsWith('### ') && cursoActual) {
-      bloqueActual = { materia: linea.slice(4).trim(), tip: '' }
-      cursoActual.bloques.push(bloqueActual)
-    } else if (bloqueActual && linea.trim()) {
-      bloqueActual.tip += (bloqueActual.tip ? '\n' : '') + linea.trim()
+      const meta = parsearEncabezado(linea.slice(3).trim())
+      // Secciones que no son "curso - semestre" (ej. "Notas de uso para el agente") se ignoran:
+      // son instrucciones para Maite, no contenido para Carmen.
+      seccionActual = meta ? { ...meta, materias: [] } : null
+      if (seccionActual) secciones.push(seccionActual)
+      materiaActual = null
+    } else if (linea.startsWith('### ') && seccionActual) {
+      materiaActual = { materia: linea.slice(4).trim(), tip: '' }
+      seccionActual.materias.push(materiaActual)
+    } else if (materiaActual && linea.trim()) {
+      materiaActual.tip += (materiaActual.tip ? '\n' : '') + linea.trim()
     }
   }
 
-  return cursos.sort((a, b) => a.curso - b.curso)
+  return secciones.sort((a, b) => a.curso - b.curso || a.semestre - b.semestre)
 }
 
-export const TIPS_POR_CURSO = parsear(MARKDOWN)
+export const TIPS_POR_SEMESTRE = parsear(MARKDOWN)
+
+// Semestre en curso, para abrirlo por defecto: en la UNAV el 1er semestre va de septiembre a
+// diciembre y el 2º de enero a junio. Carmen entra a 1º en el curso 2026-2027.
+export function semestreActual(fecha = new Date()) {
+  const mes = fecha.getMonth() // 0 = enero
+  return mes >= 6 ? 1 : 2 // jul-dic => 1er semestre; ene-jun => 2º
+}
