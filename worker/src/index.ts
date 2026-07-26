@@ -28,7 +28,7 @@ const app = new Hono<{ Bindings: Env }>()
 
 app.use('*', cors()) // ajusta origin en producción si sirves el Worker en un dominio propio distinto de Pages
 
-app.get('/', (c) => c.json({ ok: true, servicio: 'companion-worker' }))
+app.get('/', (c) => c.json({ ok: true, servicio: 'asistentecarmen' }))
 
 app.route('/', vision)
 app.route('/', audio)

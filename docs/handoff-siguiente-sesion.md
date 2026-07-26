@@ -28,15 +28,46 @@ Sin esto no hay URL que meterle a las tools. Los 8 endpoints solo usan KV: **no 
 keys para que los webhooks funcionen** (las keys de Anthropic/ElevenLabs son para `/audio`,
 `/vision` y `/notas/extraer`, que son features de la app, no de los webhooks).
 
+El Worker se llama **`asistentecarmen`**, así que la URL será
+`https://asistentecarmen.<subdominio>.workers.dev`.
+
+> **Ojo con el nombre — ya causó un problema.** El Worker se llamaba `companion-worker` en
+> `wrangler.toml`, pero la integración de Git de Cloudflare había creado uno llamado
+> `asistentecarmen` (Cloudflare propone por defecto el nombre del repo normalizado:
+> `Asistente-Carmen` → `asistentecarmen`). Wrangler ignora el nombre del dashboard y despliega al
+> de `wrangler.toml`, así que se acaba con dos Workers y sacando la URL del que está vacío. Y los
+> secretos y bindings de KV son **por Worker**: se ponen en uno, se despliega al otro, y revienta
+> en runtime pareciendo un bug de código.
+>
+> Ya está resuelto: `wrangler.toml` dice `asistentecarmen`. **Si en el dashboard el Worker se
+> llama distinto, cambia `wrangler.toml` para que coincida — nunca al revés**, porque Cloudflare
+> no deja renombrar un Worker y habría que rehacer la conexión de Git.
+
+**Si el deploy va por la integración de Git de Cloudflare** (Workers & Pages → el Worker →
+Settings → Build), la configuración tiene que ser:
+
+| Campo | Valor |
+|---|---|
+| Root directory | `worker` |
+| Build command | `npm install` |
+| Deploy command | `npx wrangler deploy` |
+
+El **root directory es el que más se olvida**: `wrangler.toml` vive en `worker/`, no en la raíz
+del repo. Si queda en la raíz, el build falla con algo tipo *"no wrangler configuration found"*.
+
+**Si se despliega a mano** (más simple, y no depende de nada del dashboard):
+
 ```bash
 cd worker && npm install && npx wrangler login && npx wrangler deploy
 ```
 
-Posible tropiezo: `wrangler.toml` apunta al KV namespace `84bc612d19634b5683c9ada11835394c`. Si no
-existe en esa cuenta, el deploy falla; se crea con `npx wrangler kv namespace create KV` y se pega
-el id nuevo en `wrangler.toml`.
+Otro posible tropiezo: `wrangler.toml` apunta al KV namespace `84bc612d19634b5683c9ada11835394c`.
+Si no existe en esa cuenta, el deploy falla; se crea con `npx wrangler kv namespace create KV` y se
+pega el id nuevo en `wrangler.toml`.
 
-Comprobación: `GET https://<url>/` debe devolver `{"ok":true,"servicio":"companion-worker"}`.
+Comprobación: `GET https://<url>/` debe devolver `{"ok":true,"servicio":"asistentecarmen"}`. Ese
+campo `servicio` está justo para esto — si devuelve otra cosa, o 404, estás mirando el Worker
+equivocado.
 
 Después, poner esa URL en `app/.env` como `VITE_WORKER_URL` y redesplegar el frontend — si no, la
 app sigue llamando a `/api` y todo lo que depende del Worker falla en silencio.
@@ -49,7 +80,7 @@ Dos vías. La de API es preferible: 8 formularios a mano es donde se cuelan las 
 
 ```bash
 cd worker
-export WORKER_URL=https://companion-worker.TU-SUBDOMINIO.workers.dev
+export WORKER_URL=https://asistentecarmen.TU-SUBDOMINIO.workers.dev
 node scripts/registrar-tools-elevenlabs.mjs            # dry run, imprime el JSON
 export ELEVENLABS_API_KEY=...                          # export, NO argumento
 node scripts/registrar-tools-elevenlabs.mjs --aplicar
