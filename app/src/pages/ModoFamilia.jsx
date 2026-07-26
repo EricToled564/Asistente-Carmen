@@ -10,9 +10,22 @@ import { usePush } from '../hooks/usePush.js'
 // de los dos botones le tocaba. Nadie hace eso, y el día del SOS no habría nadie suscrito.
 //
 // Aquí abre el link y lo único que hay en pantalla es el botón que le toca.
+// Las notificaciones web se comportan distinto según el teléfono, y la diferencia no es un
+// detalle: en Android funcionan directo desde el navegador, mientras que iOS solo las permite si
+// la web está instalada en la pantalla de inicio. Dar la instrucción equivocada es peor que no
+// dar ninguna — al de Android lo mandas a instalar algo que no necesita, y el de iPhone se queda
+// con un error que parece que la app está rota.
+function detectarPlataforma() {
+  const ua = navigator.userAgent || ''
+  if (/iPad|iPhone|iPod/.test(ua)) return 'ios'
+  if (/Android/.test(ua)) return 'android'
+  return 'otro'
+}
+
 export default function ModoFamilia() {
   const { config } = useApp()
   const { estado, suscribir } = usePush(config.vapidPublicKey, 'familia')
+  const plataforma = detectarPlataforma()
 
   const listo = estado === 'suscrito'
 
@@ -48,17 +61,30 @@ export default function ModoFamilia() {
           <p className="text-center text-xs text-morado-900/50">
             Tu teléfono te va a pedir permiso para mostrar notificaciones. Hay que aceptarlo — es lo que
             permite que el aviso llegue.
+            {plataforma === 'ios' && (
+              <>
+                {' '}
+                En iPhone, antes hay que añadir esto a la pantalla de inicio desde el botón de compartir de
+                Safari.
+              </>
+            )}
           </p>
         </>
       )}
 
-      {estado === 'no-soportado' && (
-        <p className="rounded-2xl bg-melocoton-300/40 p-4 text-sm text-morado-900">
-          Para que funcione en iPhone hay que <strong>instalar la app primero</strong>: toca el botón de
-          compartir de Safari y elige “Añadir a pantalla de inicio”. Después abre la app desde el icono y
-          vuelve a intentarlo.
-        </p>
-      )}
+      {estado === 'no-soportado' &&
+        (plataforma === 'ios' ? (
+          <p className="rounded-2xl bg-melocoton-300/40 p-4 text-sm text-morado-900">
+            En iPhone hay que <strong>instalar esto primero</strong>: toca el botón de compartir de Safari
+            (el cuadrito con la flecha hacia arriba) y elige <strong>“Añadir a pantalla de inicio”</strong>.
+            Luego ábrelo desde el icono nuevo y toca el botón otra vez.
+          </p>
+        ) : (
+          <p className="rounded-2xl bg-melocoton-300/40 p-4 text-sm text-morado-900">
+            Tu navegador no soporta notificaciones. Abre este mismo link en <strong>Chrome</strong> y vuelve
+            a intentarlo.
+          </p>
+        ))}
       {estado === 'error' && (
         <p className="rounded-2xl bg-red-50 p-4 text-sm text-red-700">
           No se pudo activar. Si rechazaste el permiso, hay que volver a darlo desde los ajustes del
