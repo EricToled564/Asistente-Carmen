@@ -17,6 +17,7 @@ import { tips } from './routes/tips.js'
 import { hora } from './routes/hora.js'
 import { apuntes } from './routes/apuntes.js'
 import { kbSync } from './routes/kbSync.js'
+import { estado } from './routes/estado.js'
 import { ejecutarAutoInvestigacionSemestral, ejecutarAutoInvestigacionMensual } from './cron/kbAutoResearch.js'
 import {
   recordatorioSubirHorario,
@@ -47,6 +48,7 @@ app.route('/', tips)
 app.route('/', hora)
 app.route('/', apuntes)
 app.route('/', kbSync)
+app.route('/', estado)
 
 export default {
   fetch: app.fetch,
