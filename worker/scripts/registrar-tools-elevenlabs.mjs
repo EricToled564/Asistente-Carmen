@@ -2,17 +2,25 @@
 //
 // Registra las 8 server tools de Maite en ElevenLabs y las engancha al agente.
 //
-// ⚠️ LEE ESTO ANTES DE CORRERLO ⚠️
-// Este script se escribió SIN poder verificar la API de ElevenLabs: el entorno donde se
-// construyó bloquea elevenlabs.io a nivel de red (403 en el CONNECT del proxy), así que ni la
-// documentación ni la API estaban accesibles. Las rutas y los nombres de campo de abajo salen de
-// conocimiento previo, no de haberlos probado.
+// Estructura verificada contra el OpenAPI oficial de ElevenLabs
+// (https://api.elevenlabs.io/openapi.json, consultado el 26-jul-2026):
 //
-// Antes de correrlo en serio:
-//   1. Abre https://elevenlabs.io/docs/agents-platform/customization/tools/server-tools y
-//      confirma el endpoint de creación de tools y la forma de `tool_config`.
-//   2. Corre este script en seco (`--dry-run`, que es el modo por defecto) y revisa el JSON.
-//   3. Si algo no calza, corrige TOOLS/crearTool aquí mismo y vuelve a probar.
+//   POST /v1/convai/tools    body: ToolRequestModel { tool_config }
+//     tool_config -> WebhookToolConfig-Input, required: name, description, api_schema
+//       type: const "webhook"
+//       response_timeout_secs: entero entre 5 y 120 (default 20)
+//       api_schema -> WebhookToolApiSchemaConfig-Input, required: url
+//         method: enum GET|POST|PUT|PATCH|DELETE
+//         query_params_schema -> QueryParamsJsonSchema, required: properties
+//         request_body_schema -> ObjectJsonSchemaProperty (type/properties/required)
+//     respuesta -> ToolResponseModel, con `id` garantizado
+//
+//   PATCH /v1/convai/agents/{agent_id}   para enganchar las tools por id
+//     conversation_config.agent.prompt.tool_ids
+//
+// El único punto que el spec no fija es el anidamiento exacto de conversation_config (viene
+// declarado como objeto libre). Por eso el script lee el agente ANTES de escribir y respeta la
+// forma real que devuelva, en vez de asumirla.
 //
 // Uso:
 //   export ELEVENLABS_API_KEY=...
@@ -216,23 +224,77 @@ async function main() {
     return
   }
 
+  // Se leen las tools que ya existan para poder correr esto dos veces sin duplicar nada. Es un
+  // caso realista: si el script falla a mitad, o si hay que retocar una descripción, lo natural es
+  // volver a lanzarlo — y ocho tools duplicadas con el mismo nombre confunden al modelo a la hora
+  // de elegir cuál llamar.
+  const existentes = await llamar('GET', '/convai/tools')
+  const porNombre = new Map(
+    (existentes.tools || []).map((t) => [t.tool_config?.name, t.id]).filter(([n]) => n)
+  )
+  if (porNombre.size) console.log(`Ya había ${porNombre.size} tool(s) en la cuenta.\n`)
+
   const ids = []
   for (const t of TOOLS) {
+    const yaEsta = porNombre.get(t.name)
+    if (yaEsta) {
+      process.stdout.write(`Actualizando ${t.name}… `)
+      await llamar('PATCH', `/convai/tools/${yaEsta}`, cuerpoDeTool(t))
+      ids.push(yaEsta)
+      console.log(yaEsta)
+      continue
+    }
     process.stdout.write(`Creando ${t.name}… `)
     const creada = await llamar('POST', '/convai/tools', cuerpoDeTool(t))
-    const id = creada.id || creada.tool_id
-    if (!id) throw new Error(`No vino el id de la tool en la respuesta:\n${JSON.stringify(creada, null, 2)}`)
-    ids.push(id)
-    console.log(id)
+    if (!creada.id) throw new Error(`No vino el id de la tool:\n${JSON.stringify(creada, null, 2)}`)
+    ids.push(creada.id)
+    console.log(creada.id)
   }
 
-  console.log('\nEnganchando las 8 al agente…')
+  // Leer el agente ANTES de escribirlo, y modificar solo `tool_ids`.
+  //
+  // Esto no es prudencia de más: `conversation_config` viene declarado en el OpenAPI como objeto
+  // libre, así que no hay garantía de que el PATCH haga merge profundo. Mandar
+  // `{agent:{prompt:{tool_ids}}}` a secas podría reemplazar el objeto `prompt` entero y llevarse
+  // por delante el system prompt de Maite — 5.800 palabras y varias sesiones de trabajo.
+  console.log('\nLeyendo la configuración actual del agente…')
+  const agente = await llamar('GET', `/convai/agents/${AGENT_ID}`)
+  const cc = agente.conversation_config || {}
+  const ag = cc.agent || {}
+  const prompt = ag.prompt || {}
+  const largoPrompt = (prompt.prompt || '').length
+  console.log(`  system prompt actual: ${largoPrompt} caracteres`)
+  console.log(`  tools enganchadas ahora: ${(prompt.tool_ids || []).length}`)
+
+  if (largoPrompt === 0) {
+    console.log('\n  ⚠️  El agente no tiene system prompt cargado todavía.')
+    console.log('     No es un error de este script, pero acuérdate de pegarlo:')
+    console.log('     docs/system-prompt-maite.md, de ---INICIO--- para abajo.')
+  }
+
+  console.log(`\nEnganchando las ${ids.length} al agente…`)
   await llamar('PATCH', `/convai/agents/${AGENT_ID}`, {
-    conversation_config: { agent: { prompt: { tool_ids: ids } } }
+    conversation_config: { ...cc, agent: { ...ag, prompt: { ...prompt, tool_ids: ids } } }
   })
 
-  console.log('\nListo. Comprueba en el dashboard que el agente muestre las 8 tools, y haz la')
-  console.log('prueba de humo de docs/webhooks-elevenlabs.md antes de darlo por bueno.')
+  // Releer y comprobar de verdad, en vez de fiarse de que el PATCH devolvió 200.
+  const despues = await llamar('GET', `/convai/agents/${AGENT_ID}`)
+  const promptDespues = despues.conversation_config?.agent?.prompt || {}
+  const enganchadas = (promptDespues.tool_ids || []).length
+  const promptSigue = (promptDespues.prompt || '').length
+
+  console.log(`\nComprobación tras el PATCH:`)
+  console.log(`  tools enganchadas: ${enganchadas}/${ids.length} ${enganchadas === ids.length ? '✅' : '❌'}`)
+  console.log(
+    `  system prompt: ${promptSigue} caracteres ${promptSigue === largoPrompt ? '✅ intacto' : '❌ CAMBIÓ'}`
+  )
+
+  if (enganchadas === ids.length && promptSigue === largoPrompt) {
+    console.log('\nListo. Haz la prueba de humo en voz de docs/webhooks-elevenlabs.md.')
+  } else {
+    console.log('\n⚠️  Algo no cuadra. Revisa el agente en el dashboard antes de seguir.')
+    process.exit(1)
+  }
 }
 
 main().catch((err) => {
