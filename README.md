@@ -31,7 +31,7 @@ texto/fondo están verificados contra WCAG AA.
 | # | Módulo | Estado |
 |---|---|---|
 | 1 | Esqueleto PWA + sistema de diseño lavanda (manifest, SW, 6 tabs) | ✅ |
-| 2 | Widget de Maite embebido + variables dinámicas (Vía 2 fallback) | ✅ (`agent_id` ya configurado) |
+| 2 | Widget de Maite flotante + fecha/hora y contexto de pantalla como dynamic variables | ✅ (`agent_id` ya configurado) |
 | 3 | Mapa con pines curados (CampusHome real) + deep links a Google Maps (modo transporte público, "desde donde estoy" por GPS) + apps oficiales de transporte | ✅ |
 | 4 | Foto → información (visión Claude) | ✅ |
 | 5 | Académico: horario visual, radar de fechas, índice de materias con temario/evaluación real (leído de /kb), tutor (vía Maite), captura rápida | ✅ |
@@ -137,10 +137,11 @@ npx wrangler kv key put --binding=KV "kb-doc-id:KB1" "<document_id>"
    comporta Maite, se edita ahí y se vuelve a pegar, no al revés.
 3. Configura el LLM del agente en Claude Sonnet 5, y el "First message" en blanco (Carmen habla
    primero)
-4. Configura `{{system__time}}` con timezone **Europe/Madrid** en la plataforma (esto resuelve la
-   hora del agente sin necesitar código — ver `VITE_AGENTE_VIA2_HORA` en `.env.example` para el
-   fallback si esto falla en pruebas)
-5. Sube los 45 documentos de `/kb` (ver `/kb/README.md` para el flujo completo con
+4. Configura `{{system__time}}` con timezone **Europe/Madrid** en la plataforma. Sirve de
+   respaldo: la fuente principal de fecha/hora son las dynamic variables que manda la app
+   (`{{dia_semana}}`, `{{fecha_actual}}`, `{{hora_mexico}}`), porque `{{system__time}}` da el día
+   de la semana en inglés y el horario de Carmen está en español
+5. Sube los 60 documentos de `/kb` (ver `/kb/README.md` para el flujo completo con
    `kb/manifest.json` y `kb/sync.mjs`)
 6. Copia el `agent_id` → `app/.env` (`VITE_ELEVENLABS_AGENT_ID`) y el Worker secret
 7. Como KB8 (horario) ya viene con el del semestre 1 precargado desde este repo (no subido vía

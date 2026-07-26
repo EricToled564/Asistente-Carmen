@@ -19,17 +19,27 @@ function loadWidgetScript() {
   return scriptLoadingPromise
 }
 
-// Vía 2 (fallback): fecha/hora calculadas en el navegador para pasarlas como dynamic-variables.
-// Solo se usan si VITE_AGENTE_VIA2_HORA=true — por defecto el agente resuelve la hora vía
-// {{system__time}} configurado directamente en la plataforma de ElevenLabs (Vía 1, sin código).
+// Fecha y hora que se le pasan al agente como dynamic-variables.
+//
+// Por qué SIEMPRE se mandan (antes eran un fallback opcional): la variable {{system__time}} de
+// ElevenLabs sí trae el día de la semana, pero en INGLÉS ("Friday, 12:33 12 December 2025"), y
+// el horario de Carmen está en español (Lunes, Martes...). Obligar al modelo a traducir el día
+// antes de buscar en su horario es un paso extra donde se puede equivocar, justo en la pregunta
+// más frecuente que le va a hacer: "¿qué clase tengo hoy?". Aquí se lo damos ya resuelto y en
+// español, calculado por el navegador contra la zona horaria correcta.
+//
+// La hora de México va aparte porque la diferencia con España cambia dos veces al año (España
+// aplica horario de verano, México ya no) — restar "seis o siete horas" de memoria es
+// exactamente el tipo de cuenta que un modelo falla en silencio.
 function calcularVariablesDeHora() {
   const ahora = new Date()
+  const enPamplona = (opciones) => new Intl.DateTimeFormat('es-ES', { timeZone: 'Europe/Madrid', ...opciones }).format(ahora)
+
   return {
-    fecha_actual: new Intl.DateTimeFormat('es-ES', {
-      dateStyle: 'full',
-      timeStyle: 'short',
-      timeZone: 'Europe/Madrid'
-    }).format(ahora),
+    // "domingo" — el día de la semana suelto, para que empate directo con su horario
+    dia_semana: enPamplona({ weekday: 'long' }),
+    // "domingo, 26 de julio de 2026, 14:30"
+    fecha_actual: enPamplona({ dateStyle: 'full', timeStyle: 'short' }),
     hora_mexico: new Intl.DateTimeFormat('es-MX', {
       timeStyle: 'short',
       timeZone: 'America/Mexico_City'
@@ -85,15 +95,11 @@ export default function ElevenLabsWidget() {
   useEffect(() => {
     if (!elRef.current) return
     const dynamicVars = {
-      ...(contextoAgente ? { contexto: contextoAgente } : {}),
-      ...(config.agenteViaDosHora ? calcularVariablesDeHora() : {})
+      ...calcularVariablesDeHora(), // siempre: ver el comentario de la función
+      ...(contextoAgente ? { contexto: contextoAgente } : {})
     }
-    if (Object.keys(dynamicVars).length > 0) {
-      elRef.current.setAttribute('dynamic-variables', JSON.stringify(dynamicVars))
-    } else {
-      elRef.current.removeAttribute('dynamic-variables')
-    }
-  }, [contextoAgente, config.agenteViaDosHora])
+    elRef.current.setAttribute('dynamic-variables', JSON.stringify(dynamicVars))
+  }, [contextoAgente])
 
   if (!config.elevenLabsAgentId) return null
 

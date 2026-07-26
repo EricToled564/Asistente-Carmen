@@ -40,12 +40,10 @@ export function AppProvider({ children }) {
       whatsappNumero: import.meta.env.VITE_SOS_WHATSAPP_NUMERO || '',
       consuladoTel: import.meta.env.VITE_SOS_CONSULADO_TEL || '',
       residenciaDireccion: import.meta.env.VITE_RESIDENCIA_DIRECCION || 'CampusHome — Av. de Pío XII, 28, Iturrama, Pamplona',
-      vapidPublicKey: import.meta.env.VITE_VAPID_PUBLIC_KEY || '',
-      // Vía 2 (fallback): la PWA le pasa fecha_actual/hora_mexico al widget como dynamic-variables.
-      // Por defecto apagado — la Vía 1 ({{system__time}} configurado en la plataforma de ElevenLabs
-      // con timezone Europe/Madrid) es la que se usa. Solo actívala si en pruebas reales el LLM
-      // falla la aritmética de husos horarios con las reglas del system prompt.
-      agenteViaDosHora: import.meta.env.VITE_AGENTE_VIA2_HORA === 'true'
+      vapidPublicKey: import.meta.env.VITE_VAPID_PUBLIC_KEY || ''
+      // La fecha/hora que se le pasa al agente ya no es opcional: se manda siempre desde
+      // ElevenLabsWidget.jsx (ver el comentario de calcularVariablesDeHora sobre por qué no basta
+      // con {{system__time}} de ElevenLabs para este caso).
     }),
     []
   )
