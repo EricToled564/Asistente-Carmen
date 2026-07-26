@@ -1,7 +1,15 @@
-// Base URL of the Cloudflare Worker. Set VITE_WORKER_URL in .env (see /app/.env.example).
-// Falls back to same-origin /api, which works if the Worker is mounted behind Cloudflare Pages
-// Functions routing or a reverse proxy path.
-const BASE = import.meta.env.VITE_WORKER_URL || '/api'
+// URL del Cloudflare Worker.
+//
+// El default es la URL REAL del Worker desplegado, no un placeholder ni `/api`. Antes caía a
+// `/api` en el mismo origen, donde no hay ningún Worker: el hosting devolvía el index.html con un
+// 200 y la app se quedaba esperando datos que nunca llegaban. Eso obligaba a configurar
+// VITE_WORKER_URL en Vercel para que la app funcionara, y si a alguien se le olvidaba, fallaba en
+// silencio.
+//
+// Con la URL aquí, la app funciona recién clonada y recién desplegada, sin configurar nada.
+// VITE_WORKER_URL sigue mandando si se define — para apuntar a un Worker de pruebas o a
+// http://localhost:8787 durante el desarrollo.
+const BASE = import.meta.env.VITE_WORKER_URL || 'https://asistentecarmen.erictoled564.workers.dev'
 
 async function request(path, options = {}) {
   const res = await fetch(`${BASE}${path}`, {
