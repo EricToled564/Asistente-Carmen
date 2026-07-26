@@ -9,7 +9,11 @@ export default defineConfig({
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'sw.js',
-      injectRegister: 'auto',
+      // 'auto' inyectaba su propio <script src="/registerSW.js"> en index.html, duplicando el
+      // registro manual de main.jsx — y ninguno de los dos recargaba la página cuando activaba
+      // una versión nueva del service worker (ver main.jsx). false = un solo registro, con
+      // control real de actualización.
+      injectRegister: false,
       manifest: false, // manifest.webmanifest is hand-written in /public (needs fields SW injection doesn't cover well)
       devOptions: { enabled: true, type: 'module' },
       injectManifest: {
