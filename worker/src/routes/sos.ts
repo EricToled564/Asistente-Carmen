@@ -82,7 +82,12 @@ async function notificarFamiliaEmail(env: Env, mapsLink: string | null, bateria:
   if (!env.RESEND_API_KEY) return 0
   await enviarEmail(env.RESEND_API_KEY, {
     to: env.FAMILIA_EMAIL_DESTINO,
-    from: 'Maite <sos@resend.dev>',
+    // Tiene que ser onboarding@resend.dev exactamente. Resend solo permite enviar desde ESA
+    // dirección mientras no haya un dominio propio verificado — cualquier otra cosa en
+    // @resend.dev la rechaza. Antes decía sos@resend.dev, que se ve más bonito y no habría
+    // enviado nunca: el SOS habría fallado el día que hiciera falta, no antes.
+    // Si algún día se verifica un dominio propio, aquí se cambia por sos@ese-dominio.
+    from: 'Maite SOS <onboarding@resend.dev>',
     subject: '🆘 Alerta SOS',
     html: `
       <p>Se activó el botón SOS.</p>
