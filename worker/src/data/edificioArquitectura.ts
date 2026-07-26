@@ -181,8 +181,14 @@ export function buscarParadasPorNombre(texto: string): Parada[] {
   if (!busqueda) return []
   const candidatas = paradasSeleccionables()
 
-  // Número de sala exacto ("1111") — es lo más específico que puede decir, va primero.
-  const porSala = candidatas.filter((p) => p.salas?.some((s) => normalizar(s) === busqueda))
+  // Número de sala ("1111") — es lo más específico que puede decir, va primero.
+  //
+  // Se compara contra CADA palabra de lo que dijo, no contra la frase entera: hablando nadie dice
+  // "mil ciento once" a secas, dice "la 1111" o "el aula 1111". Exigir que la frase completa fuera
+  // igual al número hacía que "1111" funcionara y "la 1111" no — que es justo la forma en que se
+  // dice de verdad.
+  const palabras = busqueda.split(' ')
+  const porSala = candidatas.filter((p) => p.salas?.some((s) => palabras.includes(normalizar(s))))
   if (porSala.length > 0) return porSala
 
   const nombreExacto = candidatas.filter((p) => normalizar(p.nombre) === busqueda)
