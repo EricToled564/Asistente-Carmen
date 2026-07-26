@@ -261,7 +261,10 @@ async function main() {
   const agente = await llamar('GET', `/convai/agents/${AGENT_ID}`)
   const cc = agente.conversation_config || {}
   const ag = cc.agent || {}
-  const prompt = ag.prompt || {}
+  // El GET devuelve `tools` (el formato inline antiguo) ADEMÁS de `tool_ids`. Reenviar los dos
+  // hace que la API conteste 400 "Cannot specify both tools and tool IDs", así que se descarta y
+  // se manda solo `tool_ids`, que es el formato vigente.
+  const { tools: _inlineObsoletas, ...prompt } = ag.prompt || {}
   const largoPrompt = (prompt.prompt || '').length
   console.log(`  system prompt actual: ${largoPrompt} caracteres`)
   console.log(`  tools enganchadas ahora: ${(prompt.tool_ids || []).length}`)
