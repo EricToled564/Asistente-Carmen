@@ -30,6 +30,24 @@ export async function agregarRecuerdo(env: Env, texto: string, categoria?: strin
   return recuerdo
 }
 
+// Match por prefijo, no por token exacto: en español la misma palabra cambia de forma todo el
+// rato ("examen"/"exámenes", "entrega"/"entregas") y comparar tokens enteros devolvía cero
+// coincidencias en recuerdos que hablaban justo de eso. El mínimo de 4 caracteres evita que
+// "sol" empate con "solución".
+function contarCoincidencias(tokensTexto: string[], tokensQuery: Set<string>): number {
+  let total = 0
+  for (const t of tokensTexto) {
+    for (const q of tokensQuery) {
+      const minimo = Math.min(t.length, q.length)
+      if (t === q || (minimo >= 4 && (t.startsWith(q) || q.startsWith(t)))) {
+        total++
+        break
+      }
+    }
+  }
+  return total
+}
+
 // Búsqueda simple por solape de palabras + bonus de recencia — suficiente para un solo usuario
 // con volumen bajo de recuerdos (no hace falta una vector DB para v1).
 export async function buscarRecuerdos(env: Env, query: string, limite = 5): Promise<Recuerdo[]> {
@@ -53,14 +71,19 @@ export async function buscarRecuerdos(env: Env, query: string, limite = 5): Prom
 
   const puntuados = recuerdos.map((r) => {
     const tokensRecuerdo = tokenizar(r.texto)
-    const coincidencias = tokensRecuerdo.filter((t) => tokensQuery.has(t)).length
+    const coincidencias = contarCoincidencias(tokensRecuerdo, tokensQuery)
     const diasDesde = (ahora - new Date(r.creadoEn).getTime()) / (1000 * 60 * 60 * 24)
     const bonusRecencia = Math.max(0, 1 - diasDesde / 90) // decae a 0 en ~90 días
-    return { recuerdo: r, score: coincidencias + bonusRecencia * 0.5 }
+    return { recuerdo: r, coincidencias, score: coincidencias + bonusRecencia * 0.5 }
   })
 
+  // Se filtra por coincidencias, NO por score. Con `score > 0`, el bonus de recencia por sí solo
+  // colaba cualquier recuerdo reciente en CUALQUIER búsqueda: se le preguntaba por un examen y
+  // salía algo de la semana pasada que no tenía relación. Y como el prompt le pide a Maite que
+  // integre los recuerdos con naturalidad, ella los mencionaba como si vinieran a cuento — que es
+  // exactamente el error que más rompe la confianza. La recencia solo desempata.
   return puntuados
-    .filter((p) => p.score > 0)
+    .filter((p) => p.coincidencias > 0)
     .sort((a, b) => b.score - a.score)
     .slice(0, limite)
     .map((p) => p.recuerdo)

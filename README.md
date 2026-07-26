@@ -49,7 +49,7 @@ texto/fondo están verificados contra WCAG AA.
 | — | Académico → Horario: vista semanal visual (no solo conversación con Maite); "Actualizar mi info" la mantiene sincronizada | ✅ |
 | — | KB: 45 documentos + `kb/manifest.json` + `kb/sync.mjs` | ✅ |
 
-**Server tools / webhooks de Maite (7 en total).** El código de todas está listo y probado contra
+**Server tools / webhooks de Maite (8 en total).** El código de todas está listo y probado contra
 un Worker local; falta registrarlas en el dashboard de ElevenLabs para que el agente pueda
 llamarlas. **Todos los schemas listos para pegar, en un solo sitio:
 [`/docs/webhooks-elevenlabs.md`](docs/webhooks-elevenlabs.md).**
@@ -63,6 +63,7 @@ llamarlas. **Todos los schemas listos para pegar, en un solo sitio:
 | `consultar_hora` | GET | `/hora?ciudad=` | Hora en cualquier ciudad del mundo |
 | `consultar_horario` | GET | `/horario/consulta?dia=` | ¿Hay un horario más nuevo que KB8? |
 | `consultar_promedio` | GET | `/notas` | Promedio ponderado por ECTS |
+| `consultar_apuntes` | GET | `/apuntes/buscar?q=` | Lo que se dijo en SU clase, para quizzes |
 
 El agente conectado en la app es `agent_8701kyeepa7tffmr5475esyq7rtq`
 (`app/src/context/AppContext.jsx`, pisable con `VITE_ELEVENLABS_AGENT_ID`).

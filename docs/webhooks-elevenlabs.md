@@ -14,7 +14,7 @@ tools; si el dashboard los llama distinto, el contenido es el mismo.
 
 ---
 
-## Los 7 tools de un vistazo
+## Los 8 tools de un vistazo
 
 | # | Name | Método | Ruta | Para qué |
 |---|---|---|---|---|
@@ -25,6 +25,7 @@ tools; si el dashboard los llama distinto, el contenido es el mismo.
 | 5 | `consultar_hora` | GET | `/hora?ciudad=` | Hora en cualquier ciudad del mundo |
 | 6 | `consultar_horario` | GET | `/horario/consulta?dia=` | ¿Hay un horario más nuevo que KB8? |
 | 7 | `consultar_promedio` | GET | `/notas` | Promedio ponderado por ECTS |
+| 8 | `consultar_apuntes` | GET | `/apuntes/buscar?q=` | Lo que se dijo en SU clase, para quizzes |
 
 Ninguno lleva autenticación: el Worker no expone datos de terceros y el coste de un secreto mal
 copiado (Maite muda a mitad de una conversación) es mayor que el de que alguien descubra la URL.
@@ -246,14 +247,54 @@ para la mención de 4º.
   Si `materias` es 0, todavía no ha registrado nada: dile que puede subir una foto de su boletín en
   "Mi Progreso", sin dar un promedio inventado.
 
+## 8. `consultar_apuntes`
+
+**Cuándo debe llamarlo:** siempre que Carmen pida un quiz, un repaso, o que le expliquen un tema.
+Antes de tirar del Knowledge Base.
+
+Carmen graba unos minutos al salir de clase (Académico → Captura); eso se transcribe, se estructura
+y queda guardado. Esta tool busca ahí. La diferencia con el KB importa: el KB tiene el temario
+oficial, igual para cualquier alumno; sus apuntes tienen lo que **su** profesor dijo y aquello en
+lo que insistió, que es a lo que se parece un examen.
+
+- **Method:** `GET`
+- **URL:** `https://<TU-WORKER>.workers.dev/apuntes/buscar`
+- **Description:** "Busca en los apuntes que Carmen grabó en sus clases. Úsala antes de armar un
+  quiz o explicar un tema, para trabajar sobre lo que dijo su profesor y no solo sobre el temario
+  oficial."
+- **Query params:**
+  - `q` (string) — el tema o las palabras clave. Vacío devuelve los apuntes más recientes.
+  - `materia` (string, opcional) — el código de la asignatura (`KB9-2`) para acotar la búsqueda.
+- **Respuestas:**
+  - ```json
+    {
+      "encontrados": 2,
+      "resultados": [{
+        "id": "...", "kbCode": "KB9-2", "materia": "Form and Image (Geometries)",
+        "titulo": "Proyecciones axonométricas y sus tres tipos",
+        "apuntes": "Resumen…\n- Punto clave…\n- Tarea…",
+        "creadoEn": "2026-10-14T13:22:00.000Z",
+        "extractoTranscripcion": "…lo que el profesor dijo alrededor del match…"
+      }]
+    }
+    ```
+  - `{ "encontrados": 0, "resultados": [], "mensaje": "..." }` → no grabó esa clase. Lee el
+    `mensaje` y sigue con el KB normalmente.
+
+Tres cosas que el agente no debe hacer con esto, y que ya están escritas en el system prompt:
+**no** tratar los apuntes como fuente oficial (salen de reconocimiento de voz sobre una grabación
+de aula: si contradicen al KB en un dato duro, gana el KB); **no** presentar el
+`extractoTranscripcion` como si fuera la clase completa (es una ventana alrededor de la
+coincidencia); y **no** inventar que grabó algo cuando la búsqueda vino vacía.
+
 ---
 
 ## Después de registrarlos
 
 1. Pega el system prompt de `docs/system-prompt-maite.md` en el agente — su sección **TUS
-   HERRAMIENTAS** describe estas mismas 7 tools desde el lado de Maite (cuándo sí, cuándo no, qué
+   HERRAMIENTAS** describe estas mismas 8 tools desde el lado de Maite (cuándo sí, cuándo no, qué
    hacer si fallan). Las dos piezas están escritas para leerse juntas.
-2. Comprueba que `<TU-WORKER>.workers.dev` esté sustituido en las 7 URLs. Una URL sin sustituir no
+2. Comprueba que `<TU-WORKER>.workers.dev` esté sustituido en las 8 URLs. Una URL sin sustituir no
    da error de configuración: falla en silencio a mitad de conversación.
 3. Prueba de humo, en voz, en este orden — cada una toca un tool distinto:
    - "¿Qué hora es en Berlín?" → `consultar_hora`
@@ -262,5 +303,9 @@ para la mención de 4º.
    - "Estoy en la biblioteca y tengo que ir al Taller 01" → `iniciar_ruta`, luego "ya llegué" →
      `avanzar_ruta`
    - "Estoy en un seminario" → debe **preguntar cuál**, no elegir uno
+   - Graba algo en Académico → Captura, guárdalo, y pídele "hazme un quiz de esa clase" →
+     `consultar_apuntes`
    - Cuéntale algo memorable, cierra, vuelve a abrir y pregúntale si se acuerda → `add_memories` +
      `retrieve_memories`
+   - Activa el modo viaje en Inicio, elige Tokio, y pregúntale "¿a qué hora tengo clase mañana?" →
+     debe decir la hora **de Pamplona** y aclarar qué hora es eso allá donde está

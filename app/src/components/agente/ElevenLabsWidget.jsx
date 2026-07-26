@@ -28,22 +28,34 @@ function loadWidgetScript() {
 // más frecuente que le va a hacer: "¿qué clase tengo hoy?". Aquí se lo damos ya resuelto y en
 // español, calculado por el navegador contra la zona horaria correcta.
 //
-// La hora de México va aparte porque la diferencia con España cambia dos veces al año (España
+// La hora de casa va aparte porque la diferencia con España cambia dos veces al año (España
 // aplica horario de verano, México ya no) — restar "seis o siete horas" de memoria es
 // exactamente el tipo de cuenta que un modelo falla en silencio.
-function calcularVariablesDeHora() {
+//
+// MODO VIAJE: cuando está activo, `fecha_actual` y `dia_semana` pasan a ser los del sitio donde
+// Carmen está, no los de Pamplona. Pero `hora_pamplona` se manda SIEMPRE, en los dos modos, y esa
+// no es una redundancia: su horario de clases, las tutorías y todo lo del campus están en hora de
+// Pamplona. Si el modo viaje sustituyera una zona por otra sin más, en cuanto cruzara un huso
+// Maite empezaría a contestar mal "¿a qué hora tengo clase mañana?" — con total seguridad, que es
+// la peor forma de fallar. Teniendo las dos puede decir lo único correcto: "es a las nueve en
+// Pamplona, que aquí donde estás son las tres de la mañana".
+function calcularVariablesDeHora({ modoViaje, ciudadViaje, ciudadCasa }) {
   const ahora = new Date()
-  const enPamplona = (opciones) => new Intl.DateTimeFormat('es-ES', { timeZone: 'Europe/Madrid', ...opciones }).format(ahora)
+  const formatear = (tz, opciones) => new Intl.DateTimeFormat('es-ES', { timeZone: tz, ...opciones }).format(ahora)
+
+  const tzActual = modoViaje ? ciudadViaje.tz : 'Europe/Madrid'
+  const lugarActual = modoViaje ? ciudadViaje.nombre : 'Pamplona'
 
   return {
     // "domingo" — el día de la semana suelto, para que empate directo con su horario
-    dia_semana: enPamplona({ weekday: 'long' }),
+    dia_semana: formatear(tzActual, { weekday: 'long' }),
     // "domingo, 26 de julio de 2026, 14:30"
-    fecha_actual: enPamplona({ dateStyle: 'full', timeStyle: 'short' }),
-    hora_mexico: new Intl.DateTimeFormat('es-MX', {
-      timeStyle: 'short',
-      timeZone: 'America/Mexico_City'
-    }).format(ahora)
+    fecha_actual: formatear(tzActual, { dateStyle: 'full', timeStyle: 'short' }),
+    lugar_actual: lugarActual,
+    modo_viaje: modoViaje ? `sí — Carmen está en ${ciudadViaje.nombre}, fuera de Pamplona` : 'no',
+    hora_pamplona: formatear('Europe/Madrid', { timeStyle: 'short' }),
+    ciudad_casa: ciudadCasa.nombre,
+    hora_casa: formatear(ciudadCasa.tz, { timeStyle: 'short' })
   }
 }
 
@@ -68,7 +80,7 @@ function calcularVariablesDeHora() {
 export default function ElevenLabsWidget() {
   const containerRef = useRef(null)
   const elRef = useRef(null)
-  const { config, contextoAgente } = useApp()
+  const { config, contextoAgente, modoViaje, ciudadViaje, ciudadReferencia } = useApp()
 
   // Crear el elemento UNA sola vez (mount-only) — nunca se destruye al navegar entre tabs.
   useEffect(() => {
@@ -95,11 +107,12 @@ export default function ElevenLabsWidget() {
   useEffect(() => {
     if (!elRef.current) return
     const dynamicVars = {
-      ...calcularVariablesDeHora(), // siempre: ver el comentario de la función
+      // Siempre: ver el comentario de la función sobre por qué no basta con {{system__time}}.
+      ...calcularVariablesDeHora({ modoViaje, ciudadViaje, ciudadCasa: ciudadReferencia }),
       ...(contextoAgente ? { contexto: contextoAgente } : {})
     }
     elRef.current.setAttribute('dynamic-variables', JSON.stringify(dynamicVars))
-  }, [contextoAgente])
+  }, [contextoAgente, modoViaje, ciudadViaje, ciudadReferencia])
 
   if (!config.elevenLabsAgentId) return null
 

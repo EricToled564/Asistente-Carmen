@@ -7,6 +7,7 @@ import IndiceAcademico from '../components/academico/IndiceAcademico.jsx'
 import Horario from '../components/academico/Horario.jsx'
 import MiProgreso from '../components/academico/MiProgreso.jsx'
 import TipsAcademicos from '../components/academico/TipsAcademicos.jsx'
+import MisApuntes from '../components/academico/MisApuntes.jsx'
 
 const SECCIONES = [
   { id: 'horario', label: '🗓️ Horario' },
@@ -15,17 +16,30 @@ const SECCIONES = [
   { id: 'radar', label: '📅 Radar' },
   { id: 'indice', label: '📖 Índice' },
   { id: 'tutor', label: '🎓 Tutor' },
+  { id: 'apuntes', label: '📝 Apuntes' },
   { id: 'captura', label: '🎙️ Captura' }
 ]
 
+// Contexto que se le pasa a Maite según la pantalla. En modo tutor se le dice explícitamente que
+// tire de `consultar_apuntes`: si no, se queda con el temario oficial del KB, que es correcto pero
+// genérico — y lo que de verdad le sirve a Carmen para un examen es lo que su profesor dijo en
+// clase, con los ejemplos y los énfasis de él.
+const CONTEXTO_POR_SECCION = {
+  tutor:
+    'modo estudio: ayuda con quiz y explicación de las materias del Grado en Diseño. Antes de armar un quiz o explicar un tema, usa consultar_apuntes para ver si Carmen grabó esa clase — si tiene apuntes propios, el quiz sale de ahí (lo que dijo su profesor) y el temario oficial del KB solo complementa.',
+  apuntes:
+    'Carmen está viendo sus apuntes de clase guardados. Si te pide repasar o un quiz, usa consultar_apuntes para trabajar sobre lo que ella grabó, no sobre el temario genérico.'
+}
+
 export default function Academico() {
   const [seccion, setSeccion] = useState('horario')
+  // Se incrementa al guardar una captura, para que la lista de apuntes se recargue sin tener que
+  // salir y volver a entrar a la pestaña.
+  const [apuntesToken, setApuntesToken] = useState(0)
   const { setContextoAgente } = useApp()
 
   useEffect(() => {
-    setContextoAgente(
-      seccion === 'tutor' ? 'modo estudio: ayuda con quiz y explicación de materias del Grado en Diseño (KB1/KB8)' : null
-    )
+    setContextoAgente(CONTEXTO_POR_SECCION[seccion] || null)
     return () => setContextoAgente(null)
   }, [seccion, setContextoAgente])
 
@@ -68,12 +82,18 @@ export default function Academico() {
               Toca el botón de Maite (flotando arriba a la derecha) y pídele un quiz o que te explique algo de
               tus materias — ya sabe que estás en modo tutor.
             </p>
+            <p className="rounded-2xl bg-lavanda-50 p-3 text-xs text-morado-900/70">
+              Si grabaste esa clase, el quiz sale de <span className="font-semibold">tus apuntes</span> — de lo
+              que dijo tu profesor, no de un temario genérico.
+            </p>
           </div>
         )}
 
+        {seccion === 'apuntes' && <MisApuntes recargarToken={apuntesToken} />}
+
         {seccion === 'captura' && (
           <div className="flex flex-col gap-4">
-            <CapturaRapida />
+            <CapturaRapida onGuardado={() => setApuntesToken((t) => t + 1)} />
             <BotonesAtajos />
           </div>
         )}

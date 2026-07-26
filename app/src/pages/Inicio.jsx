@@ -4,43 +4,99 @@ import { useClock, formatInTZ, ventanaBuenaParaLlamar } from '../hooks/useClock.
 import { CIUDADES_REFERENCIA } from '../data/ciudadesReferencia.js'
 
 export default function Inicio({ onNavigate }) {
-  const { checklist, ciudadReferencia, setCiudadReferencia } = useApp()
+  const { checklist, ciudadReferencia, setCiudadReferencia, modoViaje, setModoViaje, ciudadViaje, setCiudadViaje } =
+    useApp()
   const [editandoCiudad, setEditandoCiudad] = useState(false)
   const now = useClock()
   const pendientes = checklist.filter((i) => !i.done)
   const hechas = checklist.length - pendientes.length
   const progreso = checklist.length ? Math.round((hechas / checklist.length) * 100) : 0
+  // La ventana para llamar se calcula SIEMPRE contra la ciudad de casa, también viajando: la
+  // pregunta es si allá es buena hora para contestar, no si aquí es cómodo marcar.
   const buenaVentana = ventanaBuenaParaLlamar(now, ciudadReferencia.tz)
+
+  // Viajando, el reloj grande es donde está; el chico, Pamplona (que es donde siguen sus clases).
+  // Sin viajar, el grande es Pamplona y el chico su casa. En los dos casos el grande responde
+  // "¿qué hora es aquí?" y el chico "¿qué hora es allá?".
+  const principal = modoViaje ? { tz: ciudadViaje.tz, nombre: ciudadViaje.nombre } : { tz: 'Europe/Madrid', nombre: 'Pamplona' }
+  const secundario = modoViaje
+    ? { tz: 'Europe/Madrid', nombre: 'Pamplona · tus clases' }
+    : { tz: ciudadReferencia.tz, nombre: ciudadReferencia.nombre }
+
+  const ciudadEditable = modoViaje ? ciudadViaje : ciudadReferencia
+  const aplicarCiudad = modoViaje ? setCiudadViaje : setCiudadReferencia
 
   return (
     <div className="flex flex-col gap-5 p-5 pb-8">
       <header>
         <p className="text-sm text-morado-900/60">
-          {new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long', timeZone: 'Europe/Madrid' }).format(now)}
+          {new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long', timeZone: principal.tz }).format(now)}
         </p>
         <h1 className="font-display text-4xl font-bold tracking-tight text-morado-900 text-balance">Hola de nuevo 👋</h1>
       </header>
 
       <section className="rounded-3xl bg-lavanda-glow bg-lavanda-100 p-5 shadow-soft">
-        <p className="text-xs font-semibold uppercase tracking-wide text-lavanda-800">Tu hora</p>
+        <div className="flex items-center justify-between">
+          <p className="text-xs font-semibold uppercase tracking-wide text-lavanda-800">
+            {modoViaje ? 'Donde estás' : 'Tu hora'}
+          </p>
+          <button
+            onClick={() => setModoViaje(!modoViaje)}
+            className={`rounded-full px-2.5 py-1 text-[11px] font-semibold transition ${
+              modoViaje ? 'bg-lavanda-700 text-white' : 'bg-white/70 text-morado-900/60'
+            }`}
+          >
+            ✈️ Modo viaje {modoViaje ? 'activado' : ''}
+          </button>
+        </div>
+
         <div className="mt-2 flex items-end justify-between">
           <div>
             <p className="font-display text-5xl font-bold tabular-nums text-morado-900">
-              {formatInTZ(now, 'Europe/Madrid')}
+              {formatInTZ(now, principal.tz)}
             </p>
-            <p className="text-xs text-morado-900/60">Pamplona</p>
+            {modoViaje ? (
+              editandoCiudad ? (
+                <select
+                  autoFocus
+                  value={ciudadEditable.nombre}
+                  onChange={(e) => {
+                    const elegida = CIUDADES_REFERENCIA.find((c) => c.nombre === e.target.value)
+                    if (elegida) aplicarCiudad(elegida)
+                    setEditandoCiudad(false)
+                  }}
+                  onBlur={() => setEditandoCiudad(false)}
+                  className="mt-0.5 rounded-lg border border-lavanda-300 bg-white px-1.5 py-0.5 text-xs text-morado-900"
+                >
+                  {CIUDADES_REFERENCIA.map((c) => (
+                    <option key={c.nombre} value={c.nombre}>
+                      {c.nombre}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <button
+                  onClick={() => setEditandoCiudad(true)}
+                  className="text-xs text-morado-900/60 underline decoration-dotted"
+                >
+                  {principal.nombre} ✎
+                </button>
+              )
+            ) : (
+              <p className="text-xs text-morado-900/60">{principal.nombre}</p>
+            )}
           </div>
           <div className="text-right">
             <p className="font-display text-2xl font-semibold tabular-nums text-morado-900/70">
-              {formatInTZ(now, ciudadReferencia.tz)}
+              {formatInTZ(now, secundario.tz)}
             </p>
-            {editandoCiudad ? (
+            {!modoViaje && editandoCiudad ? (
               <select
                 autoFocus
-                value={ciudadReferencia.nombre}
+                value={ciudadEditable.nombre}
                 onChange={(e) => {
                   const elegida = CIUDADES_REFERENCIA.find((c) => c.nombre === e.target.value)
-                  if (elegida) setCiudadReferencia(elegida)
+                  if (elegida) aplicarCiudad(elegida)
                   setEditandoCiudad(false)
                 }}
                 onBlur={() => setEditandoCiudad(false)}
@@ -52,19 +108,31 @@ export default function Inicio({ onNavigate }) {
                   </option>
                 ))}
               </select>
+            ) : modoViaje ? (
+              <p className="text-xs text-morado-900/60">{secundario.nombre}</p>
             ) : (
               <button onClick={() => setEditandoCiudad(true)} className="text-xs text-morado-900/60 underline decoration-dotted">
-                {ciudadReferencia.nombre} ✎
+                {secundario.nombre} ✎
               </button>
             )}
           </div>
         </div>
+
+        {modoViaje && (
+          <p className="mt-3 rounded-xl bg-white/70 p-2.5 text-[11px] leading-snug text-morado-900/70">
+            Maite ya sabe que estás en {ciudadViaje.nombre}. Cuando te diga una hora de clase te va a aclarar si
+            es de aquí o de Pamplona — tu horario sigue en hora de Pamplona.
+          </p>
+        )}
+
         <p
           className={`mt-4 rounded-full px-3 py-1.5 text-center text-xs font-semibold ${
             buenaVentana ? 'bg-lavanda-700 text-white' : 'bg-white/70 text-morado-900/60'
           }`}
         >
-          {buenaVentana ? '📞 Buena ventana para llamar a casa ahora' : 'No es la mejor hora para llamar — intenta más tarde'}
+          {buenaVentana
+            ? `📞 Buena ventana para llamar a ${ciudadReferencia.nombre} ahora`
+            : `No es la mejor hora para llamar a ${ciudadReferencia.nombre} — intenta más tarde`}
         </p>
       </section>
 

@@ -26,6 +26,20 @@ export function AppProvider({ children }) {
   // Ciudad del reloj secundario en Inicio — Ciudad de México por default (familia), cambiable si
   // Carmen viaja y quiere comparar la hora de otro lugar en vez de la de casa.
   const [ciudadReferencia, setCiudadReferenciaState] = useState(() => readJSON('ciudadReferencia', CIUDAD_REFERENCIA_DEFAULT))
+  // Modo viaje: cuando Carmen está fuera de Pamplona, la ciudad del reloj secundario pasa a ser
+  // "donde está", no "donde está su casa" — y esa es la hora que Maite usa como ahora.
+  //
+  // Pamplona NO desaparece del cálculo: su horario de clases y todo lo del campus siguen en hora
+  // de Pamplona. Si el modo viaje simplemente sustituyera una zona por otra, la pregunta que más
+  // le hace ("¿qué clase tengo mañana?") empezaría a contestarse mal en cuanto cruzara un huso.
+  // Por eso el widget le manda las dos horas a la vez (ver ElevenLabsWidget.jsx).
+  //
+  // Es un segundo valor y no reutilizar `ciudadReferencia` porque las dos ciudades significan
+  // cosas distintas y se necesitan a la vez: si al activar el viaje se pisara la ciudad de casa,
+  // el aviso de "buena ventana para llamar" pasaría a calcularse contra el sitio donde ella está,
+  // que es justo cuando más falta hace acertarlo.
+  const [modoViaje, setModoViajeState] = useState(() => readJSON('modoViaje', false))
+  const [ciudadViaje, setCiudadViajeState] = useState(() => readJSON('ciudadViaje', CIUDAD_REFERENCIA_DEFAULT))
   // Contexto para el widget flotante de Maite (único, global — ver components/agente/MaiteFlotante.jsx).
   // Cada pantalla que quiera darle contexto especial (modo estudio, una materia puntual, una ruta
   // interior activa) llama setContextoAgente(...) al entrar y setContextoAgente(null) al salir —
@@ -74,6 +88,16 @@ export function AppProvider({ children }) {
     writeJSON('ciudadReferencia', ciudad)
   }
 
+  function setModoViaje(activo) {
+    setModoViajeState(activo)
+    writeJSON('modoViaje', activo)
+  }
+
+  function setCiudadViaje(ciudad) {
+    setCiudadViajeState(ciudad)
+    writeJSON('ciudadViaje', ciudad)
+  }
+
   const value = {
     onboardingDone,
     completeOnboarding,
@@ -83,6 +107,10 @@ export function AppProvider({ children }) {
     updatePermission,
     ciudadReferencia,
     setCiudadReferencia,
+    modoViaje,
+    setModoViaje,
+    ciudadViaje,
+    setCiudadViaje,
     contextoAgente,
     setContextoAgente,
     config

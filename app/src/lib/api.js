@@ -36,5 +36,9 @@ export const api = {
   notasListar: () => request('/notas', { method: 'GET' }),
   notaGuardar: (payload) => request('/notas', { method: 'POST', body: JSON.stringify(payload) }),
   notaBorrar: (id) => request(`/notas/${id}`, { method: 'DELETE' }),
-  notaExtraerDeFoto: (formData) => request('/notas/extraer', { method: 'POST', body: formData })
+  notaExtraerDeFoto: (formData) => request('/notas/extraer', { method: 'POST', body: formData }),
+  apuntesListar: (materia) => request(`/apuntes${materia ? `?materia=${encodeURIComponent(materia)}` : ''}`, { method: 'GET' }),
+  apunteObtener: (id) => request(`/apuntes/${id}`, { method: 'GET' }),
+  apunteGuardar: (payload) => request('/apuntes', { method: 'POST', body: JSON.stringify(payload) }),
+  apunteBorrar: (id) => request(`/apuntes/${id}`, { method: 'DELETE' })
 }
