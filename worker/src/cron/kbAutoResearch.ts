@@ -1,6 +1,7 @@
 import type { Env } from '../types.js'
 import { investigarFuente } from '../lib/claude.js'
-import { getKbDocument, updateKbDocument } from '../lib/elevenlabs.js'
+import { getKbDocument } from '../lib/elevenlabs.js'
+import { fusionarYActualizarKb } from '../lib/kbMerge.js'
 import { getKbDocId } from '../lib/kbRegistry.js'
 
 interface DocConfig {
@@ -91,8 +92,19 @@ async function investigarYActualizarDoc(env: Env, doc: DocConfig) {
       return
     }
 
-    await updateKbDocument(env.ELEVENLABS_API_KEY, documentId, investigacion.contenido_nuevo || actual)
-    console.log(`[kb-cron] ${doc.nombre}: actualizado. Resumen: ${investigacion.resumen_del_cambio}. Fuente: ${investigacion.fuente_citada}`)
+    // Con guardia de proporción. Este camino es el más peligroso de los tres que escriben en el
+    // KB: corre solo, de madrugada, sin que nadie revise nada. Si la investigación devuelve un
+    // documento recortado, aquí no hay una persona delante que lo note — se escribiría y nadie se
+    // enteraría hasta que Maite dejara de saber algo.
+    const resultado = await fusionarYActualizarKb(env, documentId, investigacion.contenido_nuevo || actual)
+    if (!resultado.ok) {
+      console.error(`[kb-cron] ${doc.nombre}: NO se actualizó. ${resultado.motivo}`)
+      return
+    }
+    console.log(
+      `[kb-cron] ${doc.nombre}: actualizado (${resultado.largoAntes} → ${resultado.largoDespues} caracteres). ` +
+        `Resumen: ${investigacion.resumen_del_cambio}. Fuente: ${investigacion.fuente_citada}`
+    )
   } catch (err) {
     // Nunca fallar en silencio ni borrar el documento existente — solo loguear y reintentar
     // en el próximo ciclo del cron.

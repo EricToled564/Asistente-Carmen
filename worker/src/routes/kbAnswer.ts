@@ -1,7 +1,8 @@
 import { Hono } from 'hono'
 import type { Env } from '../types.js'
 import { structureText } from '../lib/claude.js'
-import { getKbDocument, updateKbDocument } from '../lib/elevenlabs.js'
+import { getKbDocument } from '../lib/elevenlabs.js'
+import { fusionarYActualizarKb } from '../lib/kbMerge.js'
 import { getKbDocId } from '../lib/kbRegistry.js'
 import { agregarRecuerdo } from '../lib/memoryStore.js'
 import { CATALOGO_PREGUNTAS } from '../config/preguntasActualizacion.js'
@@ -69,7 +70,14 @@ kbAnswer.post('/kb-answer', async (c) => {
       })
     }
 
-    await updateKbDocument(c.env.ELEVENLABS_API_KEY, documentId, interpretacion.contenido_actualizado)
+    // Pasa por la fusión con su red de seguridad aunque el modelo ya haya devuelto el documento
+    // completo: `actual` puede venir vacío si la lectura falló, y en ese caso lo que el modelo
+    // "actualizó" es un documento construido de la nada que borraría el real. El guardia de
+    // proporción es lo único que detiene eso.
+    const resultado = await fusionarYActualizarKb(c.env, documentId, interpretacion.contenido_actualizado)
+    if (!resultado.ok) {
+      return c.json({ error: resultado.motivo }, 409)
+    }
     return c.json({ ok: true, guardadoComo: pregunta.kbCode })
   } catch (err) {
     console.error(err)

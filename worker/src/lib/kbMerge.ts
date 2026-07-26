@@ -1,0 +1,87 @@
+import type { Env } from '../types.js'
+import { getKbDocument, updateKbDocument } from './elevenlabs.js'
+import { structureText } from './claude.js'
+
+// Actualizar un documento del Knowledge Base sin perder lo que ya decía.
+//
+// El PATCH de ElevenLabs REEMPLAZA el documento entero — no añade. Así que actualizar de verdad
+// es siempre leer, fusionar y volver a escribir el documento completo. Escribir solo el fragmento
+// nuevo borra todo lo demás, y como el agente sigue respondiendo con normalidad (solo que con
+// menos información), no hay ningún síntoma hasta que alguien pregunta por algo que ya no está.
+//
+// La fusión la hace el modelo porque no es pegar texto al final: si Carmen sube su nuevo horario,
+// el anterior tiene que DESAPARECER, no quedarse debajo. Pero si sube el recibo de la villavesa,
+// eso se AÑADE a lo que ya había de transporte. Distinguir esos dos casos es justo lo que un
+// concatenado tonto no puede hacer, y es de donde salen los documentos con información duplicada
+// y contradictoria que dejan al agente sin saber cuál de las dos versiones es la buena.
+
+const PROMPT_FUSION = `Te doy el contenido ACTUAL de un documento de una base de conocimiento, y \
+información NUEVA que hay que incorporar. Devuelve el documento COMPLETO ya actualizado, en \
+markdown, sin texto extra antes ni después.
+
+Reglas:
+1. CONSERVA todo lo que siga siendo cierto. No resumas, no acortes, no reescribas por estilo lo \
+que ya estaba bien. El documento resultante debe seguir teniendo todas las secciones que tenía.
+2. Si la información nueva CONTRADICE o SUSTITUYE algo que ya estaba (un horario nuevo, una \
+dirección nueva, un trámite ya hecho), reemplaza esa parte. No dejes las dos versiones conviviendo.
+3. Si la información nueva es ADICIONAL, intégrala en la sección que le corresponda. Si no encaja \
+en ninguna, crea una sección nueva al final.
+4. No inventes nada que no esté ni en el documento actual ni en la información nueva.
+5. Si la información nueva ya estaba dicha en el documento, devuelve el documento actual tal cual, \
+sin duplicarla.`
+
+export interface ResultadoFusion {
+  ok: boolean
+  motivo?: string
+  largoAntes: number
+  largoDespues: number
+}
+
+// Si el documento fusionado es mucho más corto que el original, algo salió mal: el modelo resumió,
+// se comió secciones, o la lectura del actual falló y "fusionó" contra el vacío. Ninguno de esos
+// casos debe llegar a escribirse, porque la pérdida es silenciosa e irreversible — el contenido
+// anterior ya no está en ningún sitio del que recuperarlo.
+//
+// 0.6 deja margen para una limpieza legítima (quitar un semestre entero que ya no aplica) sin
+// dejar pasar un borrado. Si un cambio legítimo choca con el límite, se ve el aviso y se hace a
+// mano; es preferible a perder el documento sin enterarse.
+const PROPORCION_MINIMA = 0.6
+
+export async function fusionarYActualizarKb(
+  env: Env,
+  documentId: string,
+  informacionNueva: string
+): Promise<ResultadoFusion> {
+  const actual = await getKbDocument(env.ELEVENLABS_API_KEY, documentId)
+  const largoAntes = actual.trim().length
+
+  // Documento vacío: no hay nada que fusionar ni que perder.
+  if (largoAntes === 0) {
+    await updateKbDocument(env.ELEVENLABS_API_KEY, documentId, informacionNueva)
+    return { ok: true, largoAntes: 0, largoDespues: informacionNueva.length }
+  }
+
+  const fusionado = (
+    await structureText(
+      env.ANTHROPIC_API_KEY,
+      PROMPT_FUSION,
+      `DOCUMENTO ACTUAL:\n${actual}\n\n---\n\nINFORMACIÓN NUEVA:\n${informacionNueva}`
+    )
+  ).trim()
+
+  const largoDespues = fusionado.length
+
+  if (largoDespues < largoAntes * PROPORCION_MINIMA) {
+    return {
+      ok: false,
+      motivo:
+        `La actualización habría dejado el documento en ${largoDespues} caracteres cuando tenía ${largoAntes}. ` +
+        'Eso no parece una actualización sino una pérdida de contenido, así que no se guardó nada.',
+      largoAntes,
+      largoDespues
+    }
+  }
+
+  await updateKbDocument(env.ELEVENLABS_API_KEY, documentId, fusionado)
+  return { ok: true, largoAntes, largoDespues }
+}

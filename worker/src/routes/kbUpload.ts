@@ -1,7 +1,7 @@
 import { Hono } from 'hono'
 import type { Env } from '../types.js'
 import { describeImage, structureText } from '../lib/claude.js'
-import { updateKbDocument } from '../lib/elevenlabs.js'
+import { fusionarYActualizarKb } from '../lib/kbMerge.js'
 import { getKbDocId } from '../lib/kbRegistry.js'
 import { marcarHorarioActualizado, guardarHorarioEstructurado, type HorarioEstructurado } from '../lib/horarioEstado.js'
 
@@ -109,7 +109,14 @@ kbUpload.post('/kb-confirm', async (c) => {
   }
 
   try {
-    await updateKbDocument(c.env.ELEVENLABS_API_KEY, documentId, body.markdown)
+    // Fusionar, NO reemplazar. Antes esto escribía `body.markdown` como contenido completo del
+    // documento: subir la foto de un recibo dejaba KB5 conteniendo solo ese recibo y borraba todo
+    // lo demás sobre movilidad. Sin error, sin aviso — el agente simplemente dejaba de saber
+    // cosas que sabía ayer.
+    const resultado = await fusionarYActualizarKb(c.env, documentId, body.markdown)
+    if (!resultado.ok) {
+      return c.json({ error: resultado.motivo }, 409)
+    }
     await c.env.KV.delete(`kb-upload:${body.uploadId}`)
     if (body.tipo === 'horario') {
       await marcarHorarioActualizado(c.env)
