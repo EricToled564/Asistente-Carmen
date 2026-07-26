@@ -13,7 +13,7 @@ ofrece antes una alternativa que se haga desde el navegador.
 | Qué | Valor |
 |---|---|
 | Cuenta Cloudflare | `erictoled564@gmail.com` · account id `f76a5dd565b2a2a94be9460bbab48eef` |
-| Worker (nombre del servicio) | **`asistentecarmen`** |
+| Worker (nombre del servicio) | **`asistentecarmen`** (y `name` de `wrangler.toml`, ya cuadrados) |
 | Worker (URL pública) | **`https://asistentecarmen.erictoled564.workers.dev`** |
 | KV namespace | `Asistente_Carmen` · id `84bc612d19634b5683c9ada11835394c` |
 | Agente ElevenLabs (Maite) | `agent_8701kyeepa7tffmr5475esyq7rtq` |
@@ -38,25 +38,19 @@ rama no despliega nada.
 
 Estas dos cosas están sin resolver a propósito — no las des por hechas.
 
-**1. Desajuste de nombre del Worker — CONFIRMADO, sin resolver.** `worker/wrangler.toml` dice
-`name = "companion-worker"`, pero el servicio conectado a la integración de GitHub se llama
-`asistentecarmen`.
+**1. Nombre del Worker — resuelto en el repo, falta que despliegue.** `worker/wrangler.toml` decía
+`name = "companion-worker"`, pero el servicio de Cloudflare conectado a la integración de GitHub se
+llama `asistentecarmen`. El despliegue aterrizaba en un Worker distinto del que tiene la dirección
+pública encendida.
 
-Comprobado el 26-jul-2026: `https://asistentecarmen.erictoled564.workers.dev` **devuelve una
-página en blanco**, no el `{"ok":true,"servicio":"companion-worker"}` que sirve `worker/src/index.ts`
-en la ruta `/`. O sea, **el código NO corre en `asistentecarmen`**.
+Comprobado el 26-jul-2026 en el navegador:
 
-Hipótesis principal: el `npx wrangler deploy` del build lee `wrangler.toml`, toma el `name` de ahí
-y publica el código en un Worker aparte llamado `companion-worker`; `asistentecarmen` es solo el
-servicio al que cuelga la integración, y está vacío. El build sale verde porque el despliegue sí
-funciona — solo que aterriza en otro sitio.
+- `asistentecarmen.erictoled564.workers.dev/hora?ciudad=Berlin` → **HTTP 404** (hay Worker, pero sin el código)
+- `companion-worker.erictoled564.workers.dev/...` → **"There is nothing here yet"**
 
-Antes de registrar cualquier webhook hay que localizar el Worker que de verdad sirve el código y
-usar **su** URL. Registrarlos contra una URL muerta no da error al registrar: Maite se queda muda
-a mitad de conversación cada vez que Carmen le pregunte la hora o su horario.
-
-**No cambies el `name` de `wrangler.toml` sin comprobar antes qué Workers existen en la cuenta** —
-si hay dos, renombrar a ciegas deja huérfano al que tiene el tráfico.
+El `name` ya está corregido a `asistentecarmen`. Para que surta efecto, ese cambio tiene que llegar
+a la rama que despliega (`claude/app-creation-documents-c74xfz`) — desde otra rama no se publica
+nada. Después, comprueba que la URL devuelve `{"ok":true,...}` antes de dar nada por bueno.
 
 **2. `VITE_WORKER_URL` en Vercel.** `app/src/lib/api.js` cae a `/api` si esa variable no está
 definida, y `/api` no existe en Vercel. Si no está configurada con la URL del Worker, todo lo que

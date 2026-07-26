@@ -1,4 +1,8 @@
-name = "companion-worker"
+# Tiene que coincidir con el nombre del servicio en Cloudflare al que está conectada la
+# integración de GitHub (`asistentecarmen`). Antes decía "companion-worker" y por eso el
+# despliegue aterrizaba en un Worker distinto del que tiene la dirección pública activa:
+# asistentecarmen respondía 404 y la URL de companion-worker no servía nada.
+name = "asistentecarmen"
 main = "src/index.ts"
 compatibility_date = "2024-12-01"
 compatibility_flags = ["nodejs_compat"]
