@@ -66,10 +66,14 @@ ELEVENLABS_AGENT_ID = "agent_8701kyeepa7tffmr5475esyq7rtq"
 # frontend, porque el navegador la necesita para suscribirse. Solo la privada es secreto, y esa va
 # aparte como secret. Ponerla aquí ahorra tener que meter dos cosas a mano en el dashboard.
 VAPID_PUBLIC_KEY = "BDatHvEq4nUq5kixqdh-okt6zzeC8rpM8Vp7qng-TOB87Ld4-wuwuXdOpVrd_7JxV-tNsN7bulLbDM2WoQxLFXI"
-# A dónde llega la alerta cuando Carmen aprieta el SOS. Va aquí y no en el dashboard: las
-# variables de [vars] pisan las del dashboard en cada despliegue, así que puesta allá se perdería
-# sola en el siguiente push — y nadie se enteraría hasta el día que hiciera falta.
-FAMILIA_EMAIL_DESTINO = "gtoledano89@gmail.com"
+# A dónde llega la alerta cuando Carmen aprieta el SOS. Acepta varias direcciones separadas por
+# coma, y conviene que sean varias: si la única persona de la lista está durmiendo o sin batería,
+# el aviso no llega a nadie.
+#
+# Va aquí y no en el dashboard: las variables de [vars] pisan las del dashboard en cada
+# despliegue, así que puesta allá se perdería sola en el siguiente push — y nadie se enteraría
+# hasta el día que hiciera falta.
+FAMILIA_EMAIL_DESTINO = "gtoledano89@gmail.com,eric@finalupgrade.ai"
 RESIDENCIA_DIRECCION = "CampusHome — Av. de Pío XII, 28, 31008 Iturrama, Pamplona, Navarra"
 # Los document_id del KB (KB1, KB3, KB8, KB9-x...) no van aquí: viven en un registro en KV, que
 # escala a los 60 documentos. Y ya no se cargan a mano uno por uno — el Worker se los registra
