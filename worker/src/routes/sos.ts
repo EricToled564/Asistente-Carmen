@@ -26,17 +26,44 @@ sos.post('/sos', async (c) => {
   const errores = resultados.filter((r) => r.status === 'rejected').map((r) => (r as PromiseRejectedResult).reason?.message)
   if (errores.length) console.error('SOS: fallo parcial', errores)
 
-  return c.json({ ok: true, canalesConError: errores.length })
+  // Cuántos avisos SALIERON de verdad, no cuántos no fallaron.
+  //
+  // La diferencia importa justo aquí y en ningún otro endpoint: un canal sin configurar (sin
+  // email de destino, sin nadie suscrito a push) no lanza excepción — simplemente no manda nada.
+  // Contando solo errores, la respuesta era `{ok:true, canalesConError:0}` con cero avisos
+  // enviados: exactamente igual que si hubiera funcionado. En el botón de emergencia de una chica
+  // de 18 años sola en otro país, esa confusión no se puede permitir.
+  const enviados = resultados
+    .filter((r) => r.status === 'fulfilled')
+    .reduce((suma, r) => suma + ((r as PromiseFulfilledResult<number>).value || 0), 0)
+
+  if (enviados === 0) {
+    console.error(
+      'SOS: no se envió NINGÚN aviso. Revisa FAMILIA_EMAIL_DESTINO, RESEND_API_KEY y si hay algún dispositivo suscrito a push.'
+    )
+  }
+
+  return c.json({
+    ok: enviados > 0,
+    avisosEnviados: enviados,
+    canalesConError: errores.length,
+    // El frontend abre WhatsApp en paralelo pase lo que pase, así que aunque esto venga en cero
+    // Carmen no se queda sin ningún camino. Pero tiene que verse.
+    detalle: enviados === 0 ? 'Ningún canal configurado envió el aviso. Queda el respaldo de WhatsApp.' : undefined
+  })
 })
 
-async function notificarFamiliaPush(env: Env, mapsLink: string | null, bateria: string) {
+// Las dos funciones devuelven CUÁNTOS avisos mandaron, para que /sos pueda distinguir "no falló"
+// de "sí avisó". Sin ese número, un canal sin configurar se ve igual que uno que funcionó.
+async function notificarFamiliaPush(env: Env, mapsLink: string | null, bateria: string): Promise<number> {
   const list = await env.KV.list({ prefix: 'push:familia:' })
   const vapid = { subject: 'mailto:soporte@example.com', publicKey: env.VAPID_PUBLIC_KEY, privateKey: env.VAPID_PRIVATE_KEY }
+  if (!vapid.publicKey || !vapid.privateKey) return 0
 
-  await Promise.all(
+  const enviados = await Promise.all(
     list.keys.map(async (k) => {
       const raw = await env.KV.get(k.name)
-      if (!raw) return
+      if (!raw) return 0
       const record = JSON.parse(raw) as PushSubscriptionRecord
       await enviarPush(record, vapid, {
         title: '🆘 SOS',
@@ -44,12 +71,15 @@ async function notificarFamiliaPush(env: Env, mapsLink: string | null, bateria: 
         url: mapsLink || undefined,
         tag: 'sos'
       })
+      return 1
     })
   )
+  return enviados.reduce<number>((a, b) => a + b, 0)
 }
 
-async function notificarFamiliaEmail(env: Env, mapsLink: string | null, bateria: string) {
-  if (!env.FAMILIA_EMAIL_DESTINO || env.FAMILIA_EMAIL_DESTINO.startsWith('REEMPLAZA')) return
+async function notificarFamiliaEmail(env: Env, mapsLink: string | null, bateria: string): Promise<number> {
+  if (!env.FAMILIA_EMAIL_DESTINO || env.FAMILIA_EMAIL_DESTINO.startsWith('REEMPLAZA')) return 0
+  if (!env.RESEND_API_KEY) return 0
   await enviarEmail(env.RESEND_API_KEY, {
     to: env.FAMILIA_EMAIL_DESTINO,
     from: 'Maite <sos@resend.dev>',
@@ -60,4 +90,5 @@ async function notificarFamiliaEmail(env: Env, mapsLink: string | null, bateria:
       ${mapsLink ? `<p><a href="${mapsLink}">Ver ubicación en Google Maps</a></p>` : '<p>Sin ubicación disponible.</p>'}
     `
   })
+  return 1
 }
