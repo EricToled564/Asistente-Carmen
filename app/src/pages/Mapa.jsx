@@ -113,9 +113,19 @@ export default function Mapa() {
             <Marker key={pin.id} position={[pin.lat, pin.lng]} icon={iconoPara(pin.categoria)}>
               <Popup>
                 <div className="max-w-[220px]">
-                  <p className="font-semibold">{pin.nombre}</p>
-                  <p className="mt-1 text-xs text-morado-900/70">{pin.nota}</p>
-                  <div className="mt-2 flex flex-wrap gap-1.5">
+                  <div className="flex items-start gap-2">
+                    <span
+                      className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm"
+                      style={{ background: `${CATEGORIAS[pin.categoria]?.color || '#7C4DBC'}22` }}
+                    >
+                      {CATEGORIAS[pin.categoria]?.emoji || '📍'}
+                    </span>
+                    <div>
+                      <p className="font-semibold leading-snug">{pin.nombre}</p>
+                      <p className="mt-0.5 text-xs text-morado-900/70">{pin.nota}</p>
+                    </div>
+                  </div>
+                  <div className="mt-2.5 flex flex-wrap gap-1.5">
                     <a
                       href={googleMapsDirectionsUrl(pin.lat, pin.lng)}
                       target="_blank"
@@ -196,8 +206,8 @@ function FiltroChip({ label, emoji, active, onClick }) {
   return (
     <button
       onClick={onClick}
-      className={`flex shrink-0 items-center gap-1 rounded-full border px-3 py-1.5 text-sm font-medium ${
-        active ? 'border-lavanda-700 bg-lavanda-700 text-white' : 'border-lavanda-200 bg-white text-morado-900/70'
+      className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium shadow-soft transition-transform active:scale-95 ${
+        active ? 'bg-gradient-to-r from-lavanda-700 to-lavanda-600 text-white' : 'bg-white text-morado-900/70'
       }`}
     >
       <span>{emoji}</span>

@@ -43,6 +43,27 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
 }
 
+/* Leaflet trae su propio look (esquinas cuadradas, gris genérico) que no calza con el resto de
+   la app — se sobreescribe aquí en vez de en cada componente, porque Leaflet inyecta estas
+   clases directo al DOM (no son elementos de React que podamos className-ar). */
+.leaflet-popup-content-wrapper {
+  border-radius: 20px;
+  box-shadow: 0 10px 32px -12px rgba(43, 27, 61, 0.28);
+}
+.leaflet-popup-tip {
+  box-shadow: none;
+}
+.leaflet-control-zoom {
+  border: none !important;
+  border-radius: 16px !important;
+  overflow: hidden;
+  box-shadow: 0 10px 32px -12px rgba(43, 27, 61, 0.28) !important;
+}
+.leaflet-control-zoom a {
+  color: #7C4DBC !important;
+  font-weight: 600;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
