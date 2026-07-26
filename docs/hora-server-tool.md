@@ -1,5 +1,9 @@
 # Server tool `consultar_hora` — configuración en ElevenLabs
 
+> Para **configurar el agente**, usa [`webhooks-elevenlabs.md`](webhooks-elevenlabs.md): ahí están
+> las 7 tools juntas y listas para pegar. Este documento se queda con el detalle de por qué la
+> aritmética de husos horarios se resuelve en el servidor y no en el modelo.
+
 Permite que Maite responda "¿qué hora es en Berlín?" o "¿es buena hora para llamar a mi tía en
 Nueva York?" con el dato correcto.
 

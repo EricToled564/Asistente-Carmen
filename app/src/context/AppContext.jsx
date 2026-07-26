@@ -36,7 +36,7 @@ export function AppProvider({ children }) {
     () => ({
       // Default real: el agente Maite ya está creado en ElevenLabs. Se puede pisar con
       // VITE_ELEVENLABS_AGENT_ID si en algún momento se recrea el agente con otro id.
-      elevenLabsAgentId: import.meta.env.VITE_ELEVENLABS_AGENT_ID || 'agent_7201ky3e5hf2ewsvj26gjh5b1dmr',
+      elevenLabsAgentId: import.meta.env.VITE_ELEVENLABS_AGENT_ID || 'agent_8701kyeepa7tffmr5475esyq7rtq',
       whatsappNumero: import.meta.env.VITE_SOS_WHATSAPP_NUMERO || '',
       consuladoTel: import.meta.env.VITE_SOS_CONSULADO_TEL || '',
       residenciaDireccion: import.meta.env.VITE_RESIDENCIA_DIRECCION || 'CampusHome — Av. de Pío XII, 28, Iturrama, Pamplona',

@@ -1,5 +1,9 @@
 # Server tools de memoria — configuración en ElevenLabs
 
+> Para **configurar el agente**, usa [`webhooks-elevenlabs.md`](webhooks-elevenlabs.md): ahí están
+> las 7 tools juntas y listas para pegar. Este documento se queda con el detalle de por qué la
+> memoria funciona así y dónde viven los datos.
+
 El agente Maite no recuerda nada entre conversaciones por defecto. Estos dos endpoints ya están
 construidos en el Worker (`worker/src/routes/memory.ts`); lo que falta es que **tú** los
 registres como "server tools" (a veces llamado "custom tool" / "webhook tool", según la versión

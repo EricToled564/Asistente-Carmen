@@ -42,28 +42,37 @@ texto/fondo están verificados contra WCAG AA.
 | 10 | Onboarding (permisos + checklist 30 días) | ✅ |
 | 11 | Datos de emergencia (nombre legal + tipo de sangre, separados del KB) | ✅ |
 | 12 | Memoria persistente de Maite (`/memory/retrieve` + `/memory/add`) | ✅ (falta registrar los server tools, ver abajo) |
-| 13 | Mapa → "¿Cómo llego?": wayfinding interior por checkpoints de voz (Carmen indica origen/destino, Maite guía paso a paso) | ✅ (falta registrar `avanzar_ruta`, ver `/docs/ruta-interior.md`) |
+| 13 | Mapa → "¿Cómo llego?": wayfinding interior por checkpoints de voz (Carmen indica origen/destino, Maite guía paso a paso) | ✅ (falta registrar los webhooks, ver abajo) |
 | — | Mecanismo C: preguntas de actualización (`/kb-answer`, Ajustes → Preguntas) | ✅ |
 | — | Registro flexible de document_id del KB (KV, ya no env vars fijas) | ✅ |
 | — | Worker: `/vision /audio /telegram /sos /push/subscribe /kb-upload /kb-confirm /emergency-data /memory/* /kb-answer* /ruta/* /horario /notas* /hora` + crons | ✅ |
 | — | Académico → Horario: vista semanal visual (no solo conversación con Maite); "Actualizar mi info" la mantiene sincronizada | ✅ |
 | — | KB: 45 documentos + `kb/manifest.json` + `kb/sync.mjs` | ✅ |
 
-**Server tools de Maite (4 en total).** El código de todas está listo; falta registrarlas en el
-dashboard de ElevenLabs para que el agente pueda llamarlas. Schemas exactos en cada doc:
+**Server tools / webhooks de Maite (7 en total).** El código de todas está listo y probado contra
+un Worker local; falta registrarlas en el dashboard de ElevenLabs para que el agente pueda
+llamarlas. **Todos los schemas listos para pegar, en un solo sitio:
+[`/docs/webhooks-elevenlabs.md`](docs/webhooks-elevenlabs.md).**
 
-| Tool | Para qué | Doc |
-|---|---|---|
-| `retrieve_memories` | Recordar conversaciones anteriores | `/docs/memoria-server-tools.md` |
-| `add_memories` | Guardar algo para después | `/docs/memoria-server-tools.md` |
-| `avanzar_ruta` | Siguiente paso al guiarla dentro del edificio | `/docs/ruta-interior.md` |
-| `consultar_hora` | Hora en cualquier ciudad del mundo | `/docs/hora-server-tool.md` |
+| Tool | Método | Ruta | Para qué |
+|---|---|---|---|
+| `retrieve_memories` | POST | `/memory/retrieve` | Recordar conversaciones anteriores |
+| `add_memories` | POST | `/memory/add` | Guardar algo para después |
+| `iniciar_ruta` | POST | `/ruta/iniciar` | Arrancar una ruta interior desde la voz |
+| `avanzar_ruta` | POST | `/ruta/avanzar` | Siguiente paso cuando ella confirma que llegó |
+| `consultar_hora` | GET | `/hora?ciudad=` | Hora en cualquier ciudad del mundo |
+| `consultar_horario` | GET | `/horario/consulta?dia=` | ¿Hay un horario más nuevo que KB8? |
+| `consultar_promedio` | GET | `/notas` | Promedio ponderado por ECTS |
+
+El agente conectado en la app es `agent_8701kyeepa7tffmr5475esyq7rtq`
+(`app/src/context/AppContext.jsx`, pisable con `VITE_ELEVENLABS_AGENT_ID`).
 
 **Wayfinding interior ("¿Cómo llego?"):** no hay posicionamiento automático dentro del edificio
-(no existe esa infraestructura) — Carmen le dice a la app dónde está y a dónde va, y Maite la
-guía en voz, un checkpoint a la vez, confirmando cada punto antes de dar el siguiente paso. Falta
-registrar la server tool `avanzar_ruta` en ElevenLabs (schema en `/docs/ruta-interior.md`), que
-también explica el único dato del edificio pendiente de confirmar (accesibilidad/ascensor en
+(no existe esa infraestructura) — Carmen dice dónde está y a dónde va, por la app o hablando con
+Maite, y la guía es un checkpoint a la vez, confirmando cada punto antes de dar el siguiente paso.
+Cuando lo pide hablando, `iniciar_ruta` resuelve los nombres como ella los dice ("la biblioteca",
+"la 1111") y repregunta si son ambiguos en vez de adivinar la planta. `/docs/ruta-interior.md`
+explica además el único dato del edificio pendiente de confirmar (accesibilidad/ascensor en
 Planta -1).
 
 **Registro de KB docs:** los `document_id` ya no van en `wrangler.toml` — se cargan uno por uno

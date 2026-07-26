@@ -157,3 +157,42 @@ export function buscarParada(id: string): Parada | undefined {
 export function paradasSeleccionables(): Parada[] {
   return TODAS_LAS_PARADAS.filter((p) => p.tipo !== 'conector')
 }
+
+// Quita acentos y signos para comparar "Salón de Actos", "salon de actos" y "SALÓN DE ACTOS".
+function normalizar(texto: string): string {
+  return texto
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+// Búsqueda por nombre hablado, para cuando la ruta la pide Carmen en voz alta y no tocando un
+// select en la app. Maite no conoce los ids internos ('p1-taller01') — recibe lo que Carmen dijo
+// ("el taller uno", "la 1111", "biblioteca") y esto lo aterriza a una parada real.
+//
+// Devuelve TODAS las coincidencias, no la primera: si lo que dijo es ambiguo ("Sala A" existe en
+// dos plantas), el endpoint prefiere preguntar a Carmen cuál antes que elegir por ella y mandarla
+// al piso equivocado.
+export function buscarParadasPorNombre(texto: string): Parada[] {
+  const busqueda = normalizar(texto)
+  if (!busqueda) return []
+  const candidatas = paradasSeleccionables()
+
+  // Número de sala exacto ("1111") — es lo más específico que puede decir, va primero.
+  const porSala = candidatas.filter((p) => p.salas?.some((s) => normalizar(s) === busqueda))
+  if (porSala.length > 0) return porSala
+
+  const nombreExacto = candidatas.filter((p) => normalizar(p.nombre) === busqueda)
+  if (nombreExacto.length > 0) return nombreExacto
+
+  // El nombre guardado suele traer una coletilla que ella no va a decir en voz ("Sala A —
+  // Construcción"): basta con que lo que dijo esté contenido, o al revés.
+  const parcial = candidatas.filter((p) => {
+    const nombre = normalizar(p.nombre)
+    return nombre.includes(busqueda) || busqueda.includes(nombre)
+  })
+  return parcial
+}

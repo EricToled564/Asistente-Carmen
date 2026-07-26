@@ -32,13 +32,22 @@ giro sin dato real detrás.
    6 horas). Devuelve el primer paso.
 3. La app abre el widget de Maite pasándole por `dynamic-variables` la `rutaId` y el primer paso
    como contexto.
-4. Cuando Carmen le confirma por voz a Maite que llegó al checkpoint, Maite debe llamar la server
-   tool `avanzar_ruta` (ver abajo) — esto es lo único que falta configurar manualmente en la
-   plataforma de ElevenLabs, igual que ya se hizo con `retrieve_memories`/`add_memories`.
+4. Cuando Carmen le confirma por voz a Maite que llegó al checkpoint, Maite llama la server tool
+   `avanzar_ruta` (ver abajo).
 
-⚠️ Igual que con esas otras tools: no se pudo verificar la UI exacta de ElevenLabs para registrar
-server tools durante esta construcción — los campos de abajo son los conceptos estándar, confirma
-contra lo que veas en pantalla.
+**La otra entrada: pedirla hablando.** Carmen también puede saltarse los selects y decirle a Maite
+"estoy en la biblioteca y tengo clase en el Taller 01". Ahí Maite llama `iniciar_ruta` con los
+nombres tal cual los dijo ella. El mismo `POST /ruta/iniciar` acepta las dos formas: `origenId`/
+`destinoId` (ids exactos, los manda la app) u `origen`/`destino` en texto libre (los manda el
+agente). La resolución por nombre está en `buscarParadasPorNombre` (`edificioArquitectura.ts`):
+compara sin acentos, entiende números de sala ("la 1111"), y cuando el texto casa con varias
+paradas **devuelve las opciones en vez de elegir una** — hay seminarios homónimos en plantas
+distintas, y mandarla al piso equivocado por adivinar es peor que repreguntar.
+
+⚠️ No se pudo verificar la UI exacta de ElevenLabs para registrar server tools durante esta
+construcción — los campos de abajo son los conceptos estándar, confirma contra lo que veas en
+pantalla. Los schemas de las 7 tools juntos y listos para pegar están en
+[`webhooks-elevenlabs.md`](webhooks-elevenlabs.md).
 
 ## Tool: `avanzar_ruta`
 

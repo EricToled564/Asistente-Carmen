@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import type { Env } from '../types.js'
-import { paradasSeleccionables, PLANTAS } from '../data/edificioArquitectura.js'
+import { paradasSeleccionables, PLANTAS, buscarParadasPorNombre, type Parada } from '../data/edificioArquitectura.js'
 import { calcularRuta, type PasoRuta } from '../lib/rutaInterior.js'
 
 export const ruta = new Hono<{ Bindings: Env }>()
@@ -26,16 +26,63 @@ interface EstadoRuta {
 
 const TTL_RUTA_SEGUNDOS = 60 * 60 * 6 // una ruta activa no debería durar más de unas horas
 
-// POST /ruta/iniciar {origenId, destinoId} — arma la ruta completa y devuelve el primer paso. La
-// app abre a Maite con este primer paso como contexto; el resto se pide con /ruta/avanzar según
-// Carmen le va confirmando en voz que llegó a cada punto.
+function etiqueta(p: Parada): string {
+  return `${p.nombre} (Planta ${p.planta})`
+}
+
+// Resuelve lo que llega en el body a un id de parada. La app manda `origenId`/`destinoId` (ids
+// exactos, salidos de /ruta/lugares); Maite manda `origen`/`destino` en texto, tal cual lo dijo
+// Carmen en voz. Si el texto es ambiguo devuelve las opciones en vez de adivinar: mandarla al
+// piso equivocado por elegir la primera coincidencia es peor que preguntarle cuál era.
+type Resuelto = { id: string } | { ambiguo: string[] } | { desconocido: true }
+
+function resolverParada(id: string | undefined, texto: string | undefined): Resuelto | null {
+  if (id) return { id }
+  if (!texto?.trim()) return null
+  const encontradas = buscarParadasPorNombre(texto)
+  if (encontradas.length === 1) return { id: encontradas[0].id }
+  if (encontradas.length > 1) return { ambiguo: encontradas.map(etiqueta) }
+  return { desconocido: true }
+}
+
+// POST /ruta/iniciar — arma la ruta completa y devuelve el primer paso.
+//
+// Dos formas de llamarlo:
+//   {origenId, destinoId}  — desde la app, con los ids de /ruta/lugares
+//   {origen, destino}      — desde Maite (server tool iniciar_ruta), con lo que Carmen dijo
+//
+// La app muestra todos los pasos escritos en pantalla; en conversación Maite da uno a la vez y
+// pide el siguiente con /ruta/avanzar cuando Carmen le confirma que llegó al checkpoint.
 ruta.post('/ruta/iniciar', async (c) => {
-  const body = await c.req.json<{ origenId?: string; destinoId?: string }>()
-  if (!body.origenId || !body.destinoId) {
-    return c.json({ error: 'Faltan "origenId" y/o "destinoId"' }, 400)
+  const body = await c.req.json<{ origenId?: string; destinoId?: string; origen?: string; destino?: string }>()
+
+  const origen = resolverParada(body.origenId, body.origen)
+  const destino = resolverParada(body.destinoId, body.destino)
+  if (!origen || !destino) {
+    return c.json({ error: 'Falta el origen y/o el destino (usa origenId/destinoId, o bien origen/destino por nombre)' }, 400)
   }
 
-  const resultado = calcularRuta(body.origenId, body.destinoId)
+  // Los casos que necesitan repregunta se devuelven con 200 y un mensaje redactado: son parte
+  // normal de la conversación, no un fallo de la tool, y el agente los lee tal cual.
+  for (const [quien, r] of [['origen', origen], ['destino', destino]] as const) {
+    if ('ambiguo' in r) {
+      return c.json({
+        necesitaAclaracion: true,
+        campo: quien,
+        opciones: r.ambiguo,
+        mensaje: `Hay varios sitios que se llaman así. ¿Cuál es el ${quien}: ${r.ambiguo.join(', ')}?`
+      })
+    }
+    if ('desconocido' in r) {
+      return c.json({
+        necesitaAclaracion: true,
+        campo: quien,
+        mensaje: `No tengo ese sitio en el plano del edificio como ${quien}. Pregúntale a Carmen el nombre del aula, seminario o taller, o el número de sala.`
+      })
+    }
+  }
+
+  const resultado = calcularRuta((origen as { id: string }).id, (destino as { id: string }).id)
   if (!resultado) {
     return c.json({ error: 'No reconozco ese origen o destino' }, 400)
   }
