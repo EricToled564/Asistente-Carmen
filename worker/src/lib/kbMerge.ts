@@ -64,6 +64,18 @@ function largoDeTexto(contenido: string): number {
     .trim().length
 }
 
+// El modelo tiende a envolver un documento entero en ```html … ``` aunque se le pida que no ponga
+// nada extra. Visto en la primera prueba real contra KB5: el documento quedó correcto pero con la
+// cerca de código dentro. No es cosmético — se guarda tal cual en el KB, el agente la lee como
+// parte del contenido, y en cada fusión posterior se anida otra.
+function quitarCercaDeCodigo(texto: string): string {
+  return texto
+    .trim()
+    .replace(/^```[a-z]*\s*\n?/i, '')
+    .replace(/\n?```\s*$/, '')
+    .trim()
+}
+
 export async function fusionarYActualizarKb(
   env: Env,
   documentId: string,
@@ -78,13 +90,13 @@ export async function fusionarYActualizarKb(
     return { ok: true, largoAntes: 0, largoDespues: largoDeTexto(informacionNueva) }
   }
 
-  const fusionado = (
+  const fusionado = quitarCercaDeCodigo(
     await structureText(
       env.ANTHROPIC_API_KEY,
       PROMPT_FUSION,
       `DOCUMENTO ACTUAL:\n${actual}\n\n---\n\nINFORMACIÓN NUEVA:\n${informacionNueva}`
     )
-  ).trim()
+  )
 
   const largoDespues = largoDeTexto(fusionado)
 
