@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useRef, useState } from 'react'
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -33,7 +33,19 @@ export default function Mapa() {
   const [filtro, setFiltro] = useState('todas')
   const [plano, setPlano] = useState(null)
   const [mostrarRuta, setMostrarRuta] = useState(false)
+  const [mostrarLista, setMostrarLista] = useState(false)
   const [buscandoUbicacionPara, setBuscandoUbicacionPara] = useState(null)
+  const mapRef = useRef(null)
+  const marcadoresRef = useRef({})
+
+  // "Ilumínalo en el mapa": centra el mapa en ese pin y abre su popup, como si lo hubieras
+  // tocado directo — para que el menú/lista y el mapa se sientan conectados, no como dos cosas
+  // separadas.
+  function enfocarPin(pin) {
+    setMostrarLista(false)
+    mapRef.current?.flyTo([pin.lat, pin.lng], 17, { duration: 0.6 })
+    setTimeout(() => marcadoresRef.current[pin.id]?.openPopup(), 350)
+  }
 
   // GPS real del navegador (no el posicionamiento indoor, que sí es inviable — este es
   // outdoor, punto A → punto B en la ciudad, donde el GPS funciona normal). Si lo niega o falla,
@@ -89,6 +101,15 @@ export default function Mapa() {
       {filtro === 'transporte' && <AppsTransporte />}
 
       <div className="relative flex-1 overflow-hidden">
+        <div className="absolute left-3 top-3 z-[1000]">
+          <button
+            onClick={() => setMostrarLista((v) => !v)}
+            className="flex items-center gap-1.5 rounded-full bg-white px-3 py-2 text-xs font-semibold text-lavanda-800 shadow-soft"
+          >
+            {mostrarLista ? '🗺️ Ver mapa' : '📋 Lista'}
+          </button>
+        </div>
+
         <div className="absolute right-3 top-3 z-[1000] flex flex-col items-end gap-2">
           <button
             onClick={() => setPlano(true)}
@@ -104,13 +125,44 @@ export default function Mapa() {
           </button>
         </div>
 
-        <MapContainer center={centro} zoom={14} scrollWheelZoom className="h-full w-full">
+        {mostrarLista && (
+          <div className="absolute inset-0 z-[900] flex flex-col gap-2 overflow-y-auto bg-lavanda-50/98 p-4 pt-16">
+            {pinesFiltrados.map((pin) => (
+              <button
+                key={pin.id}
+                onClick={() => enfocarPin(pin)}
+                className="flex items-center gap-3 rounded-2xl bg-white p-3 text-left shadow-soft active:scale-[0.98]"
+              >
+                <span
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg"
+                  style={{ background: `${CATEGORIAS[pin.categoria]?.color || '#7C4DBC'}22` }}
+                >
+                  {CATEGORIAS[pin.categoria]?.emoji || '📍'}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold text-morado-900">{pin.nombre}</p>
+                  <p className="truncate text-xs text-morado-900/60">{pin.nota}</p>
+                </div>
+                <span className="text-lavanda-700">→</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        <MapContainer ref={mapRef} center={centro} zoom={14} scrollWheelZoom className="h-full w-full">
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
           {pinesFiltrados.map((pin) => (
-            <Marker key={pin.id} position={[pin.lat, pin.lng]} icon={iconoPara(pin.categoria)}>
+            <Marker
+              key={pin.id}
+              position={[pin.lat, pin.lng]}
+              icon={iconoPara(pin.categoria)}
+              ref={(marcador) => {
+                if (marcador) marcadoresRef.current[pin.id] = marcador
+              }}
+            >
               <Popup>
                 <div className="max-w-[220px]">
                   <div className="flex items-start gap-2">
