@@ -38,13 +38,25 @@ rama no despliega nada.
 
 Estas dos cosas están sin resolver a propósito — no las des por hechas.
 
-**1. Desajuste de nombre del Worker.** `worker/wrangler.toml` dice `name = "companion-worker"`,
-pero el servicio en Cloudflare se llama `asistentecarmen`. Falta confirmar abriendo
-`https://asistentecarmen.erictoled564.workers.dev` en un navegador: si devuelve
-`{"ok":true,"servicio":"companion-worker"}`, el código vive ahí y la URL de arriba es la buena.
-Si devuelve un error, el `wrangler deploy` creó un Worker aparte llamado `companion-worker` y hay
-que averiguar cuál es el que corre antes de apuntarle webhooks. **No toques el `name` de
-`wrangler.toml` hasta resolver esto** — cambiarlo a ciegas puede partir el despliegue en dos.
+**1. Desajuste de nombre del Worker — CONFIRMADO, sin resolver.** `worker/wrangler.toml` dice
+`name = "companion-worker"`, pero el servicio conectado a la integración de GitHub se llama
+`asistentecarmen`.
+
+Comprobado el 26-jul-2026: `https://asistentecarmen.erictoled564.workers.dev` **devuelve una
+página en blanco**, no el `{"ok":true,"servicio":"companion-worker"}` que sirve `worker/src/index.ts`
+en la ruta `/`. O sea, **el código NO corre en `asistentecarmen`**.
+
+Hipótesis principal: el `npx wrangler deploy` del build lee `wrangler.toml`, toma el `name` de ahí
+y publica el código en un Worker aparte llamado `companion-worker`; `asistentecarmen` es solo el
+servicio al que cuelga la integración, y está vacío. El build sale verde porque el despliegue sí
+funciona — solo que aterriza en otro sitio.
+
+Antes de registrar cualquier webhook hay que localizar el Worker que de verdad sirve el código y
+usar **su** URL. Registrarlos contra una URL muerta no da error al registrar: Maite se queda muda
+a mitad de conversación cada vez que Carmen le pregunte la hora o su horario.
+
+**No cambies el `name` de `wrangler.toml` sin comprobar antes qué Workers existen en la cuenta** —
+si hay dos, renombrar a ciegas deja huérfano al que tiene el tráfico.
 
 **2. `VITE_WORKER_URL` en Vercel.** `app/src/lib/api.js` cae a `/api` si esa variable no está
 definida, y `/api` no existe en Vercel. Si no está configurada con la URL del Worker, todo lo que
