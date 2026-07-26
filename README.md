@@ -20,10 +20,11 @@ texto/fondo están verificados contra WCAG AA.
 ## Estructura del repo
 
 ```
-/app      → Frontend: React + Vite + Tailwind, PWA instalable, mobile-first
-/worker   → Backend: Cloudflare Worker (Hono) — todos los proxies, webhooks y crons
-/kb       → Los 45 documentos del Knowledge Base de Maite + script de sync a ElevenLabs
-/docs     → Documentación de apoyo (Atajos de iOS, este README, diseño original)
+/app        → Frontend: React + Vite + Tailwind, PWA instalable, mobile-first
+/worker     → Backend: Cloudflare Worker (Hono) — todos los proxies, webhooks y crons
+/kb         → Los 45 documentos del Knowledge Base de Maite + script de sync a ElevenLabs
+/elevenlabs → Registro por API de los 8 server tools (webhooks) del agente
+/docs       → Documentación de apoyo (Atajos de iOS, este README, diseño original)
 ```
 
 ## Qué se construyó
@@ -41,8 +42,8 @@ texto/fondo están verificados contra WCAG AA.
 | 9 | "Actualizar mi info" (KB self-service con vista previa editable) | ✅ |
 | 10 | Onboarding (permisos + checklist 30 días) | ✅ |
 | 11 | Datos de emergencia (nombre legal + tipo de sangre, separados del KB) | ✅ |
-| 12 | Memoria persistente de Maite (`/memory/retrieve` + `/memory/add`) | ✅ (falta registrar los server tools, ver abajo) |
-| 13 | Mapa → "¿Cómo llego?": wayfinding interior por checkpoints de voz (Carmen indica origen/destino, Maite guía paso a paso) | ✅ (falta registrar los webhooks, ver abajo) |
+| 12 | Memoria persistente de Maite (`/memory/retrieve` + `/memory/add`) | ✅ (registro por API: `node elevenlabs/registrar-webhooks.mjs`) |
+| 13 | Mapa → "¿Cómo llego?": wayfinding interior por checkpoints de voz (Carmen indica origen/destino, Maite guía paso a paso) | ✅ (registro por API: `node elevenlabs/registrar-webhooks.mjs`) |
 | — | Mecanismo C: preguntas de actualización (`/kb-answer`, Ajustes → Preguntas) | ✅ |
 | — | Registro flexible de document_id del KB (KV, ya no env vars fijas) | ✅ |
 | — | Worker: `/vision /audio /telegram /sos /push/subscribe /kb-upload /kb-confirm /emergency-data /memory/* /kb-answer* /ruta/* /horario /notas* /hora` + crons | ✅ |
@@ -50,9 +51,17 @@ texto/fondo están verificados contra WCAG AA.
 | — | KB: 45 documentos + `kb/manifest.json` + `kb/sync.mjs` | ✅ |
 
 **Server tools / webhooks de Maite (8 en total).** El código de todas está listo y probado contra
-un Worker local; falta registrarlas en el dashboard de ElevenLabs para que el agente pueda
-llamarlas. **Todos los schemas listos para pegar, en un solo sitio:
-[`/docs/webhooks-elevenlabs.md`](docs/webhooks-elevenlabs.md).**
+un Worker local. **El registro en ElevenLabs ya no es manual: se hace por API con un comando**
+(ver [`/elevenlabs/README.md`](elevenlabs/README.md)):
+
+```bash
+ELEVENLABS_API_KEY=... WORKER_URL=https://companion-worker.TU-SUBDOMINIO.workers.dev \
+  node elevenlabs/registrar-webhooks.mjs
+```
+
+Es idempotente (correrlo dos veces actualiza, no duplica), respalda el agente antes de tocarlo y
+comprueba al final que el system prompt sigue intacto. El **porqué** de cada tool y la prueba de
+humo en voz siguen en [`/docs/webhooks-elevenlabs.md`](docs/webhooks-elevenlabs.md).
 
 | Tool | Método | Ruta | Para qué |
 |---|---|---|---|
@@ -86,7 +95,7 @@ Repite para cada código (`KB1`...`KB9-37`) que ya tengas subido. Sin esto, `/kb
 documento — pero no rompen nada, solo lo loguean y lo omiten.
 
 **Todo lo del prompt v2 está construido.** Lo único 100% pendiente de tu lado es la configuración
-externa: crear el agente en ElevenLabs, registrar los server tools de memoria, cargar los
+externa: crear el agente en ElevenLabs, correr `elevenlabs/registrar-webhooks.mjs`, cargar los
 document_id, y las cuentas/keys de las APIs (ver "Configuración pendiente" abajo).
 
 Todo el código está escrito y el frontend **compila limpio** (`npm run build`) y el Worker
@@ -159,8 +168,15 @@ npx wrangler kv key put --binding=KV "kb-doc-id:KB1" "<document_id>"
    de la semana en inglés y el horario de Carmen está en español
 5. Sube los 60 documentos de `/kb` (ver `/kb/README.md` para el flujo completo con
    `kb/manifest.json` y `kb/sync.mjs`)
-6. Copia el `agent_id` → `app/.env` (`VITE_ELEVENLABS_AGENT_ID`) y el Worker secret
-7. Como KB8 (horario) ya viene con el del semestre 1 precargado desde este repo (no subido vía
+6. Registra los 8 server tools (webhooks) — por API, con el Worker ya desplegado:
+   ```bash
+   ELEVENLABS_API_KEY=... WORKER_URL=https://companion-worker.TU-SUBDOMINIO.workers.dev \
+     node elevenlabs/registrar-webhooks.mjs
+   ```
+   Ver `/elevenlabs/README.md`. Compruébalo con `--verificar` y haz la prueba de humo en voz de
+   `/docs/webhooks-elevenlabs.md`.
+7. Copia el `agent_id` → `app/.env` (`VITE_ELEVENLABS_AGENT_ID`) y el Worker secret
+8. Como KB8 (horario) ya viene con el del semestre 1 precargado desde este repo (no subido vía
    "Actualizar mi info"), marca eso en KV para que el recordatorio push de horario no insista de
    más — ver `worker/src/lib/horarioEstado.ts`:
    ```bash

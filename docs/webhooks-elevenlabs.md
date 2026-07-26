@@ -8,6 +8,16 @@ Agente: `agent_8701kyeepa7tffmr5475esyq7rtq`
 Base de todas las URLs: `https://<TU-WORKER>.workers.dev` (sustituye por tu subdominio real de
 Cloudflare Workers antes de pegar nada).
 
+> **No hace falta pegar nada a mano.** Los 8 están escritos en código y se registran por API:
+> ```bash
+> ELEVENLABS_API_KEY=... WORKER_URL=https://companion-worker.TU-SUBDOMINIO.workers.dev \
+>   node elevenlabs/registrar-webhooks.mjs
+> ```
+> Ver [`/elevenlabs/README.md`](../elevenlabs/README.md). Este documento sigue siendo la
+> referencia de **por qué** cada tool existe y qué debe hacer Maite con cada respuesta —
+> léelo igual, aunque el registro ya no sea manual. La configuración vive en
+> `elevenlabs/tools-maite.mjs`; si cambias una, cambia la otra.
+
 ⚠️ No se pudo verificar la UI exacta de ElevenLabs durante esta construcción. Los campos de abajo
 (Name, Description, Method, URL, Parameters) son los conceptos estándar de cualquier plataforma de
 tools; si el dashboard los llama distinto, el contenido es el mismo.
@@ -291,6 +301,9 @@ coincidencia); y **no** inventar que grabó algo cuando la búsqueda vino vacía
 
 ## Después de registrarlos
 
+0. Comprueba cómo quedó: `node elevenlabs/registrar-webhooks.mjs --verificar` lista las tools del
+   workspace, marca con 🔗 las que están enganchadas al agente, y te dice cuántos caracteres tiene
+   su system prompt.
 1. Pega el system prompt de `docs/system-prompt-maite.md` en el agente — su sección **TUS
    HERRAMIENTAS** describe estas mismas 8 tools desde el lado de Maite (cuándo sí, cuándo no, qué
    hacer si fallan). Las dos piezas están escritas para leerse juntas.

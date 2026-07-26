@@ -6,4 +6,5 @@ dist/
 .wrangler/
 *.log
 .DS_Store
+elevenlabs/.backup-agente-*.json
 app/dev-dist/
