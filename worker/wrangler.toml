@@ -47,19 +47,29 @@ crons = [
 
 # --- Variables de entorno / secretos ---
 # Configura los secretos reales con:
-#   wrangler secret put ANTHROPIC_API_KEY
-#   wrangler secret put ELEVENLABS_API_KEY
-#   wrangler secret put ELEVENLABS_AGENT_ID
+#   wrangler secret put ANTHROPIC_API_KEY   ✅ ya configurada
+#   wrangler secret put ELEVENLABS_API_KEY  ✅ ya configurada
 #   wrangler secret put TELEGRAM_BOT_TOKEN
 #   wrangler secret put RESEND_API_KEY
 #   wrangler secret put VAPID_PUBLIC_KEY
 #   wrangler secret put VAPID_PRIVATE_KEY
+# También se pueden meter desde el dashboard: Workers → asistentecarmen → Settings →
+# Variables and Secrets → Add, con Type = Secret. Los secretos NO se pisan al desplegar; las
+# variables de [vars] de aquí abajo SÍ pisan lo que haya en el dashboard, así que esas se
+# cambian aquí y no allá.
 # Ver /README.md para la lista completa y de dónde sacar cada una.
 [vars]
+# El agent_id no es secreto — va también en el bundle del frontend, a la vista de cualquiera. Vive
+# aquí para que el Worker pueda leer la base de conocimiento del agente (ver routes/kbSync.ts).
+ELEVENLABS_AGENT_ID = "agent_8701kyeepa7tffmr5475esyq7rtq"
+# La mitad pública del par VAPID de Web Push. Es pública por diseño: va también en el bundle del
+# frontend, porque el navegador la necesita para suscribirse. Solo la privada es secreto, y esa va
+# aparte como secret. Ponerla aquí ahorra tener que meter dos cosas a mano en el dashboard.
+VAPID_PUBLIC_KEY = "BDatHvEq4nUq5kixqdh-okt6zzeC8rpM8Vp7qng-TOB87Ld4-wuwuXdOpVrd_7JxV-tNsN7bulLbDM2WoQxLFXI"
 FAMILIA_EMAIL_DESTINO = "REEMPLAZA_CON_EMAIL_DE_LA_FAMILIA"
-RESIDENCIA_DIRECCION = "REEMPLAZA_CON_DIRECCION_REAL"
-# Los document_id del KB (KB1, KB3, KB8, KB9-x, etc) YA NO van aquí como env vars — viven en un
-# registro en KV que escala a los 27+ documentos. Cárgalos así, uno por uno, después de subir
-# cada documento a mano en ElevenLabs:
-#   npx wrangler kv key put --binding=KV "kb-doc-id:KB1" "<document_id>"
-# Ver kb/README.md y worker/src/lib/kbRegistry.ts para el detalle completo.
+RESIDENCIA_DIRECCION = "CampusHome — Av. de Pío XII, 28, 31008 Iturrama, Pamplona, Navarra"
+# Los document_id del KB (KB1, KB3, KB8, KB9-x...) no van aquí: viven en un registro en KV, que
+# escala a los 60 documentos. Y ya no se cargan a mano uno por uno — el Worker se los registra
+# solo leyendo la KB del agente:
+#   curl -X POST https://asistentecarmen.erictoled564.workers.dev/kb-registrar-ids
+# Ver worker/src/routes/kbSync.ts y worker/src/lib/kbRegistry.ts.

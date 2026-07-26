@@ -54,7 +54,13 @@ export function AppProvider({ children }) {
       whatsappNumero: import.meta.env.VITE_SOS_WHATSAPP_NUMERO || '',
       consuladoTel: import.meta.env.VITE_SOS_CONSULADO_TEL || '',
       residenciaDireccion: import.meta.env.VITE_RESIDENCIA_DIRECCION || 'CampusHome — Av. de Pío XII, 28, Iturrama, Pamplona',
-      vapidPublicKey: import.meta.env.VITE_VAPID_PUBLIC_KEY || ''
+      // Mitad pública del par VAPID de Web Push, la misma que lleva el Worker en wrangler.toml.
+      // Es pública por diseño (el navegador la necesita para suscribirse), así que va como default
+      // en el código en vez de obligar a configurar una variable de entorno en Vercel — si se
+      // olvidara, las notificaciones simplemente no se activarían y nadie se enteraría.
+      vapidPublicKey:
+        import.meta.env.VITE_VAPID_PUBLIC_KEY ||
+        'BDatHvEq4nUq5kixqdh-okt6zzeC8rpM8Vp7qng-TOB87Ld4-wuwuXdOpVrd_7JxV-tNsN7bulLbDM2WoQxLFXI'
       // La fecha/hora que se le pasa al agente ya no es opcional: se manda siempre desde
       // ElevenLabsWidget.jsx (ver el comentario de calcularVariablesDeHora sobre por qué no basta
       // con {{system__time}} de ElevenLabs para este caso).
