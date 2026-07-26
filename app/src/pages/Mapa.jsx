@@ -101,16 +101,13 @@ export default function Mapa() {
       {filtro === 'transporte' && <AppsTransporte />}
 
       <div className="relative flex-1 overflow-hidden">
-        <div className="absolute left-3 top-3 z-[1000]">
+        <div className="absolute right-3 top-3 z-[1000] flex flex-col items-end gap-2">
           <button
             onClick={() => setMostrarLista((v) => !v)}
             className="flex items-center gap-1.5 rounded-full bg-white px-3 py-2 text-xs font-semibold text-lavanda-800 shadow-soft"
           >
-            {mostrarLista ? '🗺️ Ver mapa' : '📋 Lista'}
+            {mostrarLista ? '🗺️ Ver mapa' : '📋 Todos los lugares'}
           </button>
-        </div>
-
-        <div className="absolute right-3 top-3 z-[1000] flex flex-col items-end gap-2">
           <button
             onClick={() => setPlano(true)}
             className="flex items-center gap-1.5 rounded-full bg-white px-3 py-2 text-xs font-semibold text-lavanda-800 shadow-soft"
