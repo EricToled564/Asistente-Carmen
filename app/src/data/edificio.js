@@ -30,6 +30,7 @@ export const LUGARES = [
   { id: 'p-1-multifuncion', nombre: 'Sala Multifunción', planta: -1, tipo: 'servicio', lado: 'norte', nota: 'Con microondas' },
   { id: 'p-1-s180', nombre: 'S180', planta: -1, tipo: 'aula', lado: 'norte' },
   { id: 'p-1-materiales', nombre: 'Aula de Materiales', planta: -1, tipo: 'aula', lado: 'norte' },
+  { id: 'p-1-materiales-2', nombre: 'Aula de Materiales (2)', planta: -1, tipo: 'aula', lado: 'norte', nota: 'Segundo espacio, al este' },
   { id: 'p-1-taller-laboratorio', nombre: 'Taller Laboratorio', planta: -1, tipo: 'aula', lado: 'sur', nota: 'Nave grande al sur' },
 
   // --- Planta 0 (oeste → este) ---
@@ -44,23 +45,28 @@ export const LUGARES = [
   { id: 'p0-biblioteca', nombre: 'Biblioteca', planta: 0, tipo: 'servicio', lado: 'norte', salas: '0270' },
   { id: 'p0-aula02', nombre: 'Aula 02', planta: 0, tipo: 'aula', lado: 'sur', salas: '0490 · 0500' },
   { id: 'p0-pasillo-escaleras', nombre: 'Escaleras centro', planta: 0, tipo: 'escalera' },
+  { id: 'p0-aseos-centro', nombre: 'Aseos', planta: 0, tipo: 'servicio', lado: 'norte', salas: '0292', nota: 'Junto al ascensor' },
+  { id: 'p0-aseo-adaptado', nombre: 'Aseo adaptado', planta: 0, tipo: 'servicio', lado: 'norte', nota: 'Junto al ascensor' },
   { id: 'p0-ascensor', nombre: 'Ascensor', planta: 0, tipo: 'ascensor' },
   { id: 'p0-conserjeria', nombre: 'Conserjería', planta: 0, tipo: 'servicio', lado: 'norte' },
   { id: 'p0-aula-magna', nombre: 'Aula Magna', planta: 0, tipo: 'aula', lado: 'sur' },
   { id: 'p0-cafeteria', nombre: 'Cafetería', planta: 0, tipo: 'servicio', lado: 'sur' },
+  { id: 'p0-vending', nombre: 'Vending', planta: 0, tipo: 'servicio', lado: 'sur', nota: 'Junto a la cafetería' },
   { id: 'p0-microondas', nombre: 'Zona de microondas', planta: 0, tipo: 'servicio', lado: 'sur' },
   { id: 'p0-escaleras-cafeteria', nombre: 'Escaleras cafetería', planta: 0, tipo: 'escalera' },
-  { id: 'p0-oratorio', nombre: 'Oratorio', planta: 0, tipo: 'servicio', lado: 'sur', salas: '0530 · 0550 · 0555 · 0570' },
-  { id: 'p0-atelier-lorda', nombre: 'Atelier Lorda', planta: 0, tipo: 'aula', lado: 'sur', nota: 'Con terraza' },
-  { id: 'p0-direccion-tecnica', nombre: 'Dirección Arq. Técnica', planta: 0, tipo: 'servicio', lado: 'norte' },
-  { id: 'p0-secretaria', nombre: 'Secretaría', planta: 0, tipo: 'servicio', lado: 'norte', salas: '0010 · 0030 · 0050 · 0060 · 0070' },
+  { id: 'p0-oratorio', nombre: 'Oratorio / Capellanía', planta: 0, tipo: 'servicio', lado: 'sur', salas: '0530 · 0550 · 0555 · 0570' },
+  { id: 'p0-atelier-lorda', nombre: 'Atelier Lorda', planta: 0, tipo: 'aula', lado: 'sur' },
+  { id: 'p0-terraza', nombre: 'Terraza', planta: 0, tipo: 'servicio', lado: 'sur', nota: 'Junto al Atelier Lorda' },
+  { id: 'p0-direccion-tecnica', nombre: 'Dirección Arq. Técnica', planta: 0, tipo: 'servicio', lado: 'norte', salas: '0101 · 0271' },
+  { id: 'p0-secretaria', nombre: 'Secretaría', planta: 0, tipo: 'servicio', lado: 'norte', salas: '0010 · 0030 · 0050 · 0060 · 0070 · 0080 · 0090 · 0100 · 0115' },
   { id: 'p0-aseo-masculino-ne', nombre: 'Aseo masculino', planta: 0, tipo: 'servicio', lado: 'norte' },
+  { id: 'p0-aseo-femenino-ne', nombre: 'Aseo femenino', planta: 0, tipo: 'servicio', lado: 'norte' },
   { id: 'p0-innovation-factory', nombre: 'Innovation Factory', planta: 0, tipo: 'servicio', lado: 'norte' },
   { id: 'p0-seminario01', nombre: 'Seminario 01', planta: 0, tipo: 'aula', lado: 'norte', salas: '0130 · 0140 · 0150 · 0170 · 0180' },
 
   // --- Planta 1 (oeste → este) ---
   { id: 'p1-punto-atencion', nombre: 'Punto de atención', planta: 1, tipo: 'servicio', lado: 'sur' },
-  { id: 'p1-sala-c', nombre: 'Sala C — Teoría de Proyectos', planta: 1, tipo: 'aula', lado: 'sur', salas: '1075 · 1080 · 1082 · 1084' },
+  { id: 'p1-sala-c', nombre: 'Sala C — Teoría de Proyectos', planta: 1, tipo: 'aula', lado: 'sur', salas: '1075 · 1080 · 1082 · 1084 · 1086 · 1087 · 1089' },
   { id: 'p1-escalera-oeste', nombre: 'Escalera oeste', planta: 1, tipo: 'escalera' },
   { id: 'p1-taller06', nombre: 'Taller 06', planta: 1, tipo: 'aula', lado: 'norte' },
   { id: 'p1-taller05', nombre: 'Taller 05', planta: 1, tipo: 'aula', lado: 'norte' },
@@ -72,7 +78,7 @@ export const LUGARES = [
   { id: 'p1-ascensor', nombre: 'Ascensor', planta: 1, tipo: 'ascensor' },
   { id: 'p1-sala-b', nombre: 'Sala B1 y B2', planta: 1, tipo: 'aula', lado: 'sur', salas: '1101 · 1103 · 1105 · 1107' },
   { id: 'p1-escalera-este', nombre: 'Escaleras este', planta: 1, tipo: 'escalera' },
-  { id: 'p1-sala-a', nombre: 'Sala A — Construcción', planta: 1, tipo: 'aula', lado: 'sur', salas: '1111 · 1113 · 1114 · 1116' },
+  { id: 'p1-sala-a', nombre: 'Sala A — Construcción', planta: 1, tipo: 'aula', lado: 'sur', salas: '1111 · 1113 · 1114 · 1116 · 1118 · 1119' },
   { id: 'p1-taller01', nombre: 'Taller 01', planta: 1, tipo: 'aula', lado: 'norte' }
 ]
 
