@@ -13,7 +13,9 @@ export const CATEGORIAS = {
   campus: { label: 'Campus', emoji: '🎓', color: '#9C63CE' },
   tramites: { label: 'Trámites', emoji: '📋', color: '#442A54' },
   transporte: { label: 'Transporte', emoji: '🚌', color: '#63397D' },
-  vida: { label: 'Vida y pintxos', emoji: '🍷', color: '#E8813F' }
+  vida: { label: 'Salir', emoji: '🍷', color: '#E8813F' },
+  fotos: { label: 'Fotos', emoji: '📸', color: '#B57EDC' },
+  mios: { label: 'Mis lugares', emoji: '⭐', color: '#E8813F' }
 }
 
 export const PINES = [
@@ -89,69 +91,115 @@ export const PINES = [
     lat: 42.7700,
     lng: -1.6461
   },
+  // --- Salir (fuente: KB11-ocio-vida-social.md) -------------------------------
+  // Son pines de ZONA, no de cada bar: el KB nombra los locales pero no da sus direcciones
+  // exactas, y poner coordenadas inventadas por bar la mandaría al lugar equivocado. Cada pin
+  // cae en la plaza/calle real y lista en la nota los sitios que el KB menciona ahí.
   {
-    id: 'casco-viejo',
+    id: 'zona-iturrama',
     categoria: 'vida',
-    nombre: 'Casco Viejo / Plaza del Castillo',
-    nota: 'Zona de pintxos, salir con amigos, ambiente de San Fermín.',
+    nombre: 'Iturrama — su barrio',
+    nota: 'El Labrador (barato, pintxos), Extra Time (futbolín y billar), Karaoke El Guateque, Manneken Beer, Bar Milton. Epicentro universitario, pegado al campus.',
+    lat: 42.8058,
+    lng: -1.6531
+  },
+  {
+    id: 'plaza-felix-huarte',
+    categoria: 'vida',
+    nombre: 'Plaza Félix Huarte',
+    nota: 'Olary: terraza amplia, cerca de las facultades.',
+    lat: 42.8074,
+    lng: -1.6497
+  },
+  {
+    id: 'zona-pio-xii',
+    categoria: 'vida',
+    nombre: 'Av. Pío XII — cañas',
+    nota: 'Payvi2 y El Café de Pío (El Cañas): clásicos de terraza, muy transitados, a un paso de CampusHome.',
+    lat: 42.8095,
+    lng: -1.6470
+  },
+  {
+    id: 'plaza-yamaguchi',
+    categoria: 'vida',
+    nombre: 'Plaza Yamaguchi',
+    nota: 'Varias terrazas: Bar Central, Cervecería La Quinta, Ristorante 1995, La Picachilla, Orient Express. Zona con mucho Erasmus.',
+    lat: 42.8062,
+    lng: -1.6395
+  },
+  {
+    id: 'zona-san-juan',
+    categoria: 'vida',
+    nombre: 'San Juan / Ermitagaña',
+    nota: 'Pubs irlandeses The Gallipot y Paddy\'s Corner, Cervecería Bávaros (jarras grandes, buena para grupos), Café Urdax (de los mejores menús del día).',
+    lat: 42.8143,
+    lng: -1.6564
+  },
+  {
+    id: 'plaza-castillo',
+    categoria: 'vida',
+    nombre: 'Plaza del Castillo — Juevintxo',
+    nota: 'Todos los jueves: pintxo-pote barato aquí y en Estafeta y San Nicolás. Es EL plan semanal universitario para integrarse rápido.',
     lat: 42.8168,
     lng: -1.6432
   },
   {
-    id: 'calle-estafeta',
+    id: 'calle-san-francisco',
     categoria: 'vida',
-    nombre: 'Calle Estafeta',
-    nota: 'La calle del encierro de San Fermín; llena de bares de pintxos.',
-    lat: 42.8180,
-    lng: -1.6418
+    nombre: 'Calle San Francisco — música en vivo',
+    nota: 'Txintxarri y Tarántula: punk, rock, indie, jazz, electrónica en directo. Alternativa al reguetón.',
+    lat: 42.8175,
+    lng: -1.6462
   },
   {
-    id: 'calle-san-nicolas',
+    id: 'zona-milagrosa',
     categoria: 'vida',
-    nombre: 'Calle San Nicolás',
-    nota: 'Otra clásica de pintxos, muy cerca de Plaza del Castillo.',
-    lat: 42.8161,
-    lng: -1.6452
+    nombre: 'La Milagrosa — lo más barato',
+    nota: 'Bar Inicio (descuentos entre semana, bocadillos generosos), Bar Viena. Zona UPNA, precios por debajo del centro.',
+    lat: 42.8036,
+    lng: -1.6395
   },
-  {
-    id: 'catedral',
-    categoria: 'vida',
-    nombre: 'Catedral de Santa María',
-    nota: 'Gótica, con claustro; de lo más bonito del Casco Viejo.',
-    lat: 42.8194,
-    lng: -1.6410
-  },
+
+  // --- Fotos (fuente: KB11, sección de lugares fotogénicos) --------------------
   {
     id: 'ciudadela',
-    categoria: 'vida',
+    categoria: 'fotos',
     nombre: 'La Ciudadela',
-    nota: 'Fortaleza renacentista convertida en parque; conciertos y exposiciones.',
+    nota: 'Fortaleza con fosos y murallas, convertida en parque. También sirve para despejarse en época de exámenes.',
     lat: 42.8137,
     lng: -1.6512
   },
   {
     id: 'taconera',
-    categoria: 'vida',
+    categoria: 'fotos',
     nombre: 'Parque de la Taconera',
-    nota: 'El parque más antiguo de Pamplona, con animales en los fosos.',
+    nota: 'El parque más antiguo de la ciudad, con animales en los fosos. El Portal Nuevo (de Santa Gracia) está aquí.',
     lat: 42.8189,
     lng: -1.6487
   },
   {
-    id: 'parque-yamaguchi',
-    categoria: 'vida',
-    nombre: 'Parque Yamaguchi',
-    nota: 'Parque japonés junto al campus — bueno para despejarse entre clases.',
-    lat: 42.8062,
-    lng: -1.6395
+    id: 'paseo-sarasate',
+    categoria: 'fotos',
+    nombre: 'Paseo de Sarasate',
+    nota: 'Frontera entre Casco Antiguo y Ensanche; arquitectura institucional (Parlamento, Palacio de Navarra).',
+    lat: 42.8158,
+    lng: -1.6455
   },
   {
-    id: 'mercado-santo-domingo',
-    categoria: 'vida',
-    nombre: 'Mercado de Santo Domingo',
-    nota: 'Mercado tradicional para comprar fresco y barato.',
-    lat: 42.8199,
-    lng: -1.6446
+    id: 'catedral',
+    categoria: 'fotos',
+    nombre: 'Catedral y "la calle más bonita"',
+    nota: 'Junto a la Catedral y el Mesón del Caballo Blanco: la callejuela con el puente colgante de madera entre edificios.',
+    lat: 42.8194,
+    lng: -1.6410
+  },
+  {
+    id: 'cuesta-santo-domingo',
+    categoria: 'fotos',
+    nombre: 'Cuesta de Santo Domingo',
+    nota: 'Ruta del encierro: la curva Mercaderes-Estafeta y el Monumento al Encierro están cerca.',
+    lat: 42.8195,
+    lng: -1.6440
   }
 ]
 

@@ -8,6 +8,9 @@ Proposito: como moverse por Pamplona en transporte publico.
 - App oficial "Tu Villavesa" con seguimiento de buses en tiempo real
 - Horario de verano: del 15 de julio al 30 de agosto aplica horario reducido, con menor frecuencia de paso
 
+## Seguridad nocturna
+En las lineas nocturnas (N1-N10) existe el servicio de "paradas a demanda", exclusivo para mujeres, que permite bajar mas cerca de casa que en una parada oficial - ver detalle completo del protocolo en KB12 (Seguridad urbana).
+
 ## Tarjeta de transporte
 Sistema de tarjeta recargable para el pago de villavesas (mas economico que efectivo por viaje).
 

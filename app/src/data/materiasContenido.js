@@ -56,3 +56,15 @@ export function obtenerContenidoMateria(kbCode) {
   if (!markdown) return null
   return parsearSecciones(markdown)
 }
+
+// Los créditos ECTS de cada materia salen de la misma línea meta de su guía docente
+// ("Curso/semestre: 1o curso, 1er semestre - ECTS: 6 - ..."), no de una tabla duplicada a mano:
+// son el peso de cada nota en el promedio del expediente, así que tienen que venir de la fuente
+// oficial. Si una guía no declara ECTS, devuelve null y quien lo use decide qué hacer — nunca se
+// inventa un valor por defecto, porque falsearía el promedio.
+export function obtenerEctsMateria(kbCode) {
+  const markdown = CONTENIDO_POR_CODIGO[kbCode]
+  if (!markdown) return null
+  const m = markdown.match(/ECTS:\s*(\d+(?:[.,]\d+)?)/i)
+  return m ? Number(m[1].replace(',', '.')) : null
+}

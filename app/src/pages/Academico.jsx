@@ -5,9 +5,13 @@ import CapturaRapida from '../components/academico/CapturaRapida.jsx'
 import BotonesAtajos from '../components/academico/BotonesAtajos.jsx'
 import IndiceAcademico from '../components/academico/IndiceAcademico.jsx'
 import Horario from '../components/academico/Horario.jsx'
+import MiProgreso from '../components/academico/MiProgreso.jsx'
+import TipsAcademicos from '../components/academico/TipsAcademicos.jsx'
 
 const SECCIONES = [
   { id: 'horario', label: '🗓️ Horario' },
+  { id: 'progreso', label: '📈 Mi Progreso' },
+  { id: 'tips', label: '💡 Tips' },
   { id: 'radar', label: '📅 Radar' },
   { id: 'indice', label: '📖 Índice' },
   { id: 'tutor', label: '🎓 Tutor' },
@@ -31,12 +35,12 @@ export default function Academico() {
         <h1 className="font-display text-2xl font-bold text-lavanda-800">Académico</h1>
       </header>
 
-      <div className="flex gap-2 px-5 pb-3">
+      <div className="flex gap-2 overflow-x-auto px-5 pb-3">
         {SECCIONES.map((s) => (
           <button
             key={s.id}
             onClick={() => setSeccion(s.id)}
-            className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+            className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-medium ${
               seccion === s.id ? 'bg-lavanda-700 text-white' : 'bg-lavanda-50 text-lavanda-800'
             }`}
           >
@@ -47,6 +51,10 @@ export default function Academico() {
 
       <div className="flex-1 overflow-y-auto px-5 pb-8">
         {seccion === 'horario' && <Horario />}
+
+        {seccion === 'progreso' && <MiProgreso />}
+
+        {seccion === 'tips' && <TipsAcademicos />}
 
         {seccion === 'radar' && <RadarFechas />}
 

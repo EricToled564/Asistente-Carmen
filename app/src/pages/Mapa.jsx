@@ -5,8 +5,10 @@ import 'leaflet/dist/leaflet.css'
 import { PINES, CATEGORIAS, googleMapsDirectionsUrl, googleMapsDirectionsDesdeUbicacionUrl, googleStreetViewUrl } from '../data/pines.js'
 import PlanoEdificio from '../components/mapa/PlanoEdificio.jsx'
 import RutaInterior from '../components/mapa/RutaInterior.jsx'
+import GuardarLugar from '../components/mapa/GuardarLugar.jsx'
 import { getCurrentPosition } from '../hooks/useGeolocation.js'
 import { APPS_TRANSPORTE } from '../data/appsTransporte.js'
+import { listarMisLugares, borrarMiLugar } from '../data/misLugares.js'
 
 // Los íconos default de Leaflet dependen de assets externos que se rompen fácil con bundlers
 // (y verse como un pin azul genérico de Google Maps tampoco calza con el look de la app). En vez
@@ -36,6 +38,8 @@ export default function Mapa() {
   const [destinoPrellenado, setDestinoPrellenado] = useState('')
   const [mostrarLista, setMostrarLista] = useState(false)
   const [filtrosAbiertos, setFiltrosAbiertos] = useState(false)
+  const [guardandoLugar, setGuardandoLugar] = useState(false)
+  const [misLugares, setMisLugares] = useState(() => listarMisLugares())
   const [buscandoUbicacionPara, setBuscandoUbicacionPara] = useState(null)
   const mapRef = useRef(null)
   const marcadoresRef = useRef({})
@@ -62,10 +66,12 @@ export default function Mapa() {
     window.open(url, '_blank', 'noopener,noreferrer')
   }
 
-  const pinesFiltrados = useMemo(
-    () => (filtro === 'todas' ? PINES : PINES.filter((p) => p.categoria === filtro)),
-    [filtro]
-  )
+  // Los lugares que Carmen guardó ella misma se mezclan con los curados: para ella son todos
+  // "sus lugares del mapa", no dos listas distintas.
+  const pinesFiltrados = useMemo(() => {
+    const todos = [...PINES, ...misLugares]
+    return filtro === 'todas' ? todos : todos.filter((p) => p.categoria === filtro)
+  }, [filtro, misLugares])
 
   const centro = useMemo(() => {
     const campus = PINES.find((p) => p.id === 'escuela-arquitectura')
@@ -82,6 +88,20 @@ export default function Mapa() {
           setPlano(null)
           setDestinoPrellenado(destinoId || '')
           setMostrarRuta(true)
+        }}
+      />
+    )
+  }
+
+  if (guardandoLugar) {
+    return (
+      <GuardarLugar
+        onCerrar={() => setGuardandoLugar(false)}
+        onGuardado={(nuevo) => {
+          setMisLugares(listarMisLugares())
+          setGuardandoLugar(false)
+          setFiltro('mios')
+          setTimeout(() => enfocarPin(nuevo), 200)
         }}
       />
     )
@@ -150,6 +170,12 @@ export default function Mapa() {
 
       <div className="relative flex-1 overflow-hidden">
         <div className="absolute right-3 top-3 z-[1000] flex flex-col items-end gap-2">
+          <button
+            onClick={() => setGuardandoLugar(true)}
+            className="flex items-center gap-1.5 rounded-full bg-gradient-to-r from-melocoton-600 to-melocoton-400 px-3 py-2 text-xs font-semibold text-white shadow-soft"
+          >
+            ⭐ Guardar dónde estoy
+          </button>
           <button
             onClick={() => setMostrarLista((v) => !v)}
             className="flex items-center gap-1.5 rounded-full bg-white px-3 py-2 text-xs font-semibold text-lavanda-800 shadow-soft"
@@ -246,6 +272,17 @@ export default function Mapa() {
                     >
                       👁️ Street View
                     </a>
+                    {pin.categoria === 'mios' && (
+                      <button
+                        onClick={() => {
+                          borrarMiLugar(pin.id)
+                          setMisLugares(listarMisLugares())
+                        }}
+                        className="inline-block rounded-full bg-red-50 px-3 py-1 text-xs font-semibold text-red-700"
+                      >
+                        Quitar de mis lugares
+                      </button>
+                    )}
                     {pin.id === 'escuela-arquitectura' && (
                       <>
                         <button

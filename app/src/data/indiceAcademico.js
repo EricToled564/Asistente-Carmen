@@ -3,9 +3,8 @@
 // materia (temario, evaluación) se muestra en IndiceAcademico.jsx leyendo directo los archivos de
 // /kb (ver data/materiasContenido.js), no una copia mantenida a mano aquí.
 //
-// 4º curso, 2º semestre no tiene materias listadas: Estrategias de Comunicación & Web, Business
-// management, Market strategies, Creative leadership workshop y el TFG no tienen guía docente
-// (KB9-x) todavía — no se inventan aquí sin esa fuente.
+// 4º curso ya está completo (KB9-32 a KB9-49) desde la actualización del KB de julio 2026, que
+// añadió las optativas de mención y las obligatorias de 2º semestre incluido el TFG.
 
 export const INDICE_ACADEMICO = [
   {
@@ -96,13 +95,26 @@ export const INDICE_ACADEMICO = [
           { kbCode: 'KB9-33', titulo: 'Circular Design (optativa)' },
           { kbCode: 'KB9-34', titulo: 'Inclusive Design (optativa)' },
           { kbCode: 'KB9-35', titulo: 'Scenography (optativa)' },
-          { kbCode: 'KB9-36', titulo: 'Footwear Design (mención Moda)' },
-          { kbCode: 'KB9-37', titulo: 'Diseño de Complementos (mención Moda)' }
+          { kbCode: 'KB9-36', titulo: 'Calzado y Complementos (mención Moda)' },
+          { kbCode: 'KB9-37', titulo: 'Textile Materials / Textile Design (mención Moda)' },
+          { kbCode: 'KB9-38', titulo: 'Modelaje y Patronaje (mención Moda)' },
+          { kbCode: 'KB9-39', titulo: '3D Printing + Digital Design (Moda y Producto)' },
+          { kbCode: 'KB9-40', titulo: 'Análisis de la Experiencia y Comportamiento de los Usuarios (Producto y Servicios)' },
+          { kbCode: 'KB9-41', titulo: 'Diseño de Mobiliario (mención Producto)' },
+          { kbCode: 'KB9-42', titulo: 'Biomímesis y Pensamiento Sistémico (Producto y Servicios)' },
+          { kbCode: 'KB9-43', titulo: 'Ciencia de los Datos y Big Data (mención Servicios)' },
+          { kbCode: 'KB9-44', titulo: 'PPS Participatory Design (optativa)' }
         ]
       },
       {
         semestre: 2,
-        materias: [] // sin guía docente todavía — ver comentario arriba
+        materias: [
+          { kbCode: 'KB9-45', titulo: 'Estrategias de Comunicación & Web' },
+          { kbCode: 'KB9-46', titulo: 'Business Management / Gestión Empresarial' },
+          { kbCode: 'KB9-47', titulo: 'Market Strategies' },
+          { kbCode: 'KB9-48', titulo: 'Creative Leadership Workshop' },
+          { kbCode: 'KB9-49', titulo: 'Trabajo Fin de Grado' }
+        ]
       }
     ]
   }

@@ -12,6 +12,8 @@ import { memory } from './routes/memory.js'
 import { kbAnswer } from './routes/kbAnswer.js'
 import { ruta } from './routes/ruta.js'
 import { horario } from './routes/horario.js'
+import { notas } from './routes/notas.js'
+import { tips } from './routes/tips.js'
 import { ejecutarAutoInvestigacionSemestral, ejecutarAutoInvestigacionMensual } from './cron/kbAutoResearch.js'
 import {
   recordatorioSubirHorario,
@@ -37,6 +39,8 @@ app.route('/', memory)
 app.route('/', kbAnswer)
 app.route('/', ruta)
 app.route('/', horario)
+app.route('/', notas)
+app.route('/', tips)
 
 export default {
   fetch: app.fetch,

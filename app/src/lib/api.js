@@ -32,5 +32,9 @@ export const api = {
   kbAnswer: (payload) => request('/kb-answer', { method: 'POST', body: JSON.stringify(payload) }),
   rutaLugares: () => request('/ruta/lugares', { method: 'GET' }),
   rutaIniciar: (payload) => request('/ruta/iniciar', { method: 'POST', body: JSON.stringify(payload) }),
-  horarioObtener: () => request('/horario', { method: 'GET' })
+  horarioObtener: () => request('/horario', { method: 'GET' }),
+  notasListar: () => request('/notas', { method: 'GET' }),
+  notaGuardar: (payload) => request('/notas', { method: 'POST', body: JSON.stringify(payload) }),
+  notaBorrar: (id) => request(`/notas/${id}`, { method: 'DELETE' }),
+  notaExtraerDeFoto: (formData) => request('/notas/extraer', { method: 'POST', body: formData })
 }
