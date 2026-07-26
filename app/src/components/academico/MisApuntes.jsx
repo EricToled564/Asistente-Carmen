@@ -25,8 +25,13 @@ export default function MisApuntes({ recargarToken }) {
   const cargar = useCallback(() => {
     api
       .apuntesListar()
-      .then((d) => setLista(d.apuntes))
-      .catch(() => setError('No pude cargar tus apuntes.'))
+      // `|| []` a propósito: si la respuesta viniera sin el campo, dejar `lista` en null mantendría
+      // la pantalla en "Cargando…" para siempre. Una lista vacía al menos dice la verdad.
+      .then((d) => setLista(d.apuntes || []))
+      .catch(() => {
+        setError('No pude cargar tus apuntes. Revisa tu conexión.')
+        setLista([])
+      })
   }, [])
 
   useEffect(() => {

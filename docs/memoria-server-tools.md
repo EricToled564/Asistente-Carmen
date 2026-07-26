@@ -25,7 +25,7 @@ un nombre de alguien de su círculo).
   a lo que está diciendo ahorita. Úsalo al empezar la conversación y cuando algo suene a contexto
   pasado."
 - **Method:** `POST`
-- **URL:** `https://<TU-WORKER>.workers.dev/memory/retrieve`
+- **URL:** `https://asistentecarmen.erictoled564.workers.dev/memory/retrieve`
 - **Parameters (JSON schema del body):**
   ```json
   {
@@ -55,7 +55,7 @@ mensaje, solo para información que el agente usaría en una conversación futur
   futuras. No lo uses para cada mensaje — solo para información que valga la pena recordar
   después (preferencias, preocupaciones, eventos, nombres de su gente)."
 - **Method:** `POST`
-- **URL:** `https://<TU-WORKER>.workers.dev/memory/add`
+- **URL:** `https://asistentecarmen.erictoled564.workers.dev/memory/add`
 - **Parameters (JSON schema del body):**
   ```json
   {

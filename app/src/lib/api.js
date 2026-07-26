@@ -15,8 +15,24 @@ async function request(path, options = {}) {
     const text = await res.text().catch(() => '')
     throw new Error(`${path} -> ${res.status} ${text}`)
   }
+
+  // Si no vuelve JSON, es un error aunque el status sea 200.
+  //
+  // Todos los endpoints del Worker responden con c.json(), sin excepción. Cuando VITE_WORKER_URL
+  // no está configurada, las llamadas caen al mismo origen (/api/...) y ahí NO hay Worker: el
+  // hosting devuelve el index.html de la app con un 200 tan campante. Antes eso se devolvía como
+  // texto, la pantalla hacía `datos.apuntes` sobre un string, sacaba undefined, y se quedaba en
+  // "Cargando…" para siempre — sin error, sin nada que le dijera a Carmen que algo va mal.
+  //
+  // Fallar aquí convierte ese cuelgue silencioso en un error que cada pantalla ya sabe mostrar.
   const contentType = res.headers.get('content-type') || ''
-  return contentType.includes('application/json') ? res.json() : res.text()
+  if (!contentType.includes('application/json')) {
+    throw new Error(
+      `${path} -> respondió ${contentType || 'sin content-type'} en vez de JSON. ` +
+        'Lo más probable es que VITE_WORKER_URL no apunte al Worker.'
+    )
+  }
+  return res.json()
 }
 
 export const api = {

@@ -5,8 +5,9 @@ Este es el documento único de los **server tools** del agente. Antes estaban re
 el detalle de por qué cada uno funciona así, pero para **configurar el agente basta con este**.
 
 Agente: `agent_8701kyeepa7tffmr5475esyq7rtq`
-Base de todas las URLs: `https://<TU-WORKER>.workers.dev` (sustituye por tu subdominio real de
-Cloudflare Workers antes de pegar nada).
+Base de todas las URLs: **`https://asistentecarmen.erictoled564.workers.dev`** — desplegada y
+verificada el 26-jul-2026, con los 8 endpoints respondiendo. Las URLs de abajo ya están completas:
+se copian tal cual, no hay nada que sustituir.
 
 > **No hace falta pegar nada a mano.** Los 8 están escritos en código y se registran por API:
 > ```bash
@@ -50,7 +51,7 @@ que ya habían hablado de eso (un evento próximo, una preocupación recurrente,
 círculo).
 
 - **Method:** `POST`
-- **URL:** `https://<TU-WORKER>.workers.dev/memory/retrieve`
+- **URL:** `https://asistentecarmen.erictoled564.workers.dev/memory/retrieve`
 - **Description:** "Busca recuerdos guardados de conversaciones anteriores con Carmen, relevantes a
   lo que está diciendo ahorita. Úsalo al empezar la conversación y cuando algo suene a contexto
   pasado."
@@ -79,7 +80,7 @@ círculo).
 preferencias, preocupaciones, eventos próximos, nombres de su gente. No en cada mensaje.
 
 - **Method:** `POST`
-- **URL:** `https://<TU-WORKER>.workers.dev/memory/add`
+- **URL:** `https://asistentecarmen.erictoled564.workers.dev/memory/add`
 - **Description:** "Guarda un recuerdo corto y concreto sobre Carmen para usarlo en conversaciones
   futuras. No lo uses para cada mensaje — solo para información que valga la pena recordar después
   (preferencias, preocupaciones, eventos, nombres de su gente)."
@@ -111,7 +112,7 @@ Si la ruta la arrancó ella desde la app, **no** lo llames: el `rutaId` ya viene
 único que toca es `avanzar_ruta`.
 
 - **Method:** `POST`
-- **URL:** `https://<TU-WORKER>.workers.dev/ruta/iniciar`
+- **URL:** `https://asistentecarmen.erictoled564.workers.dev/ruta/iniciar`
 - **Description:** "Calcula la ruta a pie dentro del edificio de la Escuela de Arquitectura entre
   dos sitios, y devuelve el primer paso. Úsala cuando Carmen te diga dónde está y a dónde quiere
   ir dentro del edificio. Manda los nombres tal cual los dijo ella."
@@ -163,7 +164,7 @@ Si la ruta la arrancó ella desde la app, **no** lo llames: el `rutaId` ya viene
 anterior ("ya estoy", "ya llegué", "ok ya la veo"). Nunca antes.
 
 - **Method:** `POST`
-- **URL:** `https://<TU-WORKER>.workers.dev/ruta/avanzar`
+- **URL:** `https://asistentecarmen.erictoled564.workers.dev/ruta/avanzar`
 - **Description:** "Devuelve el siguiente paso de una ruta que ya está en curso dentro del
   edificio. Llámala solo cuando Carmen confirme que llegó al punto de referencia del paso anterior."
 - **Parameters (body):**
@@ -191,7 +192,7 @@ ni Ciudad de México — esas dos ya las tienes en `{{fecha_actual}}` y `{{hora_
 falta llamadas.
 
 - **Method:** `GET`
-- **URL:** `https://<TU-WORKER>.workers.dev/hora`
+- **URL:** `https://asistentecarmen.erictoled564.workers.dev/hora`
 - **Description:** "Consulta la hora actual en cualquier ciudad del mundo y su diferencia con
   Pamplona. Úsala cuando Carmen pregunte por la hora en un sitio que no sea Pamplona ni Ciudad de
   México, o cuando quiera saber si es buen momento para llamar a alguien en otro país."
@@ -219,7 +220,7 @@ Carmen subió uno **más nuevo** por "Actualizar mi info" (cambio de semestre, a
 lo hizo, KB8 quedó viejo y lo que manda es esto.
 
 - **Method:** `GET`
-- **URL:** `https://<TU-WORKER>.workers.dev/horario/consulta`
+- **URL:** `https://asistentecarmen.erictoled564.workers.dev/horario/consulta`
 - **Description:** "Comprueba si Carmen subió un horario más reciente que el del documento KB8, y
   devuelve las clases de un día. Llámala antes de contestar sobre clases, horas o aulas."
 - **Query param:**
@@ -239,7 +240,7 @@ lo hizo, KB8 quedó viejo y lo que manda es esto.
 para la mención de 4º.
 
 - **Method:** `GET`
-- **URL:** `https://<TU-WORKER>.workers.dev/notas`
+- **URL:** `https://asistentecarmen.erictoled564.workers.dev/notas`
 - **Description:** "Devuelve las calificaciones que Carmen ha registrado y su promedio ponderado
   por ECTS. Úsala cuando pregunte cómo va académicamente o por la mención de 4º."
 - **Parameters:** ninguno.
@@ -268,7 +269,7 @@ oficial, igual para cualquier alumno; sus apuntes tienen lo que **su** profesor 
 lo que insistió, que es a lo que se parece un examen.
 
 - **Method:** `GET`
-- **URL:** `https://<TU-WORKER>.workers.dev/apuntes/buscar`
+- **URL:** `https://asistentecarmen.erictoled564.workers.dev/apuntes/buscar`
 - **Description:** "Busca en los apuntes que Carmen grabó en sus clases. Úsala antes de armar un
   quiz o explicar un tema, para trabajar sobre lo que dijo su profesor y no solo sobre el temario
   oficial."
@@ -307,7 +308,7 @@ coincidencia); y **no** inventar que grabó algo cuando la búsqueda vino vacía
 1. Pega el system prompt de `docs/system-prompt-maite.md` en el agente — su sección **TUS
    HERRAMIENTAS** describe estas mismas 8 tools desde el lado de Maite (cuándo sí, cuándo no, qué
    hacer si fallan). Las dos piezas están escritas para leerse juntas.
-2. Comprueba que `<TU-WORKER>.workers.dev` esté sustituido en las 8 URLs. Una URL sin sustituir no
+2. Comprueba que `asistentecarmen.erictoled564.workers.dev` esté sustituido en las 8 URLs. Una URL sin sustituir no
    da error de configuración: falla en silencio a mitad de conversación.
 3. Prueba de humo, en voz, en este orden — cada una toca un tool distinto:
    - "¿Qué hora es en Berlín?" → `consultar_hora`

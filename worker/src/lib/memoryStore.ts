@@ -30,6 +30,24 @@ export async function agregarRecuerdo(env: Env, texto: string, categoria?: strin
   return recuerdo
 }
 
+// Borra un recuerdo por su id.
+//
+// Existe por dos motivos. El práctico: Carmen tiene que poder decir "olvida eso" y que se olvide
+// de verdad — es su información, y un asistente que no puede desaprender nada da mal rollo. Y el
+// operativo: sin esto, cualquier recuerdo escrito por error (una prueba, un dato mal entendido)
+// se queda para siempre, y `retrieve_memories` con consulta vacía lo saca al inicio de CADA
+// conversación.
+//
+// La clave lleva la fecha delante (`memoria:<fecha>-<id>`) para que el listado salga ordenado, así
+// que no se puede reconstruir desde el id: hay que buscarla.
+export async function borrarRecuerdo(env: Env, id: string): Promise<boolean> {
+  const lista = await env.KV.list({ prefix: PREFIX })
+  const clave = lista.keys.find((k) => k.name.endsWith(`-${id}`))
+  if (!clave) return false
+  await env.KV.delete(clave.name)
+  return true
+}
+
 // Match por prefijo, no por token exacto: en español la misma palabra cambia de forma todo el
 // rato ("examen"/"exámenes", "entrega"/"entregas") y comparar tokens enteros devolvía cero
 // coincidencias en recuerdos que hablaban justo de eso. El mínimo de 4 caracteres evita que

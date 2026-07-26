@@ -131,7 +131,7 @@ probar los módulos que dependen de él (foto, captura rápida, SOS, KB upload).
 3. Crea el KV namespace: `npx wrangler kv namespace create KV` → copia el `id` a `wrangler.toml`
 4. Crea la D1 (opcional en v1, reservada para log de cambios de KB si la quieres):
    `npx wrangler d1 create companion-db` → copia el `database_id` a `wrangler.toml`
-5. Despliega: `npm run deploy` desde `/worker` — te da la URL `https://companion-worker.TU-SUBDOMINIO.workers.dev`
+5. Despliega: `npm run deploy` desde `/worker` — te da la URL `https://asistentecarmen.erictoled564.workers.dev`
 
 ### 2. Secretos del Worker
 ```bash
@@ -201,7 +201,7 @@ en el Worker; la privada solo en el Worker.
 1. Habla con `@BotFather` → `/newbot` → copia el token → `wrangler secret put TELEGRAM_BOT_TOKEN`
 2. Registra el webhook (una sola vez, después de desplegar el Worker):
    ```
-   curl "https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://companion-worker.TU-SUBDOMINIO.workers.dev/telegram"
+   curl "https://api.telegram.org/bot<TOKEN>/setWebhook?url=https://asistentecarmen.erictoled564.workers.dev/telegram"
    ```
 
 ### 6. Resend (email del SOS)

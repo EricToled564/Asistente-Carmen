@@ -36,56 +36,55 @@ rama no despliega nada.
 
 ## Pendientes conocidos
 
-Estas dos cosas están sin resolver a propósito — no las des por hechas.
+Lo único que queda abierto es el punto 2. El 1 se deja escrito porque explica un fallo que ya costó
+una sesión entera y que se puede repetir.
 
-**1. Nombre del Worker — resuelto en el repo, falta que despliegue.** `worker/wrangler.toml` decía
-`name = "companion-worker"`, pero el servicio de Cloudflare conectado a la integración de GitHub se
-llama `asistentecarmen`. El despliegue aterrizaba en un Worker distinto del que tiene la dirección
-pública encendida.
+**1. Nombre del Worker — RESUELTO y verificado en producción (26-jul-2026).** `wrangler.toml` decía
+`companion-worker` mientras el servicio de Cloudflare se llamaba `asistentecarmen`, así que el
+deploy aterrizaba en un Worker distinto del que tenía la dirección pública encendida. Ya están
+cuadrados. Comprobado desde esta sesión con `curl`:
 
-Comprobado el 26-jul-2026 en el navegador:
+- `/` → `{"ok":true,"servicio":"asistentecarmen"}`
+- `/hora?ciudad=Berlin` → JSON con la hora y la relación con Pamplona
+- `/notas` → responde con el campo `contexto` obligatorio
+- `/horario/consulta?dia=martes` → manda a KB8, como toca
 
-- `asistentecarmen.erictoled564.workers.dev/hora?ciudad=Berlin` → **HTTP 404** (hay Worker, pero sin el código)
-- `companion-worker.erictoled564.workers.dev/...` → **"There is nothing here yet"**
-
-El `name` ya está corregido a `asistentecarmen`. Para que surta efecto, ese cambio tiene que llegar
-a la rama que despliega (`claude/app-creation-documents-c74xfz`) — desde otra rama no se publica
-nada. Después, comprueba que la URL devuelve `{"ok":true,...}` antes de dar nada por bueno.
+**No cambies el `name`**: el comentario al principio de `wrangler.toml` explica por qué vive en dos
+sitios y qué se rompe al desincronizarlos.
 
 **2. `VITE_WORKER_URL` en Vercel.** `app/src/lib/api.js` cae a `/api` si esa variable no está
 definida, y `/api` no existe en Vercel. Si no está configurada con la URL del Worker, todo lo que
 depende del backend (foto, captura rápida, SOS, subida de KB) está roto en producción. Hay que
 comprobarlo en el panel de Vercel.
 
-## Límite de red de este entorno
+## Red del entorno
 
-`api.elevenlabs.io`, `elevenlabs.io` y `*.workers.dev` están **bloqueados** por la política de
-egress del entorno `FUWeb` (403 en el CONNECT del proxy). Consecuencias prácticas:
+Eric abrió la política de egress del entorno `FUWeb` el 26-jul-2026. Comprobado desde esta sesión:
+`api.elevenlabs.io` responde (401 sin key, con el JSON de error de ElevenLabs) y
+`asistentecarmen.erictoled564.workers.dev` es alcanzable con `curl`. Antes los dos daban 403 en el
+CONNECT del proxy.
 
-- No se puede llamar a la API de ElevenLabs desde aquí.
-- No se pueden leer los docs de ElevenLabs. Para verificar su API, baja el SDK oficial desde npm
-  (`npm pack @elevenlabs/elevenlabs-js`) y lee los tipos en `api/types/` — npm sí es alcanzable.
-- No se puede probar el Worker desplegado con `curl`. Esa comprobación la tiene que hacer Eric
-  abriendo la URL en su navegador.
+Si en una sesión futura vuelven a fallar con 403, la política se cambia en **claude.ai/code**
+(pantalla de inicio, no dentro de una sesión), selector de entorno `FUWeb` → ⚙️ → **Network
+access**. `Full` permite cualquier dominio; `Custom` pide una lista y **hay que marcar** *"Also
+include default list of common package managers"* o se rompe npm.
 
-Para levantarlo: en **claude.ai/code** (pantalla de inicio, no dentro de una sesión), selector de
-entorno `FUWeb` → ⚙️ → **Network access: Custom** + dominio permitido, marcando *"Also include
-default list of common package managers"*. Ojo: ese engranaje **no aparece dentro de una sesión
-abierta**, solo en la pantalla de inicio. Eric ya se perdió buscándolo ahí una vez.
+Dos cosas de ese diálogo:
 
-Dos cosas de ese diálogo que hay que tener presentes:
-
-- **Los cambios solo aplican a sesiones nuevas.** Después de guardar hay que abrir una sesión
-  nueva; la que está corriendo sigue con la política vieja.
-- **El campo Environment variables NO sirve para secretos.** El propio diálogo avisa que son
+- **Los cambios solo aplican a sesiones nuevas.** La que está corriendo sigue con la política vieja.
+- **El campo Environment variables NO sirve para secretos.** El propio diálogo avisa de que son
   visibles para cualquiera que use el entorno. No metas ahí API keys.
+
+Truco que sigue siendo útil aunque haya red: para verificar el contrato de una API sin depender de
+que su web sea alcanzable, baja su SDK oficial de npm (`npm pack @elevenlabs/elevenlabs-js`) y lee
+los tipos en `api/types/`. Así se verificó el registro de tools.
 
 ### Cómo pasarle una API key a una sesión
 
-Como el campo de variables de entorno queda descartado, la vía es: Eric crea una key **nueva y
-dedicada** en el proveedor, la pega en el chat, se usa, y **la revoca en cuanto termina la
-tarea**. Exposición acotada y bajo su control. Propónselo así — no le pidas que reutilice una key
-existente ni que la guarde en el entorno.
+Como el campo de variables de entorno queda descartado: Eric crea una key **nueva y dedicada** en el
+proveedor, la pega en el chat, se usa, y **la revoca en cuanto termina la tarea**. Exposición
+acotada y bajo su control. Propónselo así — no le pidas que reutilice una key existente ni que la
+guarde en el entorno.
 
 ## Idioma
 

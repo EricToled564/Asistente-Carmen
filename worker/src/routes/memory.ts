@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import type { Env } from '../types.js'
-import { agregarRecuerdo, buscarRecuerdos } from '../lib/memoryStore.js'
+import { agregarRecuerdo, buscarRecuerdos, borrarRecuerdo } from '../lib/memoryStore.js'
 
 export const memory = new Hono<{ Bindings: Env }>()
 
@@ -22,4 +22,14 @@ memory.post('/memory/add', async (c) => {
   }
   const recuerdo = await agregarRecuerdo(c.env, body.texto, body.categoria)
   return c.json({ ok: true, recuerdo })
+})
+
+// DELETE /memory/:id — NO se registra como server tool a propósito.
+//
+// Que el agente pueda borrar recuerdos por su cuenta es un riesgo: una frase ambigua de Carmen
+// ("olvídalo", dicho como muletilla) podría llevarse por delante algo que sí importaba. Esto es
+// para mantenimiento y para que la app pueda ofrecerle borrarlos de forma explícita.
+memory.delete('/memory/:id', async (c) => {
+  const borrado = await borrarRecuerdo(c.env, c.req.param('id'))
+  return borrado ? c.json({ ok: true }) : c.json({ error: 'No existe ese recuerdo' }, 404)
 })
