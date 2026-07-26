@@ -16,7 +16,7 @@
 //
 // Uso:
 //   export ELEVENLABS_API_KEY=...
-//   export WORKER_URL=https://asistentecarmen.TU-SUBDOMINIO.workers.dev
+//   export WORKER_URL=https://asistentecarmen.erictoled564.workers.dev
 //   node scripts/registrar-tools-elevenlabs.mjs             # dry run: enseña qué mandaría
 //   node scripts/registrar-tools-elevenlabs.mjs --aplicar   # crea las tools de verdad
 //

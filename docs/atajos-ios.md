@@ -43,7 +43,7 @@ Plan A:
 2. Acción **"Detener grabación de audio"**
 3. Acción **"Obtener último elemento de Notas de Voz"** (o "Obtener grabaciones recientes")
 4. Acción **"Obtener contenido de URL"** apuntando a:
-   - URL: `https://<TU-WORKER>.workers.dev/audio`
+   - URL: `https://asistentecarmen.erictoled564.workers.dev/audio`
    - Método: `POST`
    - Cuerpo de solicitud: **Form** → campo `audio` = el archivo de audio del paso anterior
 5. Guarda

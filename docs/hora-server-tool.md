@@ -32,7 +32,7 @@ construcción. Los campos de abajo son los conceptos estándar; confirma contra 
   Pamplona. Úsala cuando Carmen pregunte por la hora en un sitio que no sea Pamplona ni Ciudad de
   México, o cuando quiera saber si es buen momento para llamar a alguien en otro país."
 - **Method:** `GET`
-- **URL:** `https://<TU-WORKER>.workers.dev/hora`
+- **URL:** `https://asistentecarmen.erictoled564.workers.dev/hora`
 - **Parámetro (query string):**
   - `ciudad` (string, obligatorio) — el nombre de la ciudad en español ("Berlín", "Nueva York") o
     el identificador IANA de la zona horaria ("Europe/Berlin", "America/New_York"). Cualquiera de

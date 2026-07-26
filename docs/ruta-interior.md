@@ -60,7 +60,7 @@ confirmación.
   que Carmen confirmó por voz que llegó al checkpoint anterior. Dile el siguiente paso tal cual
   lo devuelva la herramienta."
 - **Method:** `POST`
-- **URL:** `https://<TU-WORKER>.workers.dev/ruta/avanzar`
+- **URL:** `https://asistentecarmen.erictoled564.workers.dev/ruta/avanzar`
 - **Parameters (JSON schema del body):**
   ```json
   {
