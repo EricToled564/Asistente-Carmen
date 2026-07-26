@@ -9,10 +9,19 @@ export const kbUpload = new Hono<{ Bindings: Env }>()
 
 // Mecanismo B (self-service): a qué código de KB corresponde cada tipo del selector. El
 // document_id real de cada código vive en el registro de KV (ver lib/kbRegistry.ts), no aquí.
+// Antes solo había tres (horario/trámite/otro), y todo lo demás caía en "otro" → KB7, que es
+// "cultura y vida diaria". O sea que un contrato de alquiler nuevo o un cambio de la tarjeta de
+// transporte terminaba escrito en el documento equivocado, y Maite luego no lo encontraba al
+// buscar por el tema correcto.
 const TIPO_A_KB_CODE: Record<string, string> = {
-  horario: 'KB8',
-  tramite: 'KB6',
-  otro: 'KB7'
+  horario: 'KB8', // horario de clases
+  alojamiento: 'KB3', // dónde vive, contrato, residencia
+  campus: 'KB4', // edificios, servicios, biblioteca
+  transporte: 'KB5', // villavesa, tarjetas, trenes
+  tramite: 'KB6', // TIE, empadronamiento, banco, sanidad
+  ocio: 'KB11', // sitios, planes, vida social
+  seguridad: 'KB12', // recursos de seguridad y apoyo
+  otro: 'KB7' // cultura y vida diaria: el cajón de sastre, ahora sí solo para lo que no encaja
 }
 
 const EXTRACCION_PROMPT = `Eres Maite. Te suben una foto o texto para actualizar el Knowledge Base de \

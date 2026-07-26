@@ -10,6 +10,7 @@ import Academico from './pages/Academico.jsx'
 import SOS from './pages/SOS.jsx'
 import Ajustes from './pages/Ajustes.jsx'
 import FotoInfo from './pages/FotoInfo.jsx'
+import ModoFamilia from './pages/ModoFamilia.jsx'
 
 const TABS = {
   inicio: { label: 'Inicio', icon: '🏠', Component: Inicio },
@@ -29,6 +30,12 @@ export default function App() {
   const { onboardingDone } = useApp()
   const [active, setActive] = useState('inicio')
   const [overlay, setOverlay] = useState(null)
+
+  // "?familia=1" no es la app de Carmen: es la pantalla de un familiar que solo viene a activar
+  // las alertas. Se comprueba ANTES del onboarding a propósito — hacerle pasar por el onboarding
+  // de una estudiante recién mudada a Pamplona sería absurdo, y es justo donde abandonaría.
+  const esFamilia = new URLSearchParams(window.location.search).get('familia') === '1'
+  if (esFamilia) return <ModoFamilia />
 
   if (!onboardingDone) {
     return <OnboardingFlow onGoTo={setActive} />
