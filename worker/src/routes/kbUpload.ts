@@ -113,7 +113,7 @@ kbUpload.post('/kb-confirm', async (c) => {
     // documento: subir la foto de un recibo dejaba KB5 conteniendo solo ese recibo y borraba todo
     // lo demás sobre movilidad. Sin error, sin aviso — el agente simplemente dejaba de saber
     // cosas que sabía ayer.
-    const resultado = await fusionarYActualizarKb(c.env, documentId, body.markdown)
+    const resultado = await fusionarYActualizarKb(c.env, documentId, body.markdown, kbCode)
     if (!resultado.ok) {
       return c.json({ error: resultado.motivo }, 409)
     }

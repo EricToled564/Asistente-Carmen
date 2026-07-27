@@ -96,7 +96,7 @@ async function investigarYActualizarDoc(env: Env, doc: DocConfig) {
     // KB: corre solo, de madrugada, sin que nadie revise nada. Si la investigación devuelve un
     // documento recortado, aquí no hay una persona delante que lo note — se escribiría y nadie se
     // enteraría hasta que Maite dejara de saber algo.
-    const resultado = await fusionarYActualizarKb(env, documentId, investigacion.contenido_nuevo || actual)
+    const resultado = await fusionarYActualizarKb(env, documentId, investigacion.contenido_nuevo || actual, doc.kbCode)
     if (!resultado.ok) {
       console.error(`[kb-cron] ${doc.nombre}: NO se actualizó. ${resultado.motivo}`)
       return

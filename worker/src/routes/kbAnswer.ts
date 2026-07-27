@@ -74,7 +74,7 @@ kbAnswer.post('/kb-answer', async (c) => {
     // completo: `actual` puede venir vacío si la lectura falló, y en ese caso lo que el modelo
     // "actualizó" es un documento construido de la nada que borraría el real. El guardia de
     // proporción es lo único que detiene eso.
-    const resultado = await fusionarYActualizarKb(c.env, documentId, interpretacion.contenido_actualizado)
+    const resultado = await fusionarYActualizarKb(c.env, documentId, interpretacion.contenido_actualizado, pregunta.kbCode)
     if (!resultado.ok) {
       return c.json({ error: resultado.motivo }, 409)
     }

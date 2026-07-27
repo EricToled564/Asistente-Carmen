@@ -62,6 +62,11 @@ crons = [
 # El agent_id no es secreto — va también en el bundle del frontend, a la vista de cualquiera. Vive
 # aquí para que el Worker pueda leer la base de conocimiento del agente (ver routes/kbSync.ts).
 ELEVENLABS_AGENT_ID = "agent_8701kyeepa7tffmr5475esyq7rtq"
+# Espejo del KB en el repo: cada actualización de un documento se escribe también como commit del
+# .md correspondiente. Eso da historial y, sobre todo, deshacer — ElevenLabs no guarda versiones.
+# El token va aparte como secret (GITHUB_TOKEN); estos dos no son secretos.
+GITHUB_REPO = "EricToled564/Asistente-Carmen"
+GITHUB_BRANCH = "claude/app-creation-documents-c74xfz"
 # La mitad pública del par VAPID de Web Push. Es pública por diseño: va también en el bundle del
 # frontend, porque el navegador la necesita para suscribirse. Solo la privada es secreto, y esa va
 # aparte como secret. Ponerla aquí ahorra tener que meter dos cosas a mano en el dashboard.

@@ -1,6 +1,7 @@
 import type { Env } from '../types.js'
 import { getKbDocument, updateKbDocument } from './elevenlabs.js'
 import { structureText } from './claude.js'
+import { espejarKbEnRepo } from './github.js'
 
 // Actualizar un documento del Knowledge Base sin perder lo que ya decía.
 //
@@ -76,10 +77,28 @@ function quitarCercaDeCodigo(texto: string): string {
     .trim()
 }
 
+// Escribir el espejo del repo SIN dejar que un fallo suyo tumbe la actualización.
+//
+// El KB de ElevenLabs ya se actualizó cuando esto corre: si GitHub está caído, el token expiró o
+// alguien renombró un archivo, lo único que se pierde es el historial de ESE cambio. Maite sigue
+// funcionando igual. Hacer que la actualización fallara por no poder escribir el respaldo sería
+// cambiar un problema pequeño por uno grande.
+async function espejarSinRomper(env: Env, kbCode: string | undefined, contenido: string) {
+  if (!kbCode || !env.GITHUB_TOKEN) return
+  try {
+    const r = await espejarKbEnRepo(env, kbCode, contenido, 'actualizado desde la app')
+    if (r.ok) console.log(`[kb-espejo] ${kbCode} → ${r.archivo} (commit ${r.commit})`)
+    else console.warn(`[kb-espejo] ${kbCode}: no se pudo respaldar. ${r.motivo}`)
+  } catch (err) {
+    console.warn(`[kb-espejo] ${kbCode}: error al respaldar`, err)
+  }
+}
+
 export async function fusionarYActualizarKb(
   env: Env,
   documentId: string,
-  informacionNueva: string
+  informacionNueva: string,
+  kbCode?: string
 ): Promise<ResultadoFusion> {
   const actual = await getKbDocument(env.ELEVENLABS_API_KEY, documentId)
   const largoAntes = largoDeTexto(actual)
@@ -87,6 +106,7 @@ export async function fusionarYActualizarKb(
   // Documento vacío: no hay nada que fusionar ni que perder.
   if (largoAntes === 0) {
     await updateKbDocument(env.ELEVENLABS_API_KEY, documentId, informacionNueva)
+    await espejarSinRomper(env, kbCode, informacionNueva)
     return { ok: true, largoAntes: 0, largoDespues: largoDeTexto(informacionNueva) }
   }
 
@@ -112,5 +132,8 @@ export async function fusionarYActualizarKb(
   }
 
   await updateKbDocument(env.ELEVENLABS_API_KEY, documentId, fusionado)
+  // El espejo guarda el markdown fusionado, no lo que devuelve ElevenLabs: ellos lo convierten a
+  // HTML al guardarlo, y un .md lleno de etiquetas no se puede leer ni revisar en un diff.
+  await espejarSinRomper(env, kbCode, fusionado)
   return { ok: true, largoAntes, largoDespues }
 }

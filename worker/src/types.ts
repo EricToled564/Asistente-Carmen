@@ -4,6 +4,11 @@ export interface Env {
   // secrets (wrangler secret put ...)
   ANTHROPIC_API_KEY: string
   ELEVENLABS_API_KEY: string
+  // Espejo del KB en el repo (ver lib/github.ts). Opcionales: sin ellos todo funciona igual,
+  // solo que sin historial de cambios.
+  GITHUB_TOKEN: string
+  GITHUB_REPO: string
+  GITHUB_BRANCH: string
   ELEVENLABS_AGENT_ID: string
   TELEGRAM_BOT_TOKEN: string
   RESEND_API_KEY: string
