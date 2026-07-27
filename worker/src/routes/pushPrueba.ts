@@ -57,10 +57,20 @@ pushPrueba.post('/push/prueba', async (c) => {
         }
       })()
       try {
+        // Un `tag` distinto en cada envío, a propósito.
+        //
+        // El navegador usa el tag para AGRUPAR: una notificación nueva con el mismo tag reemplaza
+        // a la anterior en silencio, sin volver a sonar ni vibrar. Con un tag fijo, mandar tres
+        // pruebas seguidas puede verse exactamente igual que no mandar ninguna — que es
+        // justamente la duda que esto tiene que resolver.
+        //
+        // En el SOS real sí conviene un tag fijo ("sos"): ahí agrupar es lo correcto, porque no
+        // quieres inundar la pantalla de la familia con veinte avisos del mismo incidente.
+        const marca = new Date().toISOString().slice(11, 19)
         await enviarPush(record, vapid, {
-          title: '✅ Prueba — NO es una emergencia',
+          title: `✅ Prueba de las ${marca} — NO es una emergencia`,
           body: 'Carmen está bien. Solo comprobamos que los avisos llegan a este teléfono.',
-          tag: 'prueba'
+          tag: `prueba-${Date.now()}`
         })
         return { ok: true, servicio, suscritoEl: record.guardadoEn }
       } catch (err) {
