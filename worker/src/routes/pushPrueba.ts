@@ -36,15 +36,33 @@ pushPrueba.post('/push/prueba', async (c) => {
   const resultados = await Promise.all(
     lista.keys.map(async (k) => {
       const raw = await c.env.KV.get(k.name)
-      if (!raw) return { clave: k.name, ok: false, error: 'la suscripción ya no está en KV' }
+      if (!raw) return { ok: false, servicio: 'desconocido', error: 'la suscripción ya no está en KV' }
       const record = JSON.parse(raw) as PushSubscriptionRecord
+      // De qué navegador/dispositivo es esta suscripción, y desde cuándo.
+      //
+      // El host del endpoint identifica al servicio de push: fcm.googleapis.com es Chrome (o
+      // cualquier navegador basado en Chromium), updates.push.services.mozilla.com es Firefox,
+      // web.push.apple.com es Safari. Sin este dato, cuando alguien dice "no me llegó" no hay
+      // forma de saber si está mirando el dispositivo correcto — que es exactamente donde nos
+      // quedamos atascados.
+      const servicio = (() => {
+        try {
+          const host = new URL(record.endpoint).host
+          if (host.includes('fcm.googleapis') || host.includes('android')) return `Chrome/Android (${host})`
+          if (host.includes('mozilla')) return `Firefox (${host})`
+          if (host.includes('apple')) return `Safari/iOS (${host})`
+          return host
+        } catch {
+          return 'endpoint ilegible'
+        }
+      })()
       try {
         await enviarPush(record, vapid, {
           title: '✅ Prueba — NO es una emergencia',
           body: 'Carmen está bien. Solo comprobamos que los avisos llegan a este teléfono.',
           tag: 'prueba'
         })
-        return { clave: k.name, ok: true }
+        return { ok: true, servicio, suscritoEl: record.guardadoEn }
       } catch (err) {
         const mensaje = String((err as Error)?.message || err)
         // Una suscripción que falla por clave inválida o porque el navegador la revocó (404/410
@@ -54,7 +72,7 @@ pushPrueba.post('/push/prueba', async (c) => {
         // peor que no tener ninguno — da una seguridad falsa.
         const irrecuperable = /not on curve|Invalid EC key|410|404|expired|unsubscribed/i.test(mensaje)
         if (irrecuperable) await c.env.KV.delete(k.name)
-        return { clave: k.name, ok: false, error: mensaje, borrada: irrecuperable }
+        return { ok: false, servicio, suscritoEl: record.guardadoEn, error: mensaje, borrada: irrecuperable }
       }
     })
   )
@@ -64,6 +82,10 @@ pushPrueba.post('/push/prueba', async (c) => {
     grupo,
     dispositivos: resultados.length,
     enviados,
+    // Se devuelven TODOS, no solo los fallidos: cuando alguien dice "no me llegó", saber a qué
+    // navegador y desde cuándo está suscrito es lo que distingue "está roto" de "estás mirando el
+    // dispositivo equivocado".
+    detalle: resultados,
     fallidos: resultados.filter((r) => !r.ok),
     mensaje:
       enviados > 0
