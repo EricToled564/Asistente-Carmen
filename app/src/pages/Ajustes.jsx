@@ -20,7 +20,11 @@ export default function Ajustes() {
   // Un familiar que abre la PWA con ?familia=1 se suscribe como destinatario de alertas SOS
   // en vez de como "ella" — es el mecanismo v1 para distinguir destinatarios sin cuentas/login.
   const esFamilia = new URLSearchParams(window.location.search).get('familia') === '1'
-  const { estado: estadoPush, suscribir } = usePush(config.vapidPublicKey, esFamilia ? 'familia' : 'ella')
+  const {
+    estado: estadoPush,
+    detalle: detallePush,
+    suscribir
+  } = usePush(config.vapidPublicKey, esFamilia ? 'familia' : 'ella')
 
   return (
     <div className="flex h-full flex-col">
@@ -81,8 +85,14 @@ export default function Ajustes() {
                 Tu navegador no soporta push, o la app no está instalada como PWA (Add to Home Screen) todavía.
               </p>
             )}
-            {estadoPush === 'error' && (
-              <p className="text-xs text-red-700">No se pudo activar. Revisa permisos del sitio en Ajustes de iOS.</p>
+            {['sin-permiso', 'fallo-suscripcion', 'fallo-servidor', 'sin-clave'].includes(estadoPush) && (
+              <p className="text-xs text-red-700">
+                {estadoPush === 'sin-permiso' && 'Falta el permiso de notificaciones. Actívalo para este sitio en los ajustes del navegador.'}
+                {estadoPush === 'fallo-suscripcion' && 'El navegador no pudo registrarse. Cierra y vuelve a abrir la app.'}
+                {estadoPush === 'fallo-servidor' && 'Tu teléfono está bien; no se pudo guardar el registro. Inténtalo en un rato.'}
+                {estadoPush === 'sin-clave' && 'Falta la clave de notificaciones en la configuración de la app.'}
+                {detallePush ? ` (${detallePush})` : ''}
+              </p>
             )}
             <p className="text-xs text-morado-900/40">
               {esFamilia

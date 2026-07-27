@@ -24,7 +24,7 @@ function detectarPlataforma() {
 
 export default function ModoFamilia() {
   const { config } = useApp()
-  const { estado, suscribir } = usePush(config.vapidPublicKey, 'familia')
+  const { estado, detalle, suscribir } = usePush(config.vapidPublicKey, 'familia')
   const plataforma = detectarPlataforma()
 
   const listo = estado === 'suscrito'
@@ -85,10 +85,39 @@ export default function ModoFamilia() {
             a intentarlo.
           </p>
         ))}
-      {estado === 'error' && (
+      {/* Cada fallo con su instrucción real. Un mensaje genérico manda a revisar los permisos
+          aunque el problema esté en el servidor, y hace perder el tiempo buscando donde no es. */}
+      {estado === 'sin-permiso' && (
+        <div className="rounded-2xl bg-melocoton-300/40 p-4 text-sm text-morado-900">
+          <p className="font-semibold">Falta el permiso de notificaciones.</p>
+          <p className="mt-2">
+            En Chrome: toca el <strong>candado (o el icono de ajustes)</strong> a la izquierda de la
+            dirección, arriba → <strong>Permisos</strong> → <strong>Notificaciones</strong> →{' '}
+            <strong>Permitir</strong>. Después vuelve a tocar el botón.
+          </p>
+          {detalle && <p className="mt-2 text-xs text-morado-900/60">{detalle}</p>}
+        </div>
+      )}
+      {estado === 'fallo-suscripcion' && (
+        <div className="rounded-2xl bg-red-50 p-4 text-sm text-red-700">
+          <p className="font-semibold">El navegador no pudo registrarse para recibir avisos.</p>
+          <p className="mt-2">
+            Suele arreglarse cerrando la pestaña y abriendo el link otra vez. Si sigue igual, prueba en
+            Chrome sin modo incógnito.
+          </p>
+          {detalle && <p className="mt-2 text-xs opacity-70">{detalle}</p>}
+        </div>
+      )}
+      {estado === 'fallo-servidor' && (
+        <div className="rounded-2xl bg-red-50 p-4 text-sm text-red-700">
+          <p className="font-semibold">Tu teléfono está bien, el problema es nuestro.</p>
+          <p className="mt-2">No se pudo guardar tu registro. Inténtalo en un rato.</p>
+          {detalle && <p className="mt-2 text-xs opacity-70">{detalle}</p>}
+        </div>
+      )}
+      {estado === 'sin-clave' && (
         <p className="rounded-2xl bg-red-50 p-4 text-sm text-red-700">
-          No se pudo activar. Si rechazaste el permiso, hay que volver a darlo desde los ajustes del
-          teléfono para este sitio.
+          Falta configuración en la app (clave de notificaciones). No es cosa tuya — avísale a Eric.
         </p>
       )}
 
