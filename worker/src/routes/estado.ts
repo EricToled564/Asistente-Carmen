@@ -34,6 +34,7 @@ estado.get('/estado', async (c) => {
     VAPID_PRIVATE_KEY: puesto(e.VAPID_PRIVATE_KEY),
     RESEND_API_KEY: puesto(e.RESEND_API_KEY),
     TELEGRAM_BOT_TOKEN: puesto(e.TELEGRAM_BOT_TOKEN),
+    GITHUB_TOKEN: puesto(e.GITHUB_TOKEN),
     FAMILIA_EMAIL_DESTINO: puesto(e.FAMILIA_EMAIL_DESTINO),
     RESIDENCIA_DIRECCION: puesto(e.RESIDENCIA_DIRECCION)
   }
@@ -46,7 +47,8 @@ estado.get('/estado', async (c) => {
     'Actualizar el KB desde la app': secretos.ELEVENLABS_API_KEY && docsKb.keys.length > 0,
     'SOS por email': secretos.RESEND_API_KEY && secretos.FAMILIA_EMAIL_DESTINO,
     'SOS por notificación': secretos.VAPID_PUBLIC_KEY && secretos.VAPID_PRIVATE_KEY && suscripciones.keys.length > 0,
-    'Bot de Telegram': secretos.TELEGRAM_BOT_TOKEN
+    'Bot de Telegram': secretos.TELEGRAM_BOT_TOKEN,
+    'Historial del KB en el repo': secretos.GITHUB_TOKEN
   }
 
   return c.json({
