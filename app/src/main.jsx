@@ -11,7 +11,26 @@ import './index.css'
 // siempre se ve reflejado, no solo "la siguiente vez que abras la app desde cero".
 if ('serviceWorker' in navigator) {
   let recargando = false
+  // ¿Había YA un service worker controlando esta página al cargar?
+  //
+  // Esto decide si la recarga automática es correcta o destructiva, y la diferencia importa:
+  //
+  // - Si SÍ lo había, un `controllerchange` significa que se desplegó una versión nueva y tomó el
+  //   control. Recargar es lo que queremos: la pestaña pasa a ver el código nuevo.
+  //
+  // - Si NO lo había (primera visita de este navegador), el service worker se instala, hace
+  //   clients.claim() y dispara `controllerchange` a los pocos segundos de abrir. Recargar ahí no
+  //   aporta nada —el código ya es el último, acaba de descargarse— y en cambio TUMBA lo que la
+  //   persona estuviera haciendo en esos segundos.
+  //
+  // Ese segundo caso es el que rompió las notificaciones del hermano de Eric: abrió el link por
+  // primera vez, tocó "Activar las alertas", aceptó el permiso, y a mitad del registro la página
+  // se recargó sola. La suscripción quedó abortada y la pantalla mostró un error genérico que
+  // culpaba al permiso — cuando el permiso lo había dado bien.
+  const habiaControlador = Boolean(navigator.serviceWorker.controller)
+
   navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (!habiaControlador) return // primera instalación: no hay nada viejo que refrescar
     if (recargando) return
     recargando = true
     window.location.reload()
