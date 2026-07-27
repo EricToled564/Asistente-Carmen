@@ -17,6 +17,22 @@ main = "src/index.ts"
 compatibility_date = "2024-12-01"
 compatibility_flags = ["nodejs_compat"]
 
+# ⚠️ NO QUITES ESTO.
+#
+# Por defecto, cada `wrangler deploy` BORRA todas las variables del Worker y deja solo las que
+# aparecen en el bloque [vars] de este archivo. Como aquí desplegamos con la integración de Git de
+# Cloudflare, eso pasa en cada push — y lo que se añadió a mano en el dashboard desaparece sin
+# avisar.
+#
+# Eso es exactamente lo que pasó con GITHUB_TOKEN: se guardó bien en el dashboard, se ve en la
+# lista, y el Worker lo leía vacío porque el siguiente despliegue se lo llevó por delante.
+#
+# `keep_vars = true` le dice a wrangler que no toque lo que ya está configurado y solo añada lo de
+# [vars]. Es la opción recomendada por Cloudflare justo para este caso: cuando parte de la
+# configuración se mete por el dashboard.
+# https://developers.cloudflare.com/workers/wrangler/configuration/
+keep_vars = true
+
 # --- KV: suscripciones push + estado simple ---
 [[kv_namespaces]]
 binding = "KV"

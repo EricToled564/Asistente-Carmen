@@ -47,8 +47,20 @@ estado.get('/estado', async (c) => {
     'Actualizar el KB desde la app': secretos.ELEVENLABS_API_KEY && docsKb.keys.length > 0,
     'SOS por email': secretos.RESEND_API_KEY && secretos.FAMILIA_EMAIL_DESTINO,
     'SOS por notificación': secretos.VAPID_PUBLIC_KEY && secretos.VAPID_PRIVATE_KEY && suscripciones.keys.length > 0,
-    'Bot de Telegram': secretos.TELEGRAM_BOT_TOKEN,
     'Historial del KB en el repo': secretos.GITHUB_TOKEN
+  }
+
+  // Fuera de `funciones` a propósito: Telegram está descartado, no pendiente.
+  //
+  // La diferencia importa porque `pendientes` es la lista de "esto hay que arreglarlo". Un
+  // descartado ahí dentro sale como ❌ cada vez que alguien mira el estado, y a la tercera vez que
+  // se ignora un fallo por costumbre, se empiezan a ignorar también los de verdad. El código de
+  // /telegram sigue en el repo y funcionaría con solo poner el token, pero mientras no se quiera
+  // no es un problema que reportar.
+  const noPlaneadas = {
+    'Bot de Telegram': secretos.TELEGRAM_BOT_TOKEN
+      ? 'configurado'
+      : 'descartado — el código existe, solo faltaría el token'
   }
 
   return c.json({
@@ -56,6 +68,7 @@ estado.get('/estado', async (c) => {
     documentosKbRegistrados: docsKb.keys.length,
     dispositivosSuscritosAPush: suscripciones.keys.length,
     funciones,
+    noPlaneadas,
     pendientes: Object.entries(funciones)
       .filter(([, ok]) => !ok)
       .map(([nombre]) => nombre)
