@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react'
-import { useApp } from '../context/AppContext.jsx'
+import { useState } from 'react'
 import RadarFechas from '../components/academico/RadarFechas.jsx'
 import CapturaRapida from '../components/academico/CapturaRapida.jsx'
 import BotonesAtajos from '../components/academico/BotonesAtajos.jsx'
@@ -8,6 +7,7 @@ import Horario from '../components/academico/Horario.jsx'
 import MiProgreso from '../components/academico/MiProgreso.jsx'
 import TipsAcademicos from '../components/academico/TipsAcademicos.jsx'
 import MisApuntes from '../components/academico/MisApuntes.jsx'
+import BotonMaite from '../components/agente/BotonMaite.jsx'
 
 const SECCIONES = [
   { id: 'horario', label: '🗓️ Horario' },
@@ -31,17 +31,14 @@ const CONTEXTO_POR_SECCION = {
     'Carmen está viendo sus apuntes de clase guardados. Si te pide repasar o un quiz, usa consultar_apuntes para trabajar sobre lo que ella grabó, no sobre el temario genérico.'
 }
 
-export default function Academico() {
+export default function Academico({ onNavigate }) {
   const [seccion, setSeccion] = useState('horario')
   // Se incrementa al guardar una captura, para que la lista de apuntes se recargue sin tener que
   // salir y volver a entrar a la pestaña.
   const [apuntesToken, setApuntesToken] = useState(0)
-  const { setContextoAgente } = useApp()
-
-  useEffect(() => {
-    setContextoAgente(CONTEXTO_POR_SECCION[seccion] || null)
-    return () => setContextoAgente(null)
-  }, [seccion, setContextoAgente])
+  // Ya no se empuja contexto al entrar a cada sección: ahora lo lleva el propio botón cuando
+  // Carmen decide hablar con Maite (ver components/agente/BotonMaite.jsx). Antes se ponía a
+  // ciegas por si acaso, aunque ella nunca abriera al agente.
 
   return (
     <div className="flex h-full flex-col">
@@ -72,24 +69,27 @@ export default function Academico() {
 
         {seccion === 'radar' && <RadarFechas />}
 
-        {seccion === 'indice' && <IndiceAcademico />}
+        {seccion === 'indice' && <IndiceAcademico onNavigate={onNavigate} />}
 
         {seccion === 'tutor' && (
           <div className="flex flex-col items-center gap-3 rounded-3xl bg-white p-6 text-center shadow-soft">
             <span className="flex h-14 w-14 items-center justify-center rounded-full bg-lavanda-100 text-3xl">🎓</span>
             <p className="font-display text-lg font-bold text-morado-900">Modo estudio activado</p>
             <p className="text-sm text-morado-900/60">
-              Toca el botón de Maite (flotando arriba a la derecha) y pídele un quiz o que te explique algo de
-              tus materias — ya sabe que estás en modo tutor.
+              Pídele un quiz o que te explique algo de tus materias. Llega sabiendo que estás
+              estudiando, no tienes que explicárselo.
             </p>
             <p className="rounded-2xl bg-lavanda-50 p-3 text-xs text-morado-900/70">
               Si grabaste esa clase, el quiz sale de <span className="font-semibold">tus apuntes</span> — de lo
               que dijo tu profesor, no de un temario genérico.
             </p>
+            <BotonMaite contexto={CONTEXTO_POR_SECCION.tutor} onNavigate={onNavigate} className="mt-1 w-full">
+              🎓 Empezar a estudiar con Maite
+            </BotonMaite>
           </div>
         )}
 
-        {seccion === 'apuntes' && <MisApuntes recargarToken={apuntesToken} />}
+        {seccion === 'apuntes' && <MisApuntes recargarToken={apuntesToken} onNavigate={onNavigate} />}
 
         {seccion === 'captura' && (
           <div className="flex flex-col gap-4">

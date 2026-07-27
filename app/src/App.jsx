@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useApp } from './context/AppContext.jsx'
 import OnboardingFlow from './components/onboarding/OnboardingFlow.jsx'
 import NavTabs from './components/NavTabs.jsx'
-import ElevenLabsWidget from './components/agente/ElevenLabsWidget.jsx'
 import Inicio from './pages/Inicio.jsx'
 import Mapa from './pages/Mapa.jsx'
 import Agente from './pages/Agente.jsx'
@@ -49,17 +48,14 @@ export default function App() {
     }
   }
 
-  // Un solo árbol de JSX (no dos "return" separados) para que ElevenLabsWidget quede SIEMPRE en
-  // la misma posición del árbol — así React nunca lo desmonta/remonta al navegar entre tabs o
-  // abrir un overlay, y la instancia flotante de Maite (única para toda la app, ver el propio
-  // componente para el porqué) no pierde su conversación en curso.
+  // El widget de Maite ya NO se monta aquí. Vive solo en su pantalla (pages/Agente.jsx), y el
+  // resto de la app la invoca con BotonMaite, que deja el contexto listo y navega hasta ahí.
   const Contenido = overlay ? OVERLAYS[overlay] : TABS[active].Component
   const propsContenido = overlay ? { onNavigate: navigate, onClose: () => setOverlay(null) } : { onNavigate: navigate }
 
   return (
     <div className="relative flex h-full flex-col overflow-hidden bg-lavanda-50">
       <FondoDecorativo />
-      <ElevenLabsWidget />
       <main className="relative z-10 flex-1 overflow-y-auto safe-top">
         <Contenido {...propsContenido} />
       </main>

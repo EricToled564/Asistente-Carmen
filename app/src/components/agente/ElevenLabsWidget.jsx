@@ -60,29 +60,33 @@ function calcularVariablesDeHora({ modoViaje, ciudadViaje, ciudadCasa }) {
 }
 
 /**
- * Widget flotante del agente de voz (ElevenLabs Agents / Convai) — instancia ÚNICA y GLOBAL,
- * montada una sola vez en App.jsx.
+ * Widget del agente de voz (ElevenLabs Agents / Convai). Vive SOLO en la pantalla de Maite.
  *
- * Importante (esto costó una sesión completa de debugging entenderlo): el custom element
+ * Sobre el widget en sí (esto costó una sesión entera de debugging entenderlo): el custom element
  * <elevenlabs-convai> se define internamente con `:host { position: fixed; inset: 0 }` — es
  * SIEMPRE un overlay de posición fija sobre toda la pantalla, sin importar en qué <div> del DOM
- * lo montes. NO es un componente que se pueda "empotrar" dentro de una caja/contenedor — por eso
- * las pantallas que antes creaban su propia instancia dentro de una caja blanca (Agente, Tutor,
- * cada materia del Índice, Ruta interior) siempre se veían vacías: el chat real aparecía flotando
- * en su posición fija de siempre (o ni eso, si algo fallaba), nunca dentro de esa caja.
+ * lo montes. No se puede empotrar dentro de una caja, y solo acepta cuatro posiciones
+ * (top-left, top-right, bottom-left, bottom-right); no hay forma de moverlo a otro sitio.
  *
- * La solución: una sola instancia para toda la app, que flota con `placement="top-right"` (para
- * no chocar con la barra de tabs de abajo). Las pantallas que necesitan darle contexto especial
- * (modo estudio, una materia puntual, una ruta activa) usan `setContextoAgente(...)` del
- * AppContext en vez de montar su propio widget — eso solo actualiza el atributo
- * `dynamic-variables` de la instancia que ya existe.
+ * Antes había UNA instancia global flotando sobre todas las pantallas. Funcionaba, pero el botón
+ * quedaba encima del contenido en sitios donde no venía a cuento, y no había manera de quitarlo
+ * de en medio. Ahora se monta solo cuando Carmen entra a la pantalla de Maite, y el resto de la
+ * app la invoca con botones que llevan ahí (ver components/agente/BotonMaite.jsx).
+ *
+ * Consecuencia asumida: salir de la pantalla corta la conversación en curso, porque el elemento
+ * se destruye. Es un intercambio consciente — a cambio, el botón solo aparece donde tiene sentido
+ * y la pantalla de Maite es un sitio al que ir, no algo que flota encima de todo.
  */
 export default function ElevenLabsWidget() {
   const containerRef = useRef(null)
   const elRef = useRef(null)
   const { config, contextoAgente, modoViaje, ciudadViaje, ciudadReferencia } = useApp()
 
-  // Crear el elemento UNA sola vez (mount-only) — nunca se destruye al navegar entre tabs.
+  // Se crea al entrar a la pantalla y se destruye al salir.
+  //
+  // El `remove()` de la limpieza no es opcional: el widget se pinta con position:fixed sobre toda
+  // la ventana, así que si el elemento sobrevive al desmontaje de React se queda flotando encima
+  // de la pantalla siguiente, sin nada que lo controle ni forma de cerrarlo.
   useEffect(() => {
     if (!config.elevenLabsAgentId || !containerRef.current) return
     let cancelled = false
@@ -91,13 +95,15 @@ export default function ElevenLabsWidget() {
         if (cancelled || !containerRef.current || elRef.current) return
         const el = document.createElement('elevenlabs-convai')
         el.setAttribute('agent-id', config.elevenLabsAgentId)
-        el.setAttribute('placement', 'top-right')
+        el.setAttribute('placement', 'bottom-right')
         elRef.current = el
         containerRef.current.appendChild(el)
       })
       .catch((err) => console.error(err))
     return () => {
       cancelled = true
+      elRef.current?.remove()
+      elRef.current = null
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [config.elevenLabsAgentId])

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../../lib/api.js'
+import BotonMaite from '../agente/BotonMaite.jsx'
 
 function fechaLegible(iso) {
   return new Intl.DateTimeFormat('es-ES', {
@@ -15,7 +16,7 @@ function fechaLegible(iso) {
 // "Mis apuntes": lo que grabó en clase, agrupado por materia. Existe por dos razones distintas —
 // para que ella los relea, y para que sean el material del que Maite saca los quizzes (server
 // tool `consultar_apuntes`).
-export default function MisApuntes({ recargarToken }) {
+export default function MisApuntes({ recargarToken, onNavigate }) {
   const [lista, setLista] = useState(null)
   const [error, setError] = useState(null)
   const [abierto, setAbierto] = useState(null) // apunte completo, ya con transcripción
@@ -100,9 +101,15 @@ export default function MisApuntes({ recargarToken }) {
         <div className="rounded-3xl bg-lavanda-50 p-4">
           <p className="text-sm font-semibold text-morado-900">¿Quieres repasar esto con Maite?</p>
           <p className="mt-1 text-xs text-morado-900/60">
-            Toca el botón de Maite y pídele un quiz de esta clase — busca en tus apuntes, no solo en el temario
-            oficial.
+            El quiz sale de esta clase en concreto — de lo que dijo tu profesor, no del temario genérico.
           </p>
+          <BotonMaite
+            onNavigate={onNavigate}
+            className="mt-3 w-full"
+            contexto={`Carmen quiere repasar unos apuntes suyos concretos: "${abierto.titulo}", de ${abierto.materia}, de la clase del ${fechaLegible(abierto.creadoEn)}. Usa consultar_apuntes con esas palabras clave para traer el contenido y trabaja SOBRE ESO — un quiz, una explicación, lo que ella pida. El temario oficial del KB solo complementa lo que falte.`}
+          >
+            🎓 Repasar esta clase
+          </BotonMaite>
         </div>
 
         <button onClick={() => borrar(abierto.id)} className="self-start text-sm text-red-700">

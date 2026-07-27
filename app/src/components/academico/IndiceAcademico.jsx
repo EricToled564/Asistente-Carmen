@@ -1,21 +1,11 @@
-import { useEffect, useState } from 'react'
-import { useApp } from '../../context/AppContext.jsx'
+import { useState } from 'react'
 import { INDICE_ACADEMICO } from '../../data/indiceAcademico.js'
+import BotonMaite from '../agente/BotonMaite.jsx'
 import { obtenerContenidoMateria } from '../../data/materiasContenido.js'
 
-export default function IndiceAcademico() {
+export default function IndiceAcademico({ onNavigate }) {
   const [cursoAbierto, setCursoAbierto] = useState(1)
   const [materiaActiva, setMateriaActiva] = useState(null)
-  const { setContextoAgente } = useApp()
-
-  useEffect(() => {
-    setContextoAgente(
-      materiaActiva
-        ? `Carmen está viendo el temario/evaluación de "${materiaActiva.titulo}" (${materiaActiva.kbCode}) en la pantalla — ya no hace falta que se lo repitas. Tu papel aquí es de tutora: ayúdale con explicaciones más a fondo, ejemplos o un quiz sobre ese contenido si te lo pide.`
-        : null
-    )
-    return () => setContextoAgente(null)
-  }, [materiaActiva, setContextoAgente])
 
   if (materiaActiva) {
     const contenido = obtenerContenidoMateria(materiaActiva.kbCode)
@@ -47,9 +37,14 @@ export default function IndiceAcademico() {
 
         <div className="flex items-center gap-3 rounded-2xl bg-lavanda-50 p-3.5">
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white text-lg">🎓</span>
-          <p className="text-xs text-morado-900/70">
-            ¿Quieres que te lo explique más a fondo o te haga un quiz? Toca el botón de Maite arriba a la derecha.
-          </p>
+          <p className="text-sm text-morado-900/60">¿Quieres que te lo explique más a fondo o te haga un quiz?</p>
+            <BotonMaite
+              onNavigate={onNavigate}
+              className="mt-3 w-full"
+              contexto={`Carmen está viendo el temario y la evaluación de "${materiaActiva.titulo}" (${materiaActiva.kbCode}). Ya lo tiene delante, no se lo repitas. Tu papel es de tutora: explicaciones a fondo, ejemplos, o un quiz sobre ese contenido si te lo pide.`}
+            >
+              🎓 Estudiar esta materia con Maite
+            </BotonMaite>
         </div>
       </div>
     )

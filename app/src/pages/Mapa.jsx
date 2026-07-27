@@ -31,7 +31,7 @@ function iconoPara(categoria) {
   })
 }
 
-export default function Mapa() {
+export default function Mapa({ onNavigate }) {
   const [filtro, setFiltro] = useState('todas')
   const [plano, setPlano] = useState(null)
   const [mostrarRuta, setMostrarRuta] = useState(false)
@@ -110,6 +110,7 @@ export default function Mapa() {
   if (mostrarRuta) {
     return (
       <RutaInterior
+        onNavigate={onNavigate}
         destinoInicial={destinoPrellenado}
         onClose={() => {
           setMostrarRuta(false)

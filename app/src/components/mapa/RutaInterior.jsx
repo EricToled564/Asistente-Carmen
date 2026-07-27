@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from '../../lib/api.js'
-import { useApp } from '../../context/AppContext.jsx'
+import BotonMaite from '../agente/BotonMaite.jsx'
 
 // "¿Cómo llego?" — Carmen elige dónde está y a dónde quiere ir (ella misma, no hay
 // posicionamiento automático dentro del edificio — ver docs/ruta-interior.md sobre por qué).
@@ -9,7 +9,7 @@ import { useApp } from '../../context/AppContext.jsx'
 // de datos puede ser mala o nula, y hablar con Maite requiere conexión — leer una ruta que ya se
 // cargó, no. Hablar con Maite queda como opción extra (útil si se pierde a media ruta o quiere
 // que le vayan cantando los pasos), no como el único camino.
-export default function RutaInterior({ onClose, destinoInicial }) {
+export default function RutaInterior({ onClose, destinoInicial, onNavigate }) {
   const [plantas, setPlantas] = useState(null)
   const [error, setError] = useState(null)
   const [origenId, setOrigenId] = useState('')
@@ -17,7 +17,6 @@ export default function RutaInterior({ onClose, destinoInicial }) {
   const [ruta, setRuta] = useState(null)
   const [iniciando, setIniciando] = useState(false)
   const [pasoHecho, setPasoHecho] = useState({}) // marcar pasos ya recorridos, a mano
-  const { setContextoAgente } = useApp()
 
   useEffect(() => {
     api
@@ -28,14 +27,12 @@ export default function RutaInterior({ onClose, destinoInicial }) {
 
   // Solo se le pasa contexto a Maite cuando Carmen elige hablar con ella — no de entrada, para
   // que la ruta escrita funcione sola sin depender del agente.
-  function pedirAyudaAMaite() {
-    if (!ruta) return
-    setContextoAgente(
+  function contextoDeRuta() {
+    if (!ruta) return null
+    return (
       `Carmen quiere que la guíes paso a paso dentro del edificio, desde "${ruta.origenNombre}" hasta "${ruta.destinoNombre}". El id de esta ruta activa es "${ruta.rutaId}". Dile primero este paso, tal cual: "${ruta.paso.instruccion}". Cuando ella confirme por voz que llegó a "${ruta.paso.checkpoint}", llama la herramienta avanzar_ruta con rutaId="${ruta.rutaId}" para obtener el siguiente paso y díselo. Repite hasta que la herramienta indique que ya llegó al destino final.`
     )
   }
-
-  useEffect(() => () => setContextoAgente(null), [setContextoAgente])
 
   async function iniciarRuta() {
     if (!origenId || !destinoId) return
@@ -57,10 +54,7 @@ export default function RutaInterior({ onClose, destinoInicial }) {
     return (
       <div className="flex h-full flex-col gap-3 overflow-y-auto p-4">
         <button
-          onClick={() => {
-            setRuta(null)
-            setContextoAgente(null)
-          }}
+          onClick={() => setRuta(null)}
           className="self-start text-sm text-lavanda-700"
         >
           ← Elegir otra ruta
@@ -115,12 +109,9 @@ export default function RutaInterior({ onClose, destinoInicial }) {
             Maite te puede ir cantando los pasos por voz. Necesita señal — si adentro no hay, sigue la lista de
             arriba, que ya está descargada.
           </p>
-          <button
-            onClick={pedirAyudaAMaite}
-            className="mt-3 w-full rounded-full bg-gradient-to-r from-lavanda-700 to-lavanda-600 px-4 py-2.5 text-sm font-semibold text-white active:scale-[0.98]"
-          >
-            💬 Pedirle ayuda a Maite
-          </button>
+          <BotonMaite onNavigate={onNavigate} className="mt-3 w-full" contexto={contextoDeRuta()}>
+            💬 Que me vaya guiando
+          </BotonMaite>
         </div>
       </div>
     )
