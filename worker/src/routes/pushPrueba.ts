@@ -46,7 +46,15 @@ pushPrueba.post('/push/prueba', async (c) => {
         })
         return { clave: k.name, ok: true }
       } catch (err) {
-        return { clave: k.name, ok: false, error: String((err as Error)?.message || err) }
+        const mensaje = String((err as Error)?.message || err)
+        // Una suscripción que falla por clave inválida o porque el navegador la revocó (404/410
+        // del servicio de push) no va a funcionar nunca más: se borra en vez de dejarla ahí
+        // inflando la cuenta de "dispositivos suscritos". Esa cuenta es la que hace que /estado
+        // diga que el canal de emergencia está listo, así que un registro muerto ahí dentro es
+        // peor que no tener ninguno — da una seguridad falsa.
+        const irrecuperable = /not on curve|Invalid EC key|410|404|expired|unsubscribed/i.test(mensaje)
+        if (irrecuperable) await c.env.KV.delete(k.name)
+        return { clave: k.name, ok: false, error: mensaje, borrada: irrecuperable }
       }
     })
   )
