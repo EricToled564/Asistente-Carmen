@@ -44,6 +44,10 @@ async function request(path, options = {}) {
 }
 
 export const api = {
+  // Comprobación de salud para la sección de Ayuda: distingue "no hay internet / el servidor no
+  // responde" de "la app está rota", que es lo primero que hay que saber cuando algo falla y no
+  // hay nadie al lado para mirarlo.
+  salud: () => request('/', { method: 'GET' }),
   vision: (formData) => request('/vision', { method: 'POST', body: formData }),
   audio: (formData) => request('/audio', { method: 'POST', body: formData }),
   sos: (payload) => request('/sos', { method: 'POST', body: JSON.stringify(payload) }),

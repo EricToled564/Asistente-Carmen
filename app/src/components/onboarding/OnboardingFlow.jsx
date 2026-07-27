@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useApp } from '../../context/AppContext.jsx'
 import { api } from '../../lib/api.js'
+import { estaInstalada, esIOS } from '../../lib/instalacion.js'
 
 const STEPS = ['bienvenida', 'instalar', 'permisos', 'emergencia', 'checklist']
 
@@ -16,17 +17,7 @@ const TIPOS_SANGRE = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
 //
 // El onboarding le pedía permiso de notificaciones sin decirle nada de esto, así que en su iPhone
 // habría fallado siempre y ella habría creído que las tenía activadas.
-function estaInstalada() {
-  return (
-    window.matchMedia?.('(display-mode: standalone)').matches ||
-    // Safari en iOS no soporta display-mode: standalone; usa esta propiedad suya.
-    window.navigator.standalone === true
-  )
-}
-
-function esIOS() {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent || '')
-}
+// (estaInstalada/esIOS viven en lib/instalacion.js — los usa también la sección de Ayuda.)
 
 export default function OnboardingFlow({ onGoTo }) {
   const { completeOnboarding, updatePermission, permissions, checklist, toggleChecklistItem } = useApp()

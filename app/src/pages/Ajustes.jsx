@@ -4,6 +4,7 @@ import { usePush } from '../hooks/usePush.js'
 import ActualizarInfo from '../components/kb/ActualizarInfo.jsx'
 import DatosEmergenciaForm from '../components/emergencia/DatosEmergenciaForm.jsx'
 import PreguntasActualizacion from '../components/kb/PreguntasActualizacion.jsx'
+import Ayuda from '../components/ayuda/Ayuda.jsx'
 
 const SECCIONES = [
   { id: 'checklist', label: '✅ Primeros 30 días' },
@@ -14,7 +15,7 @@ const SECCIONES = [
   { id: 'ayuda', label: 'ℹ️ Ayuda' }
 ]
 
-export default function Ajustes() {
+export default function Ajustes({ onNavigate }) {
   const [seccion, setSeccion] = useState('checklist')
   const { checklist, toggleChecklistItem, permissions, config } = useApp()
   // Un familiar que abre la PWA con ?familia=1 se suscribe como destinatario de alertas SOS
@@ -63,7 +64,11 @@ export default function Ajustes() {
           </ul>
         )}
 
-        {seccion === 'kb' && <ActualizarInfo />}
+        {/* `setSeccion` se pasa como onIrASeccion para que las fichas de "Actualizar mi info" y los
+            botones de Ayuda salten a la sección correspondiente de Ajustes. Sin esto, cada ficha
+            terminaría en "ve tú a la pestaña X", que es exactamente la clase de instrucción que no
+            se sigue desde un móvil. */}
+        {seccion === 'kb' && <ActualizarInfo onIrASeccion={setSeccion} onNavigate={onNavigate} />}
 
         {seccion === 'preguntas' && <PreguntasActualizacion />}
 
@@ -102,18 +107,7 @@ export default function Ajustes() {
           </div>
         )}
 
-        {seccion === 'ayuda' && (
-          <div className="flex flex-col gap-3 px-5 text-sm text-morado-900/70">
-            <p>
-              Los botones "Grabar clase" / "Terminar clase" del tab Académico dependen de dos Atajos de iOS
-              que se crean una sola vez. Ve <code>/docs/atajos-ios.md</code> en el repo para la guía completa.
-            </p>
-            <p>
-              Si algo no funciona, primero prueba recargar la app. Si sigue fallando, usa el bot de Telegram
-              como respaldo — tiene el mismo cerebro.
-            </p>
-          </div>
-        )}
+        {seccion === 'ayuda' && <Ayuda onIrASeccion={setSeccion} onNavigate={onNavigate} />}
       </div>
     </div>
   )
