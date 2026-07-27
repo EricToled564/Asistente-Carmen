@@ -57,6 +57,46 @@ function aBase64(texto: string): string {
   return btoa(binario)
 }
 
+// ElevenLabs guarda los documentos como HTML, y la fusión —al recibir HTML de entrada— devuelve
+// HTML aunque el prompt pida markdown. Commitear eso tal cual deja un .md con una sola línea
+// gigante de etiquetas: el archivo se guarda, sí, pero el diff es ilegible y no se puede revisar
+// qué cambió. Y poder revisar el cambio era justo el motivo de tener el espejo.
+//
+// La conversión es determinista a propósito, sin pedírsela al modelo: el HTML que genera
+// ElevenLabs tiene una estructura simple y fija (h1/h2/h3, p, li), así que un puñado de reglas lo
+// resuelve siempre igual. Una llamada más al modelo costaría dinero, tardaría, y podría devolver
+// algo distinto cada vez.
+function htmlAMarkdown(contenido: string): string {
+  // Si no viene envuelto en HTML, ya es markdown: no se toca.
+  if (!/<(html|body|div|h1|h2|p)\b/i.test(contenido)) return contenido
+
+  return (
+    contenido
+      .replace(/<\/?(html|body|div)[^>]*>/gi, '')
+      .replace(/<h1[^>]*>(.*?)<\/h1>/gis, '\n# $1\n')
+      .replace(/<h2[^>]*>(.*?)<\/h2>/gis, '\n## $1\n')
+      .replace(/<h3[^>]*>(.*?)<\/h3>/gis, '\n### $1\n')
+      .replace(/<li[^>]*>(.*?)<\/li>/gis, '- $1\n')
+      .replace(/<\/?(ul|ol)[^>]*>/gi, '\n')
+      .replace(/<p[^>]*>(.*?)<\/p>/gis, '$1\n\n')
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<strong[^>]*>(.*?)<\/strong>/gis, '**$1**')
+      .replace(/<em[^>]*>(.*?)<\/em>/gis, '_$1_')
+      .replace(/<[^>]+>/g, '') // cualquier etiqueta suelta que quede
+      // Las entidades van DESPUÉS de quitar etiquetas: si &lt; se decodificara antes, se
+      // convertiría en un "<" que el paso anterior interpretaría como el inicio de una etiqueta.
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/[ \t]+\n/g, '\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim() + '\n'
+  )
+}
+
 export interface ResultadoEspejo {
   ok: boolean
   motivo?: string
@@ -87,7 +127,7 @@ export async function espejarKbEnRepo(
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify({
       message: `KB ${kbCode}: ${descripcionCambio}\n\nActualizado automáticamente desde la app.`,
-      content: aBase64(contenido),
+      content: aBase64(htmlAMarkdown(contenido)),
       sha: archivo.sha,
       branch: env.GITHUB_BRANCH
     })
