@@ -12,7 +12,16 @@ apuntes limpios en español MX: 1) resumen de 2-3 líneas, 2) puntos clave en vi
 o entregas mencionadas con su fecha si la dijo. No inventes información que no esté en el audio.`
 
 audio.post('/audio', async (c) => {
-  const formData = await c.req.formData()
+  // formData() revienta si el cuerpo no es multipart o viene vacío, y esa excepción salía como
+  // un 500. Un 500 dice "el servidor se rompió" y manda a buscar el fallo en el sitio equivocado;
+  // esto es un error del cliente, que mandó mal la petición. Envolverlo lo convierte en el 400
+  // que corresponde — y de paso hace que la validación de abajo llegue a ejecutarse alguna vez.
+  let formData: FormData
+  try {
+    formData = await c.req.formData()
+  } catch {
+    return c.json({ error: 'La petición no trae un formulario válido (multipart/form-data)' }, 400)
+  }
   // Ver nota en routes/vision.ts sobre el tipado incompleto de FormData.get() en workers-types.
   const file = formData.get('audio') as unknown as File | null
   if (!(file instanceof File)) {

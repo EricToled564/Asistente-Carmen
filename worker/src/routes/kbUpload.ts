@@ -69,7 +69,14 @@ async function extraerHorarioEstructurado(apiKey: string, markdown: string): Pro
 }
 
 kbUpload.post('/kb-upload', async (c) => {
-  const formData = await c.req.formData()
+  // Ver la nota en routes/vision.ts: sin este envoltorio, una petición sin formulario sale como
+  // 500 (fallo del servidor) cuando en realidad es un 400 (petición mal formada).
+  let formData: FormData
+  try {
+    formData = await c.req.formData()
+  } catch {
+    return c.json({ error: 'La petición no trae un formulario válido (multipart/form-data)' }, 400)
+  }
   const tipo = String(formData.get('tipo') || 'otro')
   // Ver nota en routes/vision.ts sobre el tipado incompleto de FormData.get() en workers-types.
   const imagen = formData.get('imagen') as unknown as File | null

@@ -11,7 +11,16 @@ qué significa, de forma breve y útil. Si es un formulario o trámite, dile qu�
 Si no reconoces nada útil en la imagen, dilo con honestidad en vez de inventar.`
 
 vision.post('/vision', async (c) => {
-  const formData = await c.req.formData()
+  // formData() revienta si el cuerpo no es multipart o viene vacío, y esa excepción salía como
+  // un 500. Un 500 dice "el servidor se rompió" y manda a buscar el fallo en el sitio equivocado;
+  // esto es un error del cliente, que mandó mal la petición. Envolverlo lo convierte en el 400
+  // que corresponde — y de paso hace que la validación de abajo llegue a ejecutarse alguna vez.
+  let formData: FormData
+  try {
+    formData = await c.req.formData()
+  } catch {
+    return c.json({ error: 'La petición no trae un formulario válido (multipart/form-data)' }, 400)
+  }
   // @cloudflare/workers-types tipa FormData.get() como `string | null` únicamente; en runtime
   // sí devuelve File cuando el campo es un archivo — se castea explícitamente aquí.
   const image = formData.get('image') as unknown as File | null

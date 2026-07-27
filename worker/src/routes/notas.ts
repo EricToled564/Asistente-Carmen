@@ -59,7 +59,14 @@ Nunca inventes una calificación ni la deduzcas — es información sensible par
 // POST /notas/extraer — foto → {materia, nota} para prellenar la vista previa. Ella corrige lo
 // que haga falta antes de confirmar; esto solo ahorra teclear, nunca guarda nada por su cuenta.
 notas.post('/notas/extraer', async (c) => {
-  const formData = await c.req.formData()
+  // Ver la nota en routes/vision.ts: sin este envoltorio, una petición sin formulario sale como
+  // 500 (fallo del servidor) cuando en realidad es un 400 (petición mal formada).
+  let formData: FormData
+  try {
+    formData = await c.req.formData()
+  } catch {
+    return c.json({ error: 'La petición no trae un formulario válido (multipart/form-data)' }, 400)
+  }
   // Ver nota en routes/vision.ts sobre el tipado incompleto de FormData.get() en workers-types.
   const imagen = formData.get('imagen') as unknown as File | null
   if (!(imagen instanceof File)) {
