@@ -16,6 +16,9 @@ En las lineas nocturnas (N1-N10) existe el servicio de "paradas a demanda", excl
 ## Tarjeta de transporte
 Sistema de tarjeta recargable para el pago de villavesas (mas economico que efectivo por viaje).
 
+### Billete Sencillo de Villavesa
+Precio: 1,45 euros. Forma de pago: efectivo.
+
 ## Otros transportes
 Aeropuerto de Pamplona con conexion limitada (para vuelos internacionales suele usarse Madrid o Bilbao). Tren (Renfe) con conexiones a Madrid, Zaragoza, San Sebastian.
 
