@@ -31,6 +31,20 @@ const app = new Hono<{ Bindings: Env }>()
 
 app.use('*', cors()) // ajusta origin en producción si sirves el Worker en un dominio propio distinto de Pages
 
+// Casi todas las rutas empiezan con `await c.req.json()` sin envolver. Si el cuerpo llega roto —un
+// server tool de ElevenLabs que manda mal el JSON, una petición cortada a medias— eso lanza un
+// SyntaxError y Hono lo convierte en 500 "Internal Server Error". Y un 500 miente: dice que el
+// Worker está averiado cuando lo que está mal es la petición. Mismo problema que ya se arregló en
+// los endpoints que leen formularios (ver routes/vision.ts), pero aquí se resuelve una sola vez
+// para todas las rutas en lugar de repetir el try/catch en cada una.
+app.onError((err, c) => {
+  if (err instanceof SyntaxError) {
+    return c.json({ error: 'El cuerpo de la petición no es JSON válido' }, 400)
+  }
+  console.error('[worker] error no controlado', err)
+  return c.json({ error: 'Error interno' }, 500)
+})
+
 app.get('/', (c) => c.json({ ok: true, servicio: 'asistentecarmen' }))
 
 app.route('/', vision)
