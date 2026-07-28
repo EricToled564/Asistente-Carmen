@@ -265,10 +265,23 @@ export default function OnboardingFlow({ onGoTo }) {
               </li>
             ))}
           </ul>
-          <p className="rounded-xl bg-white/10 p-3 text-xs text-crema-100/80">
-            No hace falta que hagas nada ahora. Están en Ajustes → Primeros 30 días, en el orden que
-            conviene hacerlos.
+          <p className="rounded-xl bg-white/10 p-3 text-xs leading-relaxed text-crema-100/80">
+            No hace falta que hagas nada ahora. Esto es solo la lista — cada uno tiene dentro{' '}
+            <strong>el paso a paso, qué papeles llevar y su plazo</strong>, y ahí es donde le pones fecha
+            para que yo te avise.
           </p>
+          {/* Sin este botón, la pantalla se queda en una lista de títulos y un "están en Ajustes" que
+              hay que ir a buscar. Es el último paso del onboarding: si no se llega desde aquí, la
+              herramienta entera puede pasar semanas sin que nadie la abra. */}
+          <button
+            onClick={() => {
+              completeOnboarding()
+              onGoTo?.('ajustes')
+            }}
+            className="rounded-full bg-white px-5 py-3 text-sm font-semibold text-lavanda-800 active:scale-[0.98]"
+          >
+            Ver cómo se hace cada uno →
+          </button>
         </div>
       )}
 
