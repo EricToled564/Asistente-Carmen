@@ -2,26 +2,23 @@ import { useEffect, useState } from 'react'
 import { useApp } from '../../context/AppContext.jsx'
 import { api } from '../../lib/api.js'
 import { estaInstalada, esIOS } from '../../lib/instalacion.js'
+import PrimerosDias from '../tramites/PrimerosDias.jsx'
 
 const STEPS = ['bienvenida', 'instalar', 'permisos', 'emergencia', 'checklist']
 
 const TIPOS_SANGRE = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
 
-// Vista previa de los trámites, en el mismo orden que el catálogo del Worker
-// (worker/src/lib/tramitesStore.ts). Aquí solo se enseñan: el estado real y las citas viven en el
-// servidor, y el onboarding no es el momento de ponerse a agendar nada — todavía ni ha llegado.
-// Se duplica el texto a propósito en vez de pedirlo por red: esta pantalla tiene que poder
-// pintarse aunque el Worker no conteste, que es justo el primer minuto de uso de la app.
-const VISTA_PREVIA_TRAMITES = [
-  { icono: '🆘', titulo: 'Emergencia SOS de tu móvil', nota: 'Lo primero. Cinco minutos y funciona aunque tú no puedas.' },
-  { icono: '🔔', titulo: 'Avisos de Maite en tu móvil' },
-  { icono: '🏛️', titulo: 'Empadronamiento', nota: 'Desbloquea a los demás.' },
-  { icono: '🪪', titulo: 'TIE', nota: 'Plazo: primer mes desde que llegas.' },
-  { icono: '🏦', titulo: 'Cuenta bancaria' },
-  { icono: '🩺', titulo: 'Tarjeta sanitaria' },
-  { icono: '📱', titulo: 'Línea de móvil española' },
-  { icono: '🚌', titulo: 'Tarjeta de transporte (villavesa)' }
-]
+// La lista de trámites YA NO se duplica aquí. El último paso monta el componente real
+// (components/tramites/PrimerosDias.jsx), con sus pasos, su qué llevar y su botón de agendar.
+//
+// Antes esta pantalla era una vista previa: ocho títulos y un "están en Ajustes". Eso tenía dos
+// problemas. Se confunde con la sección de verdad —parece la herramienta y no lo es—, y sobre todo
+// deja lo único urgente de sus primeras semanas a un viaje que hay que acordarse de hacer. El
+// trámite con plazo legal es el T-I-E, un mes desde que aterriza: si hay un momento para poder
+// agendarlo, es este.
+//
+// Se pierde a cambio que esta pantalla ya no se pinta sin red. Es un intercambio asumido: sin red
+// el componente lo dice y ella puede seguir igual con el botón de abajo.
 
 // ¿Se está viendo desde el icono instalado, o desde el navegador?
 //
@@ -99,8 +96,16 @@ export default function OnboardingFlow({ onGoTo }) {
     onGoTo?.('inicio')
   }
 
+  const esUltimo = step === STEPS.length - 1
+
   return (
-    <div className="flex h-full flex-col justify-between bg-gradient-to-br from-lavanda-400 via-lavanda-600 to-morado-900 p-6 text-crema-50 safe-top safe-bottom">
+    <div
+      className={`flex h-full flex-col justify-between safe-top safe-bottom ${
+        // El último paso monta la herramienta real, cuyas tarjetas son blancas sobre fondo claro.
+        // Sobre el degradado morado del onboarding no se leerían.
+        esUltimo ? 'bg-lavanda-50 p-0 text-morado-900' : 'bg-gradient-to-br from-lavanda-400 via-lavanda-600 to-morado-900 p-6 text-crema-50'
+      }`}
+    >
       {step === 0 && (
         <div className="flex flex-1 flex-col items-center justify-center text-center">
           <h1 className="font-display text-5xl font-bold tracking-tight text-balance">Hola 👋</h1>
@@ -243,52 +248,49 @@ export default function OnboardingFlow({ onGoTo }) {
       )}
 
       {step === 4 && (
-        <div className="flex flex-1 flex-col gap-4 overflow-y-auto">
-          <h2 className="font-display text-2xl font-bold">Tus primeros 30 días</h2>
-          <p className="text-sm text-crema-100/80">
-            Ocho cosas que hay que dejar hechas al llegar. En Ajustes le pones fecha a cada una y yo
-            te aviso el día antes y esa misma mañana, con la lista de lo que tienes que llevar.
-          </p>
-          <ul className="flex flex-col gap-2">
-            {VISTA_PREVIA_TRAMITES.map((item, i) => (
-              <li
-                key={item.titulo}
-                className={`flex items-start gap-3 rounded-xl p-3 text-sm ${
-                  i === 0 ? 'bg-white/20 ring-1 ring-white/40' : 'bg-white/10'
-                }`}
-              >
-                <span>{item.icono}</span>
-                <span>
-                  {item.titulo}
-                  {item.nota ? <span className="block text-xs text-crema-100/70">{item.nota}</span> : null}
-                </span>
-              </li>
-            ))}
-          </ul>
-          <p className="rounded-xl bg-white/10 p-3 text-xs leading-relaxed text-crema-100/80">
-            No hace falta que hagas nada ahora. Esto es solo la lista — cada uno tiene dentro{' '}
-            <strong>el paso a paso, qué papeles llevar y su plazo</strong>, y ahí es donde le pones fecha
-            para que yo te avise.
-          </p>
-          {/* Sin este botón, la pantalla se queda en una lista de títulos y un "están en Ajustes" que
-              hay que ir a buscar. Es el último paso del onboarding: si no se llega desde aquí, la
-              herramienta entera puede pasar semanas sin que nadie la abra. */}
-          <button
-            onClick={() => {
-              completeOnboarding()
-              onGoTo?.('ajustes')
-            }}
-            className="rounded-full bg-white px-5 py-3 text-sm font-semibold text-lavanda-800 active:scale-[0.98]"
-          >
-            Ver cómo se hace cada uno →
-          </button>
+        <div className="flex flex-1 flex-col overflow-y-auto">
+          <div className="px-5 pt-5">
+            <h2 className="font-display text-2xl font-bold text-lavanda-800">Tus primeros 30 días</h2>
+            <p className="mt-2 text-sm leading-relaxed text-morado-900/70">
+              Ocho cosas que hay que dejar hechas al llegar. Cada una trae su paso a paso y qué papeles
+              llevar. Si ya sabes cuándo es alguna cita, ponle fecha aquí mismo y te aviso el día antes
+              y esa misma mañana.
+            </p>
+            <p className="mt-2 text-xs text-morado-900/50">
+              No hace falta que hagas nada ahora — esto se queda en Ajustes y puedes volver cuando
+              quieras.
+            </p>
+          </div>
+          <div className="mt-4">
+            <PrimerosDias />
+          </div>
         </div>
       )}
 
-      <div className="mt-6 flex items-center justify-between">
+      {/* En el último paso el fondo es claro y la barra va sobre él: los puntos blancos y el botón
+          blanco desaparecerían. Además se fija abajo, porque encima hay una lista larga que se
+          desplaza y "Empezar" tiene que seguir alcanzable sin llegar al final. */}
+      <div
+        className={`flex items-center justify-between ${
+          esUltimo
+            ? 'sticky bottom-0 border-t border-lavanda-100 bg-crema-50/95 px-5 py-3 backdrop-blur'
+            : 'mt-6'
+        }`}
+      >
         <div className="flex gap-1.5">
           {STEPS.map((_, i) => (
-            <span key={i} className={`h-1.5 w-6 rounded-full ${i === step ? 'bg-white' : 'bg-white/30'}`} />
+            <span
+              key={i}
+              className={`h-1.5 w-6 rounded-full ${
+                esUltimo
+                  ? i === step
+                    ? 'bg-lavanda-700'
+                    : 'bg-lavanda-200'
+                  : i === step
+                    ? 'bg-white'
+                    : 'bg-white/30'
+              }`}
+            />
           ))}
         </div>
         {step === 3 ? (
@@ -307,7 +309,10 @@ export default function OnboardingFlow({ onGoTo }) {
             Siguiente
           </button>
         ) : (
-          <button onClick={finish} className="rounded-full bg-white px-6 py-2.5 font-semibold text-lavanda-800">
+          <button
+            onClick={finish}
+            className="rounded-full bg-lavanda-700 px-6 py-2.5 font-semibold text-white active:scale-95"
+          >
             Empezar
           </button>
         )}
