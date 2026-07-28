@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useApp } from '../context/AppContext.jsx'
 import { useClock, formatInTZ, ventanaBuenaParaLlamar } from '../hooks/useClock.js'
-import { CIUDADES_REFERENCIA } from '../data/ciudadesReferencia.js'
+import SelectorCiudad from '../components/comun/SelectorCiudad.jsx'
 import { useTramites, citaLegible } from '../hooks/useTramites.js'
 
 export default function Inicio({ onNavigate }) {
@@ -56,38 +56,18 @@ export default function Inicio({ onNavigate }) {
           </button>
         </div>
 
-        <div className="mt-2 flex items-end justify-between">
+        <div className="relative mt-2 flex items-end justify-between">
           <div>
             <p className="font-display text-5xl font-bold tabular-nums text-morado-900">
               {formatInTZ(now, principal.tz)}
             </p>
             {modoViaje ? (
-              editandoCiudad ? (
-                <select
-                  autoFocus
-                  value={ciudadEditable.nombre}
-                  onChange={(e) => {
-                    const elegida = CIUDADES_REFERENCIA.find((c) => c.nombre === e.target.value)
-                    if (elegida) aplicarCiudad(elegida)
-                    setEditandoCiudad(false)
-                  }}
-                  onBlur={() => setEditandoCiudad(false)}
-                  className="mt-0.5 rounded-lg border border-lavanda-300 bg-white px-1.5 py-0.5 text-xs text-morado-900"
-                >
-                  {CIUDADES_REFERENCIA.map((c) => (
-                    <option key={c.nombre} value={c.nombre}>
-                      {c.nombre}
-                    </option>
-                  ))}
-                </select>
-              ) : (
-                <button
-                  onClick={() => setEditandoCiudad(true)}
-                  className="text-xs text-morado-900/60 underline decoration-dotted"
-                >
-                  {principal.nombre} ✎
-                </button>
-              )
+              <button
+                onClick={() => setEditandoCiudad(true)}
+                className="text-xs text-morado-900/60 underline decoration-dotted"
+              >
+                {principal.nombre} ✎
+              </button>
             ) : (
               <p className="text-xs text-morado-900/60">{principal.nombre}</p>
             )}
@@ -96,25 +76,7 @@ export default function Inicio({ onNavigate }) {
             <p className="font-display text-2xl font-semibold tabular-nums text-morado-900/70">
               {formatInTZ(now, secundario.tz)}
             </p>
-            {!modoViaje && editandoCiudad ? (
-              <select
-                autoFocus
-                value={ciudadEditable.nombre}
-                onChange={(e) => {
-                  const elegida = CIUDADES_REFERENCIA.find((c) => c.nombre === e.target.value)
-                  if (elegida) aplicarCiudad(elegida)
-                  setEditandoCiudad(false)
-                }}
-                onBlur={() => setEditandoCiudad(false)}
-                className="mt-0.5 rounded-lg border border-lavanda-300 bg-white px-1.5 py-0.5 text-xs text-morado-900"
-              >
-                {CIUDADES_REFERENCIA.map((c) => (
-                  <option key={c.nombre} value={c.nombre}>
-                    {c.nombre}
-                  </option>
-                ))}
-              </select>
-            ) : modoViaje ? (
+            {modoViaje ? (
               <p className="text-xs text-morado-900/60">{secundario.nombre}</p>
             ) : (
               <button onClick={() => setEditandoCiudad(true)} className="text-xs text-morado-900/60 underline decoration-dotted">
@@ -122,6 +84,17 @@ export default function Inicio({ onNavigate }) {
               </button>
             )}
           </div>
+
+          {/* Un solo buscador para los dos relojes: el de arriba cuando viaja, el de abajo cuando
+              no. Cuál se cambia lo decide `ciudadEditable`, no dónde se tocó. */}
+          {editandoCiudad && (
+            <SelectorCiudad
+              actual={ciudadEditable}
+              onElegir={aplicarCiudad}
+              onCerrar={() => setEditandoCiudad(false)}
+              onNavigate={onNavigate}
+            />
+          )}
         </div>
 
         {modoViaje && (
