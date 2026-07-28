@@ -193,9 +193,35 @@ function normalizar(texto) {
     .trim()
 }
 
+// Agrupa la lista entera por país, respetando el orden en que aparecen en el archivo (México y
+// España primero, que son los dos sitios que de verdad va a mirar; luego el resto por regiones).
+//
+// Esto existe por un fallo real: al abrir el selector sin escribir nada se cortaba la lista en las
+// primeras 40 ciudades y, como México ocupa las 41 primeras, lo único que se veía era México. La
+// lista tenía 150 ciudades de 58 países y parecía una lista mexicana. Ahora sin buscar se ven
+// TODAS, separadas por país, así que basta con desplazar para descubrir que están las demás.
+export function ciudadesPorPais() {
+  const grupos = []
+  const indice = new Map()
+  for (const c of CIUDADES_REFERENCIA) {
+    if (!indice.has(c.pais)) {
+      const grupo = { pais: c.pais, ciudades: [] }
+      indice.set(c.pais, grupo)
+      grupos.push(grupo)
+    }
+    indice.get(c.pais).ciudades.push(c)
+  }
+  return grupos
+}
+
+export const TOTAL_CIUDADES = CIUDADES_REFERENCIA.length
+export const TOTAL_PAISES = new Set(CIUDADES_REFERENCIA.map((c) => c.pais)).size
+
+// Con texto: filtra y ordena por relevancia. Sin texto devuelve la lista completa — el corte solo
+// tiene sentido cuando hay una consulta que ordena por pertinencia; sin ella, cortar es esconder.
 export function buscarCiudades(consulta, limite = 40) {
   const q = normalizar(consulta)
-  if (!q) return CIUDADES_REFERENCIA.slice(0, limite)
+  if (!q) return CIUDADES_REFERENCIA
 
   const puntuar = (c) => {
     const nombre = normalizar(c.nombre)
