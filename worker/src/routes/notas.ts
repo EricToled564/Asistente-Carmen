@@ -12,7 +12,8 @@ export const notas = new Hono<{ Bindings: Env }>()
 const CONTEXTO =
   'La mención se asigna por orden de expediente entre quienes la piden — no hay una nota fija que garantice un lugar, así que esto es tu progreso, no una cuenta regresiva a un número mágico.'
 
-// GET /notas — lista + promedio ponderado. Lo usa la pantalla "Mi Progreso" y también Maite.
+// GET /notas — lista + promedio ponderado. Lo usa la vista "Mi expediente" de Académico → Mis
+// calificaciones, y también Maite vía consultar_promedio.
 notas.get('/notas', async (c) => {
   const lista = await listarNotas(c.env)
   const resumen = calcularPromedio(lista)

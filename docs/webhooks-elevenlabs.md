@@ -246,7 +246,7 @@ para la mención de 4º.
   quienes la piden: no hay nota mínima publicada. Nunca le digas a Carmen que "necesita un 8.5" ni
   ningún otro número — ese número no existe y ponerlo le inventa una presión falsa.
   Si `materias` es 0, todavía no ha registrado nada: dile que puede subir una foto de su boletín en
-  "Mi Progreso", sin dar un promedio inventado.
+  Académico → Mis calificaciones, sin dar un promedio inventado.
 
 ## 8. `consultar_apuntes`
 

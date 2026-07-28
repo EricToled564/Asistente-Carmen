@@ -160,7 +160,7 @@ calificaciones.get('/calificaciones/consulta', async (c) => {
     return c.json({
       encontradas: 0,
       mensaje:
-        'Carmen todavía no ha registrado ninguna nota parcial. No le des un promedio ni lo estimes: dile que las puede ir metiendo en Académico, en Mi Progreso, según se las vayan dando.'
+        'Carmen todavía no ha registrado ninguna nota parcial. No le des un promedio ni lo estimes: dile que las puede ir metiendo en Académico → Mis calificaciones, según se las vayan dando.'
     })
   }
 

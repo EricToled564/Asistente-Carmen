@@ -3,8 +3,8 @@ import { api } from '../../lib/api.js'
 
 // Notas parciales por asignatura, con el promedio calculado.
 //
-// "Mi Progreso" lleva el expediente: una nota final por materia, ponderada por ECTS. Eso contesta
-// "¿cómo llevo la carrera?". Esta pantalla contesta la otra pregunta, la que se hace de verdad a
+// La vista "Mi expediente" lleva el expediente: una nota final por materia, ponderada por ECTS.
+// Eso contesta "¿cómo llevo la carrera?". Esta contesta la otra pregunta, la que se hace de verdad a
 // mitad de semestre: "con lo que llevo en esta asignatura, ¿cómo voy?" y sobre todo "¿cuánto
 // necesito sacar en el examen final?".
 //
