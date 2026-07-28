@@ -108,9 +108,17 @@ function FormularioCita({ tramite, onGuardar, onCancelar }) {
 }
 
 function Tarjeta({ tramite, hoy, acciones, onNavigate }) {
-  const [abierto, setAbierto] = useState(false)
-  const [agendando, setAgendando] = useState(false)
   const hecho = tramite.estado === 'hecho'
+  // Los pasos se ven de entrada en todo lo que sigue pendiente, y solo se pliegan cuando ya está
+  // hecho.
+  //
+  // Antes iban colapsados detrás de un botón que decía "Cómo se hace", puesto al mismo nivel que
+  // "No, aún no" —que es un deshacer—. El resultado es que al abrir la pantalla se veía una lista
+  // de títulos con una línea de resumen: otra vez la lista de casillas que esto vino a sustituir.
+  // Las instrucciones existían pero había que adivinar que estaban ahí, y una instrucción que hay
+  // que descubrir no sirve de nada.
+  const [abierto, setAbierto] = useState(!hecho)
+  const [agendando, setAgendando] = useState(false)
 
   return (
     <div className={`rounded-2xl bg-white p-4 shadow-soft ${hecho ? 'opacity-60' : ''}`}>
@@ -174,9 +182,9 @@ function Tarjeta({ tramite, hoy, acciones, onNavigate }) {
         <div className="mt-3 flex flex-wrap gap-2">
           <button
             onClick={() => setAbierto((v) => !v)}
-            className="rounded-full bg-lavanda-50 px-3.5 py-1.5 text-xs font-semibold text-lavanda-800"
+            className="rounded-full px-2 py-1.5 text-xs font-semibold text-morado-900/45"
           >
-            {abierto ? 'Ocultar los pasos' : 'Cómo se hace'}
+            {abierto ? 'Ocultar los pasos' : 'Ver los pasos'}
           </button>
 
           {!hecho && tramite.tipo === 'cita' && (
@@ -225,7 +233,9 @@ function Tarjeta({ tramite, hoy, acciones, onNavigate }) {
           </div>
 
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-lavanda-700">Paso a paso</p>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-lavanda-700">
+              Qué tienes que hacer
+            </p>
             <ol className="mt-1 ml-4 flex list-decimal flex-col gap-1.5 text-xs leading-relaxed text-morado-900/75">
               {tramite.pasos.map((paso, i) => (
                 <li key={i}>{paso}</li>
