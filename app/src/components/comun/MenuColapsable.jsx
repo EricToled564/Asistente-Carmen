@@ -42,9 +42,11 @@ export default function MenuColapsable({ secciones, activa, onCambiar, etiqueta 
         className="flex w-full items-center gap-2 rounded-2xl bg-lavanda-700 px-4 py-2.5 text-left text-sm font-semibold text-white shadow-soft"
       >
         <span className="flex-1 truncate">{actual?.label}</span>
-        <span className="text-xs font-normal text-lavanda-100">
-          {secciones.findIndex((s) => s.id === actual?.id) + 1}/{secciones.length}
-        </span>
+        {/* Cuántas secciones hay, escrito con la palabra. Antes ponía "1/6" —la posición de la
+            sección actual— y al lado de un título como "Primeros 30 días", que justo debajo enseña
+            su progreso real ("1/8"), se leía como si fueran dos cuentas del mismo dato que no
+            cuadran. Una fracción suelta junto a un título siempre se lee como progreso. */}
+        <span className="shrink-0 text-xs font-normal text-lavanda-100">{secciones.length} secciones</span>
         <span className={`transition-transform ${abierto ? 'rotate-180' : ''}`}>⌄</span>
       </button>
 
