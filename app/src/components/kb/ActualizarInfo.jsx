@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { api } from '../../lib/api.js'
 import { useApp } from '../../context/AppContext.jsx'
+import SubirDocumento from './SubirDocumento.jsx'
 
 // "Actualizar mi info" era un formulario genérico de foto/texto con tres botones. Dos problemas:
 //
@@ -223,13 +224,17 @@ export default function ActualizarInfo({ onIrASeccion, onNavigate }) {
         ))}
       </section>
 
+      {/* --- Subir un archivo entero (PDF, Word…) --- */}
+      <SubirDocumento />
+
       {/* --- Lo que no hay que actualizar a mano --- */}
       <section className="rounded-2xl bg-lavanda-50 p-4">
         <h2 className="text-xs font-semibold uppercase tracking-wide text-lavanda-700">Esto se guarda solo</h2>
         <ul className="mt-2 flex flex-col gap-1.5 text-xs leading-relaxed text-morado-900/65">
           <li>
             <span className="font-semibold text-morado-900">Tus apuntes de clase.</span> Lo que grabas en
-            Académico → Captura. De ahí salen los quizzes.
+            Académico → Captura. El resumen se le añade solo a Maite, agrupado por asignatura, y la
+            clase entera queda guardada para los quizzes.
           </li>
           <li>
             <span className="font-semibold text-morado-900">Tus notas.</span> Las de voz y las que sacas de una

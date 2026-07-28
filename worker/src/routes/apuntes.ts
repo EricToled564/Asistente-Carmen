@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import type { Env } from '../types.js'
 import { guardarApunte, listarApuntes, obtenerApunte, borrarApunte, buscarApuntes } from '../lib/apuntesStore.js'
+import { agregarApunteAlKb } from '../lib/kbApuntes.js'
 
 export const apuntes = new Hono<{ Bindings: Env }>()
 
@@ -59,7 +60,22 @@ apuntes.post('/apuntes', async (c) => {
     apuntes: body.apuntes,
     transcripcion: body.transcripcion
   })
-  return c.json({ ok: true, apunte })
+
+  // Además de KV, el resumen va al documento de esa materia en el Knowledge Base, para que Maite
+  // sepa de qué fue la clase sin tener que llamar a `consultar_apuntes` (ver lib/kbApuntes.ts).
+  //
+  // Va DESPUÉS de guardar y no bloquea el resultado: el apunte de Carmen ya está a salvo en KV en
+  // este punto. Si ElevenLabs está caído o la clave falla, lo peor que pasa es que Maite se entere
+  // de esa clase cuando use la tool, no que se pierda la grabación que acaba de hacer.
+  let kb: { ok: boolean; motivo?: string } = { ok: false, motivo: 'no intentado' }
+  try {
+    kb = await agregarApunteAlKb(c.env, apunte)
+  } catch (err) {
+    console.error('[apuntes] no se pudo llevar el resumen al KB', err)
+    kb = { ok: false, motivo: 'No se pudo actualizar la base de conocimiento de Maite.' }
+  }
+
+  return c.json({ ok: true, apunte, kb })
 })
 
 apuntes.delete('/apuntes/:id', async (c) => {
