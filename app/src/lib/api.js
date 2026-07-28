@@ -55,6 +55,10 @@ export const api = {
   kbUpload: (formData) => request('/kb-upload', { method: 'POST', body: formData }),
   kbArchivos: () => request('/kb-archivos', { method: 'GET' }),
   tramitesListar: () => request('/tramites', { method: 'GET' }),
+  calificacionesListar: () => request('/calificaciones', { method: 'GET' }),
+  calificacionGuardar: (payload) => request('/calificaciones', { method: 'POST', body: JSON.stringify(payload) }),
+  calificacionBorrar: (kbCode, componenteId) =>
+    request(`/calificaciones/${encodeURIComponent(kbCode)}/${encodeURIComponent(componenteId)}`, { method: 'DELETE' }),
   tramiteAgendar: (id, cita) => request(`/tramites/${id}/agendar`, { method: 'POST', body: JSON.stringify(cita) }),
   tramiteQuitarCita: (id) => request(`/tramites/${id}/cita`, { method: 'DELETE' }),
   tramiteCompletar: (id) => request(`/tramites/${id}/completar`, { method: 'POST' }),

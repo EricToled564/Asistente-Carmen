@@ -7,12 +7,14 @@ import Horario from '../components/academico/Horario.jsx'
 import MiProgreso from '../components/academico/MiProgreso.jsx'
 import TipsAcademicos from '../components/academico/TipsAcademicos.jsx'
 import MisApuntes from '../components/academico/MisApuntes.jsx'
+import Calificaciones from '../components/academico/Calificaciones.jsx'
 import BotonMaite from '../components/agente/BotonMaite.jsx'
 import MenuColapsable from '../components/comun/MenuColapsable.jsx'
 
 const SECCIONES = [
   { id: 'horario', label: '🗓️ Horario' },
   { id: 'progreso', label: '📈 Mi Progreso' },
+  { id: 'notas', label: '📊 Mis notas' },
   { id: 'tips', label: '💡 Tips' },
   { id: 'radar', label: '📅 Radar' },
   { id: 'indice', label: '📖 Índice' },
@@ -53,6 +55,8 @@ export default function Academico({ onNavigate }) {
         {seccion === 'horario' && <Horario />}
 
         {seccion === 'progreso' && <MiProgreso />}
+
+        {seccion === 'notas' && <Calificaciones />}
 
         {seccion === 'tips' && <TipsAcademicos />}
 

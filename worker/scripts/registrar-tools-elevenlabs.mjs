@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 //
-// Registra las 8 server tools de Maite en ElevenLabs y las engancha al agente.
+// Registra las 9 server tools de Maite en ElevenLabs y las engancha al agente.
 //
 // Estructura verificada contra el OpenAPI oficial de ElevenLabs
 // (https://api.elevenlabs.io/openapi.json, consultado el 26-jul-2026):
@@ -161,6 +161,22 @@ const TOOLS = [
       'Devuelve las calificaciones que Carmen ha registrado y su promedio ponderado por ECTS. Úsala cuando pregunte cómo va académicamente o por la mención de 4º.',
     method: 'GET',
     path: '/notas'
+  },
+  {
+    name: 'consultar_calificaciones',
+    description:
+      'Devuelve, asignatura por asignatura, las notas parciales que Carmen ha metido (ejercicios, tests, examen final) con el peso de cada apartado, su media actual y cuánto necesita en lo que le falta para aprobar. Úsala cuando pregunte cómo va en UNA asignatura concreta o qué necesita sacar en un examen. Distinta de consultar_promedio, que es el expediente completo de la carrera.',
+    method: 'GET',
+    path: '/calificaciones/consulta',
+    query: {
+      properties: {
+        materia: {
+          type: 'string',
+          description:
+            "Nombre o parte del nombre de la asignatura ('Form and Image', 'geometrías'). Vacío devuelve todas las que tengan alguna nota."
+        }
+      }
+    }
   },
   {
     name: 'consultar_apuntes',
