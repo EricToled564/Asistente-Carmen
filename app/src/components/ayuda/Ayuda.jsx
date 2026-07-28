@@ -234,6 +234,30 @@ export default function Ayuda({ onIrASeccion, onNavigate }) {
         )}
       </Bloque>
 
+      <Bloque icono="⚡" titulo="Los botones de grabar clase con 2 taps">
+        <p className="mb-2">
+          En Académico → Captura hay dos botones, <span className="font-semibold">Grabar clase</span> y{' '}
+          <span className="font-semibold">Terminar clase</span>. Solo funcionan en iPhone, y solo después de
+          crear dos Atajos una vez. Si les das y no pasa nada, es que faltan.
+        </p>
+        <Pasos>
+          <li>Abre la app <span className="font-semibold">Atajos</span> del iPhone.</li>
+          <li>
+            Crea un atajo llamado exactamente <span className="font-semibold">GrabarClase</span> con la acción
+            de grabar audio.
+          </li>
+          <li>
+            Crea otro llamado exactamente <span className="font-semibold">TerminarClase</span> que pare la
+            grabación y la comparta con esta app.
+          </li>
+          <li>El nombre tiene que ser idéntico, sin espacios: si no coincide, el botón no encuentra nada.</li>
+        </Pasos>
+        <p className="mt-2 text-xs text-morado-900/60">
+          No hace falta tenerlos: en <span className="font-semibold">Académico → Captura</span> puedes grabar
+          desde la propia app, sin Atajos. Los botones solo ahorran pasos.
+        </p>
+      </Bloque>
+
       <Bloque icono="🔒" titulo="¿Qué sabe Maite de mí?">
         <p className="mb-2">Sin rodeos, esto es lo que se guarda:</p>
         <ul className="ml-4 flex list-disc flex-col gap-1.5">

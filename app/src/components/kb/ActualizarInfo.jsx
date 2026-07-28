@@ -237,8 +237,8 @@ export default function ActualizarInfo({ onIrASeccion, onNavigate }) {
             clase entera queda guardada para los quizzes.
           </li>
           <li>
-            <span className="font-semibold text-morado-900">Tus notas.</span> Las de voz y las que sacas de una
-            foto de un cartel o un papel.
+            <span className="font-semibold text-morado-900">Tus calificaciones.</span> Las que metes en Mis
+            calificaciones, apartado por apartado, o la foto de tu boletín.
           </li>
           <li>
             <span className="font-semibold text-morado-900">Lo que le cuentas hablando.</span> Maite se acuerda
