@@ -2,15 +2,21 @@ import { useState } from 'react'
 import { useApp } from '../context/AppContext.jsx'
 import { useClock, formatInTZ, ventanaBuenaParaLlamar } from '../hooks/useClock.js'
 import { CIUDADES_REFERENCIA } from '../data/ciudadesReferencia.js'
+import { useTramites, citaLegible } from '../hooks/useTramites.js'
 
 export default function Inicio({ onNavigate }) {
-  const { checklist, ciudadReferencia, setCiudadReferencia, modoViaje, setModoViaje, ciudadViaje, setCiudadViaje } =
-    useApp()
+  const { ciudadReferencia, setCiudadReferencia, modoViaje, setModoViaje, ciudadViaje, setCiudadViaje } = useApp()
+  // El progreso ya no sale de localStorage sino del Worker (ver hooks/useTramites.js): es el mismo
+  // estado que usan los recordatorios, así que lo que se ve aquí es lo que de verdad va a avisar.
+  const { tramites, resumen } = useTramites()
   const [editandoCiudad, setEditandoCiudad] = useState(false)
   const now = useClock()
-  const pendientes = checklist.filter((i) => !i.done)
-  const hechas = checklist.length - pendientes.length
-  const progreso = checklist.length ? Math.round((hechas / checklist.length) * 100) : 0
+  const pendientes = (tramites || []).filter((t) => t.estado !== 'hecho')
+  const proximaCita = (tramites || [])
+    .filter((t) => t.estado === 'agendado' && !t.citaPasada)
+    .sort((a, b) => `${a.cita.fecha}${a.cita.hora}`.localeCompare(`${b.cita.fecha}${b.cita.hora}`))[0]
+  const sinCerrar = (tramites || []).filter((t) => t.citaPasada)
+  const progreso = resumen?.total ? Math.round((resumen.hechos / resumen.total) * 100) : 0
   // La ventana para llamar se calcula SIEMPRE contra la ciudad de casa, también viajando: la
   // pregunta es si allá es buena hora para contestar, no si aquí es cómodo marcar.
   const buenaVentana = ventanaBuenaParaLlamar(now, ciudadReferencia.tz)
@@ -164,36 +170,56 @@ export default function Inicio({ onNavigate }) {
         </div>
       </button>
 
-      <section className="rounded-3xl border border-lavanda-200 bg-white p-5 shadow-soft">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="font-medium text-morado-900/70">Primeros 30 días</p>
-            <p className="font-display text-4xl font-bold tabular-nums text-lavanda-700">
-              {hechas}
-              <span className="text-xl font-semibold text-morado-900/40">/{checklist.length}</span>
-            </p>
+      {/* La tarjeta solo aparece cuando los datos llegaron. Si el Worker no responde, no se pinta
+          "0/8": decirle que no ha hecho nada cuando en realidad no se pudo cargar es peor que no
+          enseñar la tarjeta. */}
+      {resumen && (
+        <section className="rounded-3xl border border-lavanda-200 bg-white p-5 shadow-soft">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="font-medium text-morado-900/70">Primeros 30 días</p>
+              <p className="font-display text-4xl font-bold tabular-nums text-lavanda-700">
+                {resumen.hechos}
+                <span className="text-xl font-semibold text-morado-900/40">/{resumen.total}</span>
+              </p>
+            </div>
+            <button
+              onClick={() => onNavigate('ajustes')}
+              className="rounded-full bg-lavanda-50 px-3 py-1.5 text-xs font-semibold text-lavanda-800 active:scale-95"
+            >
+              Ver todo
+            </button>
           </div>
-          <button
-            onClick={() => onNavigate('ajustes')}
-            className="rounded-full bg-lavanda-50 px-3 py-1.5 text-xs font-semibold text-lavanda-800 active:scale-95"
-          >
-            Ver todo
-          </button>
-        </div>
-        <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-lavanda-50">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-lavanda-500 to-lavanda-700 transition-all"
-            style={{ width: `${progreso}%` }}
-          />
-        </div>
-        {pendientes[0] ? (
-          <p className="mt-3 rounded-xl bg-crema-100 p-3 text-sm text-morado-900/80">
-            Siguiente: <span className="font-semibold">{pendientes[0].label}</span>
-          </p>
-        ) : (
-          <p className="mt-3 rounded-xl bg-melocoton-300 p-3 text-sm font-semibold text-morado-900">¡Todo listo! 🎉</p>
-        )}
-      </section>
+          <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-lavanda-50">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-lavanda-500 to-lavanda-700 transition-all"
+              style={{ width: `${progreso}%` }}
+            />
+          </div>
+          {/* Prioridad: primero una cita sin cerrar (esa se queda colgada para siempre si nadie
+              pregunta), luego la próxima cita, y solo si no hay ninguna, el siguiente pendiente. */}
+          {sinCerrar[0] ? (
+            <button
+              onClick={() => onNavigate('ajustes')}
+              className="mt-3 w-full rounded-xl bg-melocoton-300 p-3 text-left text-sm font-semibold text-morado-900"
+            >
+              ¿Cómo fue lo de {sinCerrar[0].titulo}? Dime si ya está →
+            </button>
+          ) : proximaCita ? (
+            <p className="mt-3 rounded-xl bg-crema-100 p-3 text-sm text-morado-900/80">
+              <span className="font-semibold">{proximaCita.titulo}</span>: {citaLegible(proximaCita.cita)}
+            </p>
+          ) : pendientes[0] ? (
+            <p className="mt-3 rounded-xl bg-crema-100 p-3 text-sm text-morado-900/80">
+              Siguiente: <span className="font-semibold">{pendientes[0].titulo}</span>
+            </p>
+          ) : (
+            <p className="mt-3 rounded-xl bg-melocoton-300 p-3 text-sm font-semibold text-morado-900">
+              ¡Todo listo! 🎉
+            </p>
+          )}
+        </section>
+      )}
     </div>
   )
 }

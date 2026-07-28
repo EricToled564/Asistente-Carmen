@@ -51,14 +51,21 @@ id = "84bc612d19634b5683c9ada11835394c" # namespace "Asistente_Carmen"
 # el año 2026-2027 — el horario del 1er semestre se investigó y cargó directo a KB8-horario.md
 # antes de la entrega (no hizo falta que ella lo subiera). El de 20-dic sigue vigente: el 2o
 # semestre (inicia enero 2027) todavía no está documentado.
+# Los dos recordatorios de horario (25-ago y 20-dic) van FUSIONADOS en una sola expresión
+# "0 8 20,25 8,12 *" para dejar libre un slot de los 5. Eso los dispara 4 veces al año en vez de
+# 2 (20-ago, 25-ago, 20-dic, 25-dic), lo cual es inofensivo: recordatorioSubirHorario consulta
+# antes debeRecordarHorario() y no manda nada si el horario ya está al día.
+# Trámites de los primeros 30 días: 06:00 UTC = 08:00 en Pamplona en verano, 07:00 en invierno.
+# Tiene que ser temprano porque el aviso del mismo día no sirve de nada si llega después de la
+# cita — el check-in diario se queda a las 09:00 UTC, que es media mañana allí.
 # Check-in proactivo diario: cada mañana
 [triggers]
 crons = [
-  "0 6 1 1,8 *", # KB1-4 auto-investigación (1-ene y 1-ago, misma expresión)
-  "0 6 1 * *",   # KB5-6 auto-investigación (mensual)
-  "0 8 25 8 *",  # recordatorio: sube tu horario (ver nota — moot para 2026, útil en años futuros)
-  "0 8 20 12 *", # recordatorio: sube tu horario del 2o semestre (sí aplica, vigente)
-  "0 9 * * *"    # check-in proactivo diario (radar académico, ánimo, etc.)
+  "0 6 1 1,8 *",     # KB1-4 auto-investigación (1-ene y 1-ago, misma expresión)
+  "0 6 1 * *",       # KB5-6 auto-investigación (mensual)
+  "0 8 20,25 8,12 *",# recordatorio: sube tu horario (ago y dic) — ver nota sobre la fusión
+  "0 6 * * *",       # recordatorios de los trámites de los primeros 30 días (08:00 en Pamplona)
+  "0 9 * * *"        # check-in proactivo diario (ánimo, pendientes)
 ]
 
 # --- Variables de entorno / secretos ---

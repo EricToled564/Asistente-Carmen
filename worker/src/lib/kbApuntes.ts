@@ -135,14 +135,43 @@ function componer(materia: string, entradas: Entrada[]): string {
   )
 }
 
+// El título de un apunte lo deriva apuntesStore de su primera línea útil, y esa primera línea casi
+// siempre es "Resumen: ..." (así es como Claude estructura las capturas, ver routes/audio.ts). Sin
+// limpiarlo, cada entrada del documento sale con el encabezado repitiendo literalmente la frase
+// que viene justo debajo:
+//
+//   ## 28 de julio de 2026 — Resumen: perspectiva cónica, punto de fuga y línea de horizonte.
+//
+//   Resumen: perspectiva cónica, punto de fuga y línea de horizonte.
+//
+// No rompe nada, pero se lee mal y duplica una frase por clase dentro de un documento que está
+// limitado justo por tamaño.
+export function limpiarTitulo(titulo: string): string {
+  return titulo
+    .replace(/^\s*resumen(\s+de\s+la\s+clase)?\s*:\s*/i, '')
+    .replace(/[…\s.]+$/, '')
+    .trim()
+}
+
+// Y si el cuerpo empieza por esa misma frase, se quita de ahí en vez de del título: el encabezado
+// es lo que se ve en el índice, así que es el que conviene conservar.
+export function quitarPrimeraLineaSiRepite(cuerpo: string, tituloLimpio: string): string {
+  const lineas = cuerpo.split('\n')
+  const i = lineas.findIndex((l) => l.trim())
+  if (i === -1) return cuerpo
+  const primera = limpiarTitulo(lineas[i])
+  const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+  // Se compara por prefijo porque el título viene recortado con "…" cuando es largo.
+  if (primera && norm(primera).startsWith(norm(tituloLimpio).slice(0, 40)) && tituloLimpio.length >= 12) {
+    return lineas.slice(i + 1).join('\n').trim()
+  }
+  return cuerpo
+}
+
 // Crea el documento de la materia si es la primera clase que se graba de ella, y lo adjunta al
 // agente. Sin el adjuntar, el documento existiría en la cuenta de ElevenLabs pero Maite no lo
 // vería: todo respondería 200 y ella seguiría sin saber nada de esa asignatura.
-async function asegurarDocumento(env: Env, materia: string): Promise<{ documentId: string; kbCode: string }> {
-  const kbCode = codigoKbDeMateria(materia)
-  const existente = await getKbDocId(env, kbCode)
-  if (existente) return { documentId: existente, kbCode }
-
+async function crearYRegistrar(env: Env, materia: string, kbCode: string): Promise<string> {
   const nombre = `Apuntes de clase — ${materia}`
   const creado = await crearKbDocumentoTexto(env.ELEVENLABS_API_KEY, nombre, cabeceraDe(materia))
   await setKbDocId(env, kbCode, creado.id)
@@ -155,7 +184,28 @@ async function asegurarDocumento(env: Env, materia: string): Promise<{ documentI
       usage_mode: 'auto'
     })
   }
-  return { documentId: creado.id, kbCode }
+  return creado.id
+}
+
+async function asegurarDocumento(env: Env, materia: string): Promise<{ documentId: string; kbCode: string }> {
+  const kbCode = codigoKbDeMateria(materia)
+  const existente = await getKbDocId(env, kbCode)
+  if (existente) return { documentId: existente, kbCode }
+  return { documentId: await crearYRegistrar(env, materia, kbCode), kbCode }
+}
+
+// El id registrado puede apuntar a un documento que ya no existe: basta con que alguien lo borre
+// desde el panel de ElevenLabs. Sin esto, esa materia se quedaría rota PARA SIEMPRE — cada clase
+// nueva intentaría escribir en un documento fantasma y fallaría en silencio, y no habría forma de
+// arreglarlo desde la app. Recrearlo es lo único que deja el sistema en el estado que se esperaba.
+async function documentoExiste(env: Env, documentId: string): Promise<boolean> {
+  try {
+    await getKbDocument(env.ELEVENLABS_API_KEY, documentId)
+    return true
+  } catch (err) {
+    if (String(err).includes('404')) return false
+    throw err
+  }
 }
 
 export interface ResultadoApunteKb {
@@ -169,7 +219,7 @@ export interface ResultadoApunteKb {
 }
 
 export async function agregarApunteAlKb(env: Env, apunte: Apunte): Promise<ResultadoApunteKb> {
-  const { documentId, kbCode } = await asegurarDocumento(env, apunte.materia)
+  let { documentId, kbCode } = await asegurarDocumento(env, apunte.materia)
 
   // Tal cual, sin volver a resumir: esto ya es la salida de Claude sobre la transcripción.
   const resumen = apunte.apuntes.trim()
@@ -177,12 +227,18 @@ export async function agregarApunteAlKb(env: Env, apunte: Apunte): Promise<Resul
     return { ok: false, motivo: 'El apunte venía vacío, no se tocó el documento.', kbCode, documentId }
   }
 
+  if (!(await documentoExiste(env, documentId))) {
+    console.warn(`[kbApuntes] ${kbCode} apuntaba a un documento borrado (${documentId}); recreando`)
+    documentId = await crearYRegistrar(env, apunte.materia, kbCode)
+  }
+
   const actual = await getKbDocument(env.ELEVENLABS_API_KEY, documentId).catch(() => '')
   const previas = partirEnEntradas(actual)
 
+  const tituloLimpio = limpiarTitulo(apunte.titulo)
   const nueva: Entrada = {
-    titulo: `${fechaLegible(apunte.creadoEn)} — ${apunte.titulo}`,
-    cuerpo: resumen
+    titulo: `${fechaLegible(apunte.creadoEn)} — ${tituloLimpio || apunte.titulo}`,
+    cuerpo: quitarPrimeraLineaSiRepite(resumen, tituloLimpio)
   }
 
   // El condensado siempre va al final, así que se separa antes de reordenar. Si se dejara en la

@@ -8,6 +8,7 @@ import MiProgreso from '../components/academico/MiProgreso.jsx'
 import TipsAcademicos from '../components/academico/TipsAcademicos.jsx'
 import MisApuntes from '../components/academico/MisApuntes.jsx'
 import BotonMaite from '../components/agente/BotonMaite.jsx'
+import MenuColapsable from '../components/comun/MenuColapsable.jsx'
 
 const SECCIONES = [
   { id: 'horario', label: '🗓️ Horario' },
@@ -46,19 +47,7 @@ export default function Academico({ onNavigate }) {
         <h1 className="font-display text-2xl font-bold text-lavanda-800">Académico</h1>
       </header>
 
-      <div className="flex gap-2 overflow-x-auto px-5 pb-3">
-        {SECCIONES.map((s) => (
-          <button
-            key={s.id}
-            onClick={() => setSeccion(s.id)}
-            className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-medium ${
-              seccion === s.id ? 'bg-lavanda-700 text-white' : 'bg-lavanda-50 text-lavanda-800'
-            }`}
-          >
-            {s.label}
-          </button>
-        ))}
-      </div>
+      <MenuColapsable secciones={SECCIONES} activa={seccion} onCambiar={setSeccion} etiqueta="Secciones de Académico" />
 
       <div className="flex-1 overflow-y-auto px-5 pb-8">
         {seccion === 'horario' && <Horario />}

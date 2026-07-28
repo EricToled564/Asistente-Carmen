@@ -20,12 +20,14 @@ import { kbSync } from './routes/kbSync.js'
 import { estado } from './routes/estado.js'
 import { pushPrueba } from './routes/pushPrueba.js'
 import { kbArchivo } from './routes/kbArchivo.js'
+import { tramites } from './routes/tramites.js'
 import { ejecutarAutoInvestigacionSemestral, ejecutarAutoInvestigacionMensual } from './cron/kbAutoResearch.js'
 import {
   recordatorioSubirHorario,
   recordatorioResidenciaCheck,
   recordatorioContactoCheckSiTrimestre,
-  checkInProactivo
+  checkInProactivo,
+  recordatoriosDeTramites
 } from './cron/pushReminders.js'
 
 const app = new Hono<{ Bindings: Env }>()
@@ -67,6 +69,7 @@ app.route('/', kbSync)
 app.route('/', estado)
 app.route('/', pushPrueba)
 app.route('/', kbArchivo)
+app.route('/', tramites)
 
 export default {
   fetch: app.fetch,
@@ -80,10 +83,12 @@ export default {
         ctx.waitUntil(ejecutarAutoInvestigacionMensual(env))
         ctx.waitUntil(recordatorioContactoCheckSiTrimestre(env))
         break
-      case '0 8 25 8 *':
-      case '0 8 20 12 *':
+      case '0 8 20,25 8,12 *':
         ctx.waitUntil(recordatorioSubirHorario(env))
         ctx.waitUntil(recordatorioResidenciaCheck(env))
+        break
+      case '0 6 * * *':
+        ctx.waitUntil(recordatoriosDeTramites(env))
         break
       case '0 9 * * *':
         ctx.waitUntil(checkInProactivo(env))

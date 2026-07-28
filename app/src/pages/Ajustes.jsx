@@ -5,6 +5,8 @@ import ActualizarInfo from '../components/kb/ActualizarInfo.jsx'
 import DatosEmergenciaForm from '../components/emergencia/DatosEmergenciaForm.jsx'
 import PreguntasActualizacion from '../components/kb/PreguntasActualizacion.jsx'
 import Ayuda from '../components/ayuda/Ayuda.jsx'
+import PrimerosDias from '../components/tramites/PrimerosDias.jsx'
+import MenuColapsable from '../components/comun/MenuColapsable.jsx'
 
 const SECCIONES = [
   { id: 'checklist', label: '✅ Primeros 30 días' },
@@ -17,7 +19,7 @@ const SECCIONES = [
 
 export default function Ajustes({ onNavigate }) {
   const [seccion, setSeccion] = useState('checklist')
-  const { checklist, toggleChecklistItem, permissions, config } = useApp()
+  const { permissions, config } = useApp()
   // Un familiar que abre la PWA con ?familia=1 se suscribe como destinatario de alertas SOS
   // en vez de como "ella" — es el mecanismo v1 para distinguir destinatarios sin cuentas/login.
   const esFamilia = new URLSearchParams(window.location.search).get('familia') === '1'
@@ -33,36 +35,10 @@ export default function Ajustes({ onNavigate }) {
         <h1 className="font-display text-2xl font-bold text-lavanda-800">Ajustes</h1>
       </header>
 
-      <div className="flex gap-2 overflow-x-auto px-5 pb-3">
-        {SECCIONES.map((s) => (
-          <button
-            key={s.id}
-            onClick={() => setSeccion(s.id)}
-            className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-medium ${
-              seccion === s.id ? 'bg-lavanda-700 text-white' : 'bg-lavanda-50 text-lavanda-800'
-            }`}
-          >
-            {s.label}
-          </button>
-        ))}
-      </div>
+      <MenuColapsable secciones={SECCIONES} activa={seccion} onCambiar={setSeccion} etiqueta="Secciones de Ajustes" />
 
       <div className="flex-1 overflow-y-auto pb-8">
-        {seccion === 'checklist' && (
-          <ul className="flex flex-col gap-2 px-5">
-            {checklist.map((item) => (
-              <li key={item.id}>
-                <button
-                  onClick={() => toggleChecklistItem(item.id)}
-                  className="flex w-full items-start gap-3 rounded-xl bg-white p-3 text-left text-sm shadow-soft"
-                >
-                  <span>{item.done ? '✅' : '⬜️'}</span>
-                  <span className={item.done ? 'text-morado-900/40 line-through' : ''}>{item.label}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
+        {seccion === 'checklist' && <PrimerosDias onNavigate={onNavigate} />}
 
         {/* `setSeccion` se pasa como onIrASeccion para que las fichas de "Actualizar mi info" y los
             botones de Ayuda salten a la sección correspondiente de Ajustes. Sin esto, cada ficha

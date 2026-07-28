@@ -7,6 +7,22 @@ const STEPS = ['bienvenida', 'instalar', 'permisos', 'emergencia', 'checklist']
 
 const TIPOS_SANGRE = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
 
+// Vista previa de los trámites, en el mismo orden que el catálogo del Worker
+// (worker/src/lib/tramitesStore.ts). Aquí solo se enseñan: el estado real y las citas viven en el
+// servidor, y el onboarding no es el momento de ponerse a agendar nada — todavía ni ha llegado.
+// Se duplica el texto a propósito en vez de pedirlo por red: esta pantalla tiene que poder
+// pintarse aunque el Worker no conteste, que es justo el primer minuto de uso de la app.
+const VISTA_PREVIA_TRAMITES = [
+  { icono: '🆘', titulo: 'Emergencia SOS de tu móvil', nota: 'Lo primero. Cinco minutos y funciona aunque tú no puedas.' },
+  { icono: '🔔', titulo: 'Avisos de Maite en tu móvil' },
+  { icono: '🏛️', titulo: 'Empadronamiento', nota: 'Desbloquea a los demás.' },
+  { icono: '🪪', titulo: 'TIE', nota: 'Plazo: primer mes desde que llegas.' },
+  { icono: '🏦', titulo: 'Cuenta bancaria' },
+  { icono: '🩺', titulo: 'Tarjeta sanitaria' },
+  { icono: '📱', titulo: 'Línea de móvil española' },
+  { icono: '🚌', titulo: 'Tarjeta de transporte (villavesa)' }
+]
+
 // ¿Se está viendo desde el icono instalado, o desde el navegador?
 //
 // Esto no es un detalle cosmético en iPhone: Safari NO permite notificaciones web a un sitio
@@ -20,7 +36,7 @@ const TIPOS_SANGRE = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
 // (estaInstalada/esIOS viven en lib/instalacion.js — los usa también la sección de Ayuda.)
 
 export default function OnboardingFlow({ onGoTo }) {
-  const { completeOnboarding, updatePermission, permissions, checklist, toggleChecklistItem } = useApp()
+  const { completeOnboarding, updatePermission, permissions } = useApp()
   const [step, setStep] = useState(0)
   const [nombreLegal, setNombreLegal] = useState('Carmen Toledano Peláez')
   const [tipoSangre, setTipoSangre] = useState('')
@@ -230,24 +246,29 @@ export default function OnboardingFlow({ onGoTo }) {
         <div className="flex flex-1 flex-col gap-4 overflow-y-auto">
           <h2 className="font-display text-2xl font-bold">Tus primeros 30 días</h2>
           <p className="text-sm text-crema-100/80">
-            La tarea #1 es la más importante: configura la Emergencia SOS nativa del iPhone. Todo lo demás
-            lo puedes ir marcando desde Ajustes cuando quieras.
+            Ocho cosas que hay que dejar hechas al llegar. En Ajustes le pones fecha a cada una y yo
+            te aviso el día antes y esa misma mañana, con la lista de lo que tienes que llevar.
           </p>
           <ul className="flex flex-col gap-2">
-            {checklist.map((item, i) => (
-              <li key={item.id}>
-                <button
-                  onClick={() => toggleChecklistItem(item.id)}
-                  className={`flex w-full items-start gap-3 rounded-xl p-3 text-left text-sm ${
-                    i === 0 ? 'bg-white/20 ring-1 ring-white/40' : 'bg-white/10'
-                  }`}
-                >
-                  <span>{item.done ? '✅' : i === 0 ? '⭐' : '⬜️'}</span>
-                  <span>{item.label}</span>
-                </button>
+            {VISTA_PREVIA_TRAMITES.map((item, i) => (
+              <li
+                key={item.titulo}
+                className={`flex items-start gap-3 rounded-xl p-3 text-sm ${
+                  i === 0 ? 'bg-white/20 ring-1 ring-white/40' : 'bg-white/10'
+                }`}
+              >
+                <span>{item.icono}</span>
+                <span>
+                  {item.titulo}
+                  {item.nota ? <span className="block text-xs text-crema-100/70">{item.nota}</span> : null}
+                </span>
               </li>
             ))}
           </ul>
+          <p className="rounded-xl bg-white/10 p-3 text-xs text-crema-100/80">
+            No hace falta que hagas nada ahora. Están en Ajustes → Primeros 30 días, en el orden que
+            conviene hacerlos.
+          </p>
         </div>
       )}
 

@@ -1,6 +1,7 @@
 import type { Env, PushSubscriptionRecord } from '../types.js'
 import { enviarPush, type NotificacionPush } from '../lib/webpush.js'
 import { debeRecordarHorario } from '../lib/horarioEstado.js'
+import { CATALOGO, leerEstados, escribirEstados, fechaEnPamplona, sumarDias } from '../lib/tramitesStore.js'
 
 async function enviarATodos(env: Env, grupo: 'ella' | 'familia', notificacion: NotificacionPush) {
   const list = await env.KV.list({ prefix: `push:${grupo}:` })
@@ -76,4 +77,74 @@ export async function checkInProactivo(env: Env) {
     url: '/',
     tag: 'checkin-diario'
   })
+}
+
+// --- Recordatorios de los trámites de los primeros 30 días ---------------------------------
+//
+// Tres avisos por cita, y el tercero es el que hace que la lista no se quede a medias:
+//
+//   víspera     -> "mañana a las 9:30 tienes la cita del TIE". El útil de verdad: da tiempo a
+//                  reunir los papeles.
+//   mismo día   -> por si el de ayer se le pasó.
+//   seguimiento -> el día después, "¿cómo fue?, márcalo o agenda otra". Sin esto, una cita a la
+//                  que no fue se queda "agendada" para siempre y la app cree que va todo bien.
+//
+// Cada aviso se marca al mandarse: este cron corre todos los días y sin esa marca repetiría el
+// mismo mensaje cada mañana hasta que ella hiciera algo.
+export async function recordatoriosDeTramites(env: Env) {
+  const estados = await leerEstados(env)
+  const hoy = fechaEnPamplona()
+  const manana = sumarDias(hoy, 1)
+  let cambiado = false
+
+  for (const tramite of CATALOGO) {
+    const e = estados[tramite.id]
+    if (!e?.cita || e.estado !== 'agendado') continue
+
+    const { fecha, hora, lugar } = e.cita
+    const recordatorios = e.recordatorios || {}
+    const donde = lugar ? ` en ${lugar}` : ''
+    let mandadoAqui = false
+
+    if (fecha === manana && !recordatorios.vispera) {
+      await enviarATodos(env, 'ella', {
+        title: `Mañana: ${tramite.titulo}`,
+        body:
+          `A las ${hora}${donde}.` +
+          (tramite.queLlevar?.length ? ` Lleva: ${tramite.queLlevar.join(', ')}.` : ''),
+        url: '/',
+        tag: `tramite-vispera-${tramite.id}`
+      })
+      recordatorios.vispera = new Date().toISOString()
+      mandadoAqui = true
+    } else if (fecha === hoy && !recordatorios.mismoDia) {
+      await enviarATodos(env, 'ella', {
+        title: `Hoy: ${tramite.titulo}`,
+        body: `A las ${hora}${donde}. Suerte 💛`,
+        url: '/',
+        tag: `tramite-hoy-${tramite.id}`
+      })
+      recordatorios.mismoDia = new Date().toISOString()
+      mandadoAqui = true
+    } else if (fecha < hoy && !recordatorios.seguimiento) {
+      await enviarATodos(env, 'ella', {
+        title: `¿Cómo fue lo de ${tramite.titulo}?`,
+        body: 'Márcalo como hecho, o agenda otra cita si no pudiste ir.',
+        url: '/',
+        tag: `tramite-seguimiento-${tramite.id}`
+      })
+      recordatorios.seguimiento = new Date().toISOString()
+      mandadoAqui = true
+    }
+
+    // La marca se escribe solo en el trámite que de verdad mandó un aviso. Con un único flag
+    // global, en cuanto uno enviaba algo todos los demás se reescribían igual que estaban.
+    if (mandadoAqui) {
+      estados[tramite.id] = { ...e, recordatorios }
+      cambiado = true
+    }
+  }
+
+  // Una sola escritura al final: KV cobra por operación y esto corre a diario.
+  if (cambiado) await escribirEstados(env, estados)
 }
