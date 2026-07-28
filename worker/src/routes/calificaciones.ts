@@ -1,22 +1,47 @@
 import { Hono } from 'hono'
 import type { Env } from '../types.js'
 import { EVALUACION } from '../data/evaluacion.js'
+import { PLAN_ESTUDIOS, bloqueDe } from '../data/planEstudios.js'
+import { extraerEvaluacionDeGuia } from '../lib/extraerEvaluacion.js'
 import { leer, escribir, calcular, estructuraDe, type CalculoMateria } from '../lib/calificacionesStore.js'
 
 export const calificaciones = new Hono<{ Bindings: Env }>()
 
 function nombreDe(kbCode: string, dado?: string): string {
-  return dado?.trim() || EVALUACION.find((e) => e.kbCode === kbCode)?.materia || kbCode
+  return (
+    dado?.trim() ||
+    EVALUACION.find((e) => e.kbCode === kbCode)?.materia ||
+    PLAN_ESTUDIOS.flatMap((b) => b.materias).find((m) => m.kbCode === kbCode)?.titulo ||
+    kbCode
+  )
+}
+
+// Qué asignaturas se enseñan: las nueve transcritas a mano, más las que ella haya preparado o
+// montado. Deliberadamente NO se listan las 51 del plan: una pantalla con cuarenta asignaturas de
+// tercero y cuarto sin una sola nota no informa de nada y esconde las cinco que sí importan.
+function codigosConEstructura(
+  personalizados: Record<string, unknown>,
+  derivados: Record<string, unknown>
+): string[] {
+  const vistos = new Set<string>()
+  const salida: string[] = []
+  for (const k of [...EVALUACION.map((e) => e.kbCode), ...Object.keys(derivados), ...Object.keys(personalizados)]) {
+    if (!vistos.has(k)) {
+      vistos.add(k)
+      salida.push(k)
+    }
+  }
+  return salida
 }
 
 // GET /calificaciones — todas las materias con desglose, con lo que lleva y lo que le falta.
 calificaciones.get('/calificaciones', async (c) => {
-  const { notas, personalizados } = await leer(c.env)
+  const { notas, personalizados, derivados } = await leer(c.env)
 
   // Las oficiales primero, y después cualquier materia que ella se haya montado a mano.
-  const codigos = [...EVALUACION.map((e) => e.kbCode), ...Object.keys(personalizados).filter((k) => !EVALUACION.some((e) => e.kbCode === k))]
+  const codigos = codigosConEstructura(personalizados, derivados)
 
-  const materias = codigos.map((kbCode) => calcular(kbCode, nombreDe(kbCode), notas[kbCode] || {}, personalizados))
+  const materias = codigos.map((kbCode) => calcular(kbCode, nombreDe(kbCode), notas[kbCode] || {}, personalizados, derivados))
 
   return c.json({
     materias,
@@ -45,7 +70,7 @@ calificaciones.post('/calificaciones', async (c) => {
   }
 
   const almacen = await leer(c.env)
-  const { componentes } = estructuraDe(kbCode, almacen.personalizados)
+  const { componentes } = estructuraDe(kbCode, almacen.personalizados, almacen.derivados)
   if (!componentes.some((x) => x.id === componenteId)) {
     return c.json({ error: `"${componenteId}" no es un apartado de ${kbCode}` }, 404)
   }
@@ -53,7 +78,7 @@ calificaciones.post('/calificaciones', async (c) => {
   almacen.notas[kbCode] = { ...(almacen.notas[kbCode] || {}), [componenteId]: body.nota }
   await escribir(c.env, almacen)
 
-  const calculo = calcular(kbCode, nombreDe(kbCode), almacen.notas[kbCode], almacen.personalizados)
+  const calculo = calcular(kbCode, nombreDe(kbCode), almacen.notas[kbCode], almacen.personalizados, almacen.derivados)
   return c.json({ ok: true, materia: calculo })
 })
 
@@ -67,7 +92,7 @@ calificaciones.delete('/calificaciones/:kbCode/:componenteId', async (c) => {
     delete almacen.notas[kbCode][componenteId]
     await escribir(c.env, almacen)
   }
-  return c.json({ ok: true, materia: calcular(kbCode, nombreDe(kbCode), almacen.notas[kbCode] || {}, almacen.personalizados) })
+  return c.json({ ok: true, materia: calcular(kbCode, nombreDe(kbCode), almacen.notas[kbCode] || {}, almacen.personalizados, almacen.derivados) })
 })
 
 // POST /calificaciones/estructura — para las materias sin desglose oficial (2º a 4º).
@@ -102,7 +127,7 @@ calificaciones.post('/calificaciones/estructura', async (c) => {
   const almacen = await leer(c.env)
   almacen.personalizados[kbCode] = componentes
   await escribir(c.env, almacen)
-  return c.json({ ok: true, materia: calcular(kbCode, nombreDe(kbCode, body.materia), almacen.notas[kbCode] || {}, almacen.personalizados) })
+  return c.json({ ok: true, materia: calcular(kbCode, nombreDe(kbCode, body.materia), almacen.notas[kbCode] || {}, almacen.personalizados, almacen.derivados) })
 })
 
 // GET /calificaciones/consulta?materia= — la que llama Maite por voz.
@@ -111,11 +136,11 @@ calificaciones.post('/calificaciones/estructura', async (c) => {
 // {pesoEvaluado: 60, necesarioParaAprobar: 3.25} tiende a leerlos tal cual, y "tu peso evaluado es
 // sesenta" no se lo dice nadie a nadie. Dándole la frase hecha, dice algo que suena a persona.
 calificaciones.get('/calificaciones/consulta', async (c) => {
-  const { notas, personalizados } = await leer(c.env)
+  const { notas, personalizados, derivados } = await leer(c.env)
   const buscada = (c.req.query('materia') || '').trim().toLowerCase()
 
-  const codigos = [...EVALUACION.map((e) => e.kbCode), ...Object.keys(personalizados).filter((k) => !EVALUACION.some((e) => e.kbCode === k))]
-  let materias = codigos.map((kbCode) => calcular(kbCode, nombreDe(kbCode), notas[kbCode] || {}, personalizados))
+  const codigos = codigosConEstructura(personalizados, derivados)
+  let materias = codigos.map((kbCode) => calcular(kbCode, nombreDe(kbCode), notas[kbCode] || {}, personalizados, derivados))
 
   if (buscada) {
     const coincide = materias.filter(
@@ -177,3 +202,158 @@ function frase(m: CalculoMateria): string {
   }
   return partes.join(' ')
 }
+
+// --- Preparar el siguiente semestre ---------------------------------------------------------
+//
+// Las nueve asignaturas de primero tienen su desglose transcrito a mano. Las otras cuarenta no, y
+// copiarlas todas de golpe habría sido transcribir cuarenta párrafos de porcentajes para
+// asignaturas que Carmen cursará dentro de tres años, con guías docentes que para entonces habrán
+// cambiado.
+//
+// Así que se hace cuando toca: ella termina un semestre, pulsa preparar el siguiente, y se leen
+// las guías de ESAS cinco o seis asignaturas —las que hay en la base de conocimiento ese día— para
+// sacar los pesos. Cada seis meses, siempre con la versión vigente.
+
+// GET /calificaciones/semestres — qué semestres hay y cuáles ya están preparados.
+calificaciones.get('/calificaciones/semestres', async (c) => {
+  const { personalizados, derivados, notas } = await leer(c.env)
+
+  return c.json({
+    semestres: PLAN_ESTUDIOS.map((b) => {
+      const materias = b.materias.map((m) => {
+        const { origen } = estructuraDe(m.kbCode, personalizados, derivados)
+        return {
+          kbCode: m.kbCode,
+          titulo: m.titulo,
+          origen,
+          preparada: origen !== 'ninguno',
+          // Si ya tiene notas metidas, preparar de nuevo no las borra — pero conviene decirlo en la
+          // pantalla antes de que le dé al botón, no después.
+          tieneNotas: Object.keys(notas[m.kbCode] || {}).length > 0
+        }
+      })
+      return {
+        curso: b.curso,
+        semestre: b.semestre,
+        materias,
+        preparadas: materias.filter((m) => m.preparada).length,
+        total: materias.length
+      }
+    })
+  })
+})
+
+// POST /calificaciones/preparar — {curso, semestre}. Lee las guías y PROPONE. No guarda nada.
+//
+// Devolver una propuesta en vez de guardar directamente es el mismo criterio que en "Actualizar mi
+// info": la extracción es buena pero no infalible, y un peso mal leído no da error — da un
+// promedio equivocado que ella se va a creer durante todo el semestre. Que lo vea primero.
+calificaciones.post('/calificaciones/preparar', async (c) => {
+  const body = await c.req.json<{ curso?: number; semestre?: number }>()
+  const curso = Number(body.curso)
+  const semestre = Number(body.semestre)
+
+  const bloque = bloqueDe(curso, semestre)
+  if (!bloque) {
+    return c.json({ error: `No tengo el curso ${body.curso}, semestre ${body.semestre} en el plan de estudios` }, 404)
+  }
+
+  const { personalizados, derivados } = await leer(c.env)
+
+  // Las que ya tienen desglose se dejan en paz: volver a extraerlas gastaría llamadas y podría
+  // proponer un reparto distinto del que ella ya revisó y aceptó.
+  const pendientes = bloque.materias.filter((m) => estructuraDe(m.kbCode, personalizados, derivados).origen === 'ninguno')
+
+  if (!pendientes.length) {
+    return c.json({
+      curso,
+      semestre,
+      propuestas: [],
+      mensaje: 'Este semestre ya está preparado entero. No hay nada que hacer.'
+    })
+  }
+
+  // En serie y no en paralelo: son cinco o seis llamadas a Claude, cada una con una guía docente
+  // entera dentro. En paralelo se juntan los tiempos de CPU del Worker y se corre el riesgo de
+  // agotar el límite a mitad, dejando media preparación hecha.
+  const propuestas = []
+  for (const m of pendientes) {
+    propuestas.push(await extraerEvaluacionDeGuia(c.env, m.kbCode, m.titulo))
+  }
+
+  return c.json({
+    curso,
+    semestre,
+    propuestas,
+    resumen: {
+      pedidas: pendientes.length,
+      correctas: propuestas.filter((p) => p.ok).length,
+      conProblema: propuestas.filter((p) => !p.ok).length
+    }
+  })
+})
+
+// POST /calificaciones/confirmar-semestre — guarda las propuestas que ella revisó.
+calificaciones.post('/calificaciones/confirmar-semestre', async (c) => {
+  const body = await c.req.json<{
+    materias?: Array<{
+      kbCode?: string
+      materia?: string
+      componentes?: Array<{ id?: string; nombre?: string; peso?: number; minimo?: number; cuantos?: number }>
+      notaMinima?: number
+      asistenciaMinima?: number
+      aviso?: string
+    }>
+  }>()
+
+  const lista = body.materias || []
+  if (!lista.length) return c.json({ error: 'No mandaste ninguna materia' }, 400)
+
+  const almacen = await leer(c.env)
+  const guardadas: string[] = []
+  const rechazadas: Array<{ kbCode: string; motivo: string }> = []
+
+  for (const m of lista) {
+    const kbCode = m.kbCode?.trim()
+    if (!kbCode) {
+      rechazadas.push({ kbCode: '(sin código)', motivo: 'Falta el código de la asignatura' })
+      continue
+    }
+    if (EVALUACION.some((e) => e.kbCode === kbCode)) {
+      rechazadas.push({ kbCode, motivo: 'Ya tiene su desglose transcrito de la guía docente' })
+      continue
+    }
+    const comps = (m.componentes || []).map((x, i) => ({
+      id: x.id?.trim() || `c${i + 1}`,
+      nombre: x.nombre?.trim() || `Apartado ${i + 1}`,
+      peso: Number(x.peso) || 0,
+      minimo: typeof x.minimo === 'number' ? x.minimo : undefined,
+      cuantos: typeof x.cuantos === 'number' ? x.cuantos : undefined
+    }))
+    if (!comps.length) {
+      rechazadas.push({ kbCode, motivo: 'No trae apartados' })
+      continue
+    }
+    const suma = Math.round(comps.reduce((t, x) => t + x.peso, 0) * 100) / 100
+    if (Math.abs(suma - 100) > 0.5) {
+      // Se rechaza aunque venga de la pantalla de revisión: si ella corrigió un peso y se dejó otro,
+      // el resultado sumaría 95 y el promedio saldría inflado sin que nada lo indicara.
+      rechazadas.push({ kbCode, motivo: `Los porcentajes suman ${suma} y tienen que sumar 100` })
+      continue
+    }
+
+    almacen.derivados[kbCode] = {
+      componentes: comps,
+      notaMinima: Number(m.notaMinima) || 5,
+      asistenciaMinima: typeof m.asistenciaMinima === 'number' ? m.asistenciaMinima : undefined,
+      aviso: m.aviso?.trim() || undefined,
+      materia: m.materia?.trim() || kbCode,
+      extraidoEn: new Date().toISOString()
+    }
+    guardadas.push(kbCode)
+  }
+
+  if (guardadas.length) await escribir(c.env, almacen)
+
+  return c.json({ ok: guardadas.length > 0, guardadas, rechazadas })
+})

@@ -4,17 +4,15 @@ import CapturaRapida from '../components/academico/CapturaRapida.jsx'
 import BotonesAtajos from '../components/academico/BotonesAtajos.jsx'
 import IndiceAcademico from '../components/academico/IndiceAcademico.jsx'
 import Horario from '../components/academico/Horario.jsx'
-import MiProgreso from '../components/academico/MiProgreso.jsx'
 import TipsAcademicos from '../components/academico/TipsAcademicos.jsx'
 import MisApuntes from '../components/academico/MisApuntes.jsx'
-import Calificaciones from '../components/academico/Calificaciones.jsx'
+import MisCalificaciones from '../components/academico/MisCalificaciones.jsx'
 import BotonMaite from '../components/agente/BotonMaite.jsx'
 import MenuColapsable from '../components/comun/MenuColapsable.jsx'
 
 const SECCIONES = [
   { id: 'horario', label: '🗓️ Horario' },
-  { id: 'progreso', label: '📈 Mi Progreso' },
-  { id: 'notas', label: '📊 Mis notas' },
+  { id: 'calificaciones', label: '📊 Mis calificaciones' },
   { id: 'tips', label: '💡 Tips' },
   { id: 'radar', label: '📅 Radar' },
   { id: 'indice', label: '📖 Índice' },
@@ -54,9 +52,7 @@ export default function Academico({ onNavigate }) {
       <div className="flex-1 overflow-y-auto px-5 pb-8">
         {seccion === 'horario' && <Horario />}
 
-        {seccion === 'progreso' && <MiProgreso />}
-
-        {seccion === 'notas' && <Calificaciones />}
+        {seccion === 'calificaciones' && <MisCalificaciones />}
 
         {seccion === 'tips' && <TipsAcademicos />}
 

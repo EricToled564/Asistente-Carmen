@@ -115,10 +115,23 @@ function Materia({ m, onGuardar, onBorrar }) {
 
       {abierto && (
         <div className="mt-3 flex flex-col gap-1.5">
-          {!m.oficial && (
+          {/* De dónde salen estos porcentajes. Importa: no es lo mismo un reparto que viene de su
+              guía docente que uno que se inventó ella porque la guía no lo publicaba, y si la
+              pantalla no lo distingue, los dos parecen igual de fiables. */}
+          {m.origen === 'extraido' && (
+            <p className="rounded-xl bg-lavanda-50 p-2.5 text-[11px] leading-relaxed text-lavanda-900">
+              Estos porcentajes los saqué de tu guía docente al preparar el semestre, y tú los revisaste.
+            </p>
+          )}
+          {m.origen === 'manual' && (
             <p className="rounded-xl bg-melocoton-300/50 p-2.5 text-[11px] leading-relaxed text-morado-900">
-              Esta asignatura no tiene desglose en su guía docente todavía. Puedes crearlo tú desde la app
-              o pedírselo a Maite.
+              Este desglose lo pusiste tú a mano, no sale de la guía docente.
+            </p>
+          )}
+          {m.origen === 'ninguno' && (
+            <p className="rounded-xl bg-melocoton-300/50 p-2.5 text-[11px] leading-relaxed text-morado-900">
+              Esta asignatura todavía no tiene desglose. Usa "Preparar" arriba para sacarlo de su guía
+              docente.
             </p>
           )}
           {m.aviso && (
@@ -197,7 +210,7 @@ function Materia({ m, onGuardar, onBorrar }) {
   )
 }
 
-export default function Calificaciones() {
+export default function Calificaciones({ recargarToken }) {
   const [datos, setDatos] = useState(null)
   const [error, setError] = useState(null)
 
@@ -218,7 +231,7 @@ export default function Calificaciones() {
 
   useEffect(() => {
     cargar()
-  }, [cargar])
+  }, [cargar, recargarToken])
 
   async function guardar(kbCode, componenteId, nota) {
     await api.calificacionGuardar({ kbCode, componenteId, nota })

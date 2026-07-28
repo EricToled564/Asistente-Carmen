@@ -22,29 +22,77 @@ export type NotasPorMateria = Record<string, Record<string, number>>
 // delante la estructura.
 export type ComponentesPersonalizados = Record<string, ComponenteEvaluacion[]>
 
+// Desglose sacado de la guía docente por Claude cuando Carmen prepara un semestre nuevo, ya
+// revisado por ella (ver lib/extraerEvaluacion.ts).
+//
+// Se guarda aparte de `personalizados` porque no es lo mismo y a ella le importa la diferencia:
+// esto salió de su guía docente, aquello se lo inventó ella porque no había guía. La pantalla lo
+// dice, y Maite también.
+export interface EstructuraDerivada {
+  componentes: ComponenteEvaluacion[]
+  notaMinima: number
+  asistenciaMinima?: number
+  aviso?: string
+  materia: string
+  extraidoEn: string
+}
+export type Derivados = Record<string, EstructuraDerivada>
+
 interface Almacen {
   notas: NotasPorMateria
   personalizados: ComponentesPersonalizados
+  derivados: Derivados
 }
 
 export async function leer(env: Env): Promise<Almacen> {
   const raw = await env.KV.get(KEY)
-  if (!raw) return { notas: {}, personalizados: {} }
+  if (!raw) return { notas: {}, personalizados: {}, derivados: {} }
   const d = JSON.parse(raw) as Partial<Almacen>
-  return { notas: d.notas || {}, personalizados: d.personalizados || {} }
+  return { notas: d.notas || {}, personalizados: d.personalizados || {}, derivados: d.derivados || {} }
 }
 
 export async function escribir(env: Env, almacen: Almacen): Promise<void> {
   await env.KV.put(KEY, JSON.stringify(almacen))
 }
 
+export type OrigenEstructura = 'guia' | 'extraido' | 'manual' | 'ninguno'
+
+// De dónde sale el desglose de una asignatura, por orden de confianza:
+//   'guia'      -> transcrito a mano de la guía docente (las nueve de primero)
+//   'extraido'  -> leído de la guía por Claude al preparar el semestre, y revisado por Carmen
+//   'manual'    -> se lo inventó ella porque la guía no publicaba porcentajes
+//   'ninguno'   -> todavía no hay
 export function estructuraDe(
   kbCode: string,
-  personalizados: ComponentesPersonalizados
-): { componentes: ComponenteEvaluacion[]; oficial: boolean; meta?: EvaluacionMateria } {
-  const oficial = evaluacionDe(kbCode)
-  if (oficial) return { componentes: oficial.componentes, oficial: true, meta: oficial }
-  return { componentes: personalizados[kbCode] || [], oficial: false }
+  personalizados: ComponentesPersonalizados,
+  derivados: Derivados = {}
+): {
+  componentes: ComponenteEvaluacion[]
+  oficial: boolean
+  origen: OrigenEstructura
+  meta?: Pick<EvaluacionMateria, 'notaMinima' | 'asistenciaMinima' | 'aviso'>
+} {
+  const guia = evaluacionDe(kbCode)
+  if (guia) return { componentes: guia.componentes, oficial: true, origen: 'guia', meta: guia }
+
+  const derivado = derivados[kbCode]
+  if (derivado) {
+    return {
+      componentes: derivado.componentes,
+      oficial: true,
+      origen: 'extraido',
+      meta: {
+        notaMinima: derivado.notaMinima,
+        asistenciaMinima: derivado.asistenciaMinima,
+        aviso: derivado.aviso
+      }
+    }
+  }
+
+  const manual = personalizados[kbCode]
+  if (manual?.length) return { componentes: manual, oficial: false, origen: 'manual' }
+
+  return { componentes: [], oficial: false, origen: 'ninguno' }
 }
 
 export interface CalculoMateria {
@@ -59,6 +107,7 @@ export interface CalculoMateria {
   aprobadaYa: boolean // ya no puede suspender aunque saque 0 en lo que falta
   imposibleAprobar: boolean // ya no puede aprobar aunque saque 10 en todo lo que falta
   minimosEnRiesgo: string[]
+  origen: OrigenEstructura
   notaMinima: number
   asistenciaMinima?: number
   aviso?: string
@@ -76,9 +125,10 @@ export function calcular(
   kbCode: string,
   materia: string,
   notas: Record<string, number>,
-  personalizados: ComponentesPersonalizados
+  personalizados: ComponentesPersonalizados,
+  derivados: Derivados = {}
 ): CalculoMateria {
-  const { componentes, oficial, meta } = estructuraDe(kbCode, personalizados)
+  const { componentes, oficial, origen, meta } = estructuraDe(kbCode, personalizados, derivados)
   const notaMinima = meta?.notaMinima ?? 5
 
   const conNota = componentes.map((c) => ({ ...c, nota: typeof notas[c.id] === 'number' ? notas[c.id] : null }))
@@ -122,6 +172,7 @@ export function calcular(
     aprobadaYa,
     imposibleAprobar,
     minimosEnRiesgo,
+    origen,
     notaMinima,
     asistenciaMinima: meta?.asistenciaMinima,
     aviso: meta?.aviso
