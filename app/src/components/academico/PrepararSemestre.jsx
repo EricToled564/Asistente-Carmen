@@ -93,6 +93,7 @@ export default function PrepararSemestre({ onListo }) {
   const [estado, setEstado] = useState('idle') // idle | leyendo | revisar | guardando | listo | error
   const [propuestas, setPropuestas] = useState([])
   const [mensaje, setMensaje] = useState('')
+  const [horario, setHorario] = useState(null)
 
   const cargar = useCallback(() => {
     return api
@@ -129,13 +130,24 @@ export default function PrepararSemestre({ onListo }) {
     try {
       const utiles = propuestas.filter((p) => p.componentes?.length)
       const r = await api.calificacionesConfirmarSemestre({ materias: utiles })
+
+      // Guardar los pesos y dejar el horario del semestre anterior sería preparar media cosa: las
+      // notas al día y las aulas y los profesores del curso pasado, que Maite cantaría con toda
+      // seguridad. Las dos mitades caducan a la vez, así que se piden juntas.
+      let extra = ''
+      try {
+        const h = await api.calificacionesSincronizarHorario({ curso: elegido.curso, semestre: elegido.semestre })
+        setHorario(h)
+        extra = h.ok ? ` ${h.mensaje}` : ` ${h.mensaje}`
+      } catch {
+        extra = ' Los pesos quedaron guardados, pero no pude traer el horario del portal — inténtalo desde Horario más tarde.'
+      }
+
       setEstado('listo')
       setMensaje(
-        r.rechazadas?.length
-          ? `Guardé ${r.guardadas.length}. No pude con ${r.rechazadas.length}: ${r.rechazadas
-              .map((x) => x.motivo)
-              .join('; ')}`
-          : `Listo, ${r.guardadas.length} asignaturas preparadas ✅`
+        (r.rechazadas?.length
+          ? `Guardé ${r.guardadas.length}. No pude con ${r.rechazadas.length}: ${r.rechazadas.map((x) => x.motivo).join('; ')}`
+          : `Listo, ${r.guardadas.length} asignaturas preparadas ✅`) + extra
       )
       await cargar()
       onListo?.()
@@ -195,10 +207,25 @@ export default function PrepararSemestre({ onListo }) {
       <div className="rounded-2xl bg-lavanda-50 p-4">
         <p className="text-sm font-semibold text-morado-900">Preparar un semestre</p>
         <p className="mt-1 text-xs leading-relaxed text-morado-900/60">
-          Cuando empieces un semestre nuevo, dale aquí. Leo las guías docentes de esas asignaturas,
-          saco cómo se evalúa cada una y te lo enseño para que lo revises antes de guardarlo.
+          Cuando empieces un semestre nuevo, dale aquí. Hago dos cosas: leo las guías docentes de esas
+          asignaturas y saco cómo se evalúa cada una —te lo enseño para que lo revises antes de
+          guardarlo— y traigo del portal de la universidad tu horario nuevo, con las aulas, los
+          profesores y las fechas señaladas.
         </p>
       </div>
+
+      {/* El resultado del horario se enseña, no se da por hecho. Si el portal aún no publicó ese
+          curso, mejor que lo vea aquí que descubrirlo en septiembre delante de un aula vacía. */}
+      {horario && (
+        <div className="rounded-2xl bg-white p-3.5 shadow-soft">
+          <p className="text-sm font-semibold text-morado-900">Horario</p>
+          <p className="mt-1 text-xs leading-relaxed text-morado-900/60">{horario.mensaje}</p>
+          {horario.aviso && <p className="mt-1.5 text-xs text-red-700">{horario.aviso}</p>}
+          {horario.profesores?.length > 0 && (
+            <p className="mt-1.5 text-xs text-morado-900/55">Profesores: {horario.profesores.join(' · ')}</p>
+          )}
+        </div>
+      )}
 
       {estado === 'leyendo' && (
         <p className="rounded-xl bg-crema-100 p-3 text-sm text-morado-900/70">

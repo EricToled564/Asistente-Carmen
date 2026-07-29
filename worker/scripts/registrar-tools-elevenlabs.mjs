@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 //
-// Registra las 9 server tools de Maite en ElevenLabs y las engancha al agente.
+// Registra las 10 server tools de Maite en ElevenLabs y las engancha al agente.
 //
 // Estructura verificada contra el OpenAPI oficial de ElevenLabs
 // (https://api.elevenlabs.io/openapi.json, consultado el 26-jul-2026):
@@ -177,6 +177,14 @@ const TOOLS = [
         }
       }
     }
+  },
+  {
+    name: 'consultar_fechas',
+    description:
+      'Devuelve lo que Carmen tiene por delante en su radar de fechas: las sesiones que la universidad publica fuera del horario semanal (con día, hora y aula) y las que ella misma apuntó. Úsala cuando pregunte qué tiene esta semana, cuándo es algo, o cuánto le falta para una entrega. Ojo: el portal NO dice cuáles son examen y cuáles entrega, así que no lo afirmes tú.',
+    method: 'GET',
+    path: '/fechas/consulta',
+    query: { properties: {} }
   },
   {
     name: 'consultar_apuntes',

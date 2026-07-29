@@ -77,6 +77,20 @@ export const api = {
   rutaLugares: () => request('/ruta/lugares', { method: 'GET' }),
   rutaIniciar: (payload) => request('/ruta/iniciar', { method: 'POST', body: JSON.stringify(payload) }),
   horarioObtener: () => request('/horario', { method: 'GET' }),
+  // El horario tal como lo publica la universidad, traído del portal por el Worker.
+  horarioOficial: (params = {}) => {
+    const q = new URLSearchParams(Object.entries(params).filter(([, v]) => v !== undefined && v !== null)).toString()
+    return request(`/horario/oficial${q ? `?${q}` : ''}`, { method: 'GET' })
+  },
+  horarioFijarCurso: (curso) => request('/horario/curso', { method: 'POST', body: JSON.stringify({ curso }) }),
+  calificacionesSincronizarHorario: (payload) =>
+    request('/calificaciones/sincronizar-horario', { method: 'POST', body: JSON.stringify(payload) }),
+  fechasListar: () => request('/fechas', { method: 'GET' }),
+  fechaGuardar: (payload) => request('/fechas', { method: 'POST', body: JSON.stringify(payload) }),
+  fechaBorrar: (id) => request(`/fechas/${encodeURIComponent(id)}`, { method: 'DELETE' }),
+  fechaMarcar: (id, hecha) =>
+    request(`/fechas/${encodeURIComponent(id)}/hecha`, { method: 'POST', body: JSON.stringify({ hecha }) }),
+  fechasRestaurar: () => request('/fechas/restaurar', { method: 'POST' }),
   notasListar: () => request('/notas', { method: 'GET' }),
   notaGuardar: (payload) => request('/notas', { method: 'POST', body: JSON.stringify(payload) }),
   notaBorrar: (id) => request(`/notas/${id}`, { method: 'DELETE' }),

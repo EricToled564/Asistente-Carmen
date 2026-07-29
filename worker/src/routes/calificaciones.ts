@@ -4,6 +4,7 @@ import { EVALUACION } from '../data/evaluacion.js'
 import { PLAN_ESTUDIOS, bloqueDe } from '../data/planEstudios.js'
 import { extraerEvaluacionDeGuia } from '../lib/extraerEvaluacion.js'
 import { leer, escribir, calcular, estructuraDe, type CalculoMateria } from '../lib/calificacionesStore.js'
+import { obtenerHorarioPortal, vistaDelCurso, porDias, fijarCurso } from '../lib/horarioOficialStore.js'
 
 export const calificaciones = new Hono<{ Bindings: Env }>()
 
@@ -290,6 +291,51 @@ calificaciones.post('/calificaciones/preparar', async (c) => {
       correctas: propuestas.filter((p) => p.ok).length,
       conProblema: propuestas.filter((p) => !p.ok).length
     }
+  })
+})
+
+// POST /calificaciones/sincronizar-horario — {curso, semestre}
+//
+// La otra mitad de "preparar el semestre". Los pesos de evaluación salen de las guías docentes;
+// el horario, los profesores y las fechas señaladas salen del portal de la universidad. Las dos
+// cosas caducan a la vez —al cambiar de semestre— y por eso se piden juntas desde la misma pantalla.
+//
+// Sin esto, preparar un semestre dejaba las notas listas y el horario del semestre anterior intacto:
+// Maite le habría cantado con total seguridad las aulas y los profesores del curso pasado. Un dato
+// viejo dicho con seguridad es peor que no tener el dato.
+calificaciones.post('/calificaciones/sincronizar-horario', async (c) => {
+  const body = await c.req
+    .json<{ curso?: number; semestre?: number }>()
+    .catch((): { curso?: number; semestre?: number } => ({}))
+  const curso = Number(body.curso)
+  const semestre = Number(body.semestre)
+  if (!Number.isInteger(curso) || curso < 1 || curso > 4) {
+    return c.json({ error: 'El curso tiene que ser 1, 2, 3 o 4' }, 400)
+  }
+
+  // `true` fuerza ir al portal aunque la copia local sea reciente: si está pulsando este botón es
+  // porque algo cambió, y servirle la caché sería contestar a la pregunta que no hizo.
+  const portal = await obtenerHorarioPortal(c.env, true)
+  const { clases, sesiones } = vistaDelCurso(portal, curso, Number.isInteger(semestre) ? semestre : undefined)
+
+  // Que ella prepare un semestre de segundo significa que ya está en segundo. Es el momento
+  // natural para actualizarlo, y ahorra una pregunta más en una pantalla que ya tiene bastantes.
+  await fijarCurso(c.env, curso)
+
+  return c.json({
+    ok: clases.length > 0,
+    curso,
+    semestre: Number.isInteger(semestre) ? semestre : null,
+    actualizado: portal.obtenido,
+    aviso: portal.fallo || null,
+    dias: porDias(clases),
+    profesores: [...new Set(clases.flatMap((x) => x.profesores))].sort(),
+    // Las fechas no se guardan aquí: el radar las lee del portal cada vez que se abre, así que
+    // sincronizar el horario ya las pone al día solo. Se devuelven para poder enseñarlas.
+    sesiones,
+    mensaje: clases.length
+      ? `Horario de ${curso}º actualizado: ${clases.length} clases y ${sesiones.length} fechas señaladas.`
+      : 'El portal no tiene publicado todavía el horario de ese curso. Vuelve a intentarlo cuando lo publiquen.'
   })
 })
 

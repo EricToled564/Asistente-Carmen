@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useApp } from '../context/AppContext.jsx'
-import { useClock, formatInTZ, ventanaBuenaParaLlamar } from '../hooks/useClock.js'
+import { useClock, formatInTZ } from '../hooks/useClock.js'
 import SelectorCiudad from '../components/comun/SelectorCiudad.jsx'
 import { useTramites, citaLegible } from '../hooks/useTramites.js'
 
@@ -17,9 +17,6 @@ export default function Inicio({ onNavigate }) {
     .sort((a, b) => `${a.cita.fecha}${a.cita.hora}`.localeCompare(`${b.cita.fecha}${b.cita.hora}`))[0]
   const sinCerrar = (tramites || []).filter((t) => t.citaPasada)
   const progreso = resumen?.total ? Math.round((resumen.hechos / resumen.total) * 100) : 0
-  // La ventana para llamar se calcula SIEMPRE contra la ciudad de casa, también viajando: la
-  // pregunta es si allá es buena hora para contestar, no si aquí es cómodo marcar.
-  const buenaVentana = ventanaBuenaParaLlamar(now, ciudadReferencia.tz)
 
   // Viajando, el reloj grande es donde está; el chico, Pamplona (que es donde siguen sus clases).
   // Sin viajar, el grande es Pamplona y el chico su casa. En los dos casos el grande responde
@@ -104,15 +101,6 @@ export default function Inicio({ onNavigate }) {
           </p>
         )}
 
-        <p
-          className={`mt-4 rounded-full px-3 py-1.5 text-center text-xs font-semibold ${
-            buenaVentana ? 'bg-lavanda-700 text-white' : 'bg-white/70 text-morado-900/60'
-          }`}
-        >
-          {buenaVentana
-            ? `📞 Buena ventana para llamar a ${ciudadReferencia.nombre} ahora`
-            : `No es la mejor hora para llamar a ${ciudadReferencia.nombre} — intenta más tarde`}
-        </p>
       </section>
 
       <button

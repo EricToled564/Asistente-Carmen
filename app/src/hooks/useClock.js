@@ -17,10 +17,7 @@ export function formatInTZ(date, timeZone) {
   }).format(date)
 }
 
-// "Buena ventana para llamar a casa": ambas partes despiertas y no en horario típico de clase.
-// Regla simple: hora de la ciudad de referencia entre 7:00-22:00 Y hora España entre 8:00-23:00.
-export function ventanaBuenaParaLlamar(date, tzReferencia = 'America/Mexico_City') {
-  const horaReferencia = Number(new Intl.DateTimeFormat('en-US', { hour: 'numeric', hour12: false, timeZone: tzReferencia }).format(date))
-  const horaEs = Number(new Intl.DateTimeFormat('en-US', { hour: 'numeric', hour12: false, timeZone: 'Europe/Madrid' }).format(date))
-  return horaReferencia >= 7 && horaReferencia <= 22 && horaEs >= 8 && horaEs <= 23
-}
+// Aquí vivía `ventanaBuenaParaLlamar`, que pintaba en Inicio un aviso permanente del tipo "no es la
+// mejor hora para llamar a Ciudad de México, intenta más tarde". Se quitó: Carmen sabe perfectamente
+// a qué hora puede llamar a su casa, y decírselo cada vez que abre la app es tratarla como si no.
+// Los dos relojes ya dan el dato; qué hacer con él es cosa suya.
