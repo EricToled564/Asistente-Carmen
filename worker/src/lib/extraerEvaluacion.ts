@@ -130,7 +130,18 @@ export async function extraerEvaluacionDeGuia(env: Env, kbCode: string, materia:
     }
   })
 
-  const sumaPesos = Math.round(componentes.reduce((t, c) => t + c.peso, 0) * 100) / 100
+  // Fuera los apartados que valen cero.
+  //
+  // Salen de verdad: en Taller de Diseño III el modelo devolvió "Exámenes: 0 %", porque la guía los
+  // menciona para decir que en esa asignatura no hay. Es fiel a la guía y a la vez inútil aquí: en
+  // la pantalla de Carmen sería una fila más donde meter una nota que no cuenta para nada, y si
+  // alguna arrastrara un mínimo podría marcarle en riesgo una asignatura por un apartado que no
+  // existe. Si TODOS valieran cero no se filtra nada, para que se vea que la extracción falló en
+  // vez de devolver una lista vacía.
+  const conPeso = componentes.filter((c) => c.peso > 0)
+  const utiles = conPeso.length ? conPeso : componentes
+
+  const sumaPesos = Math.round(utiles.reduce((t, c) => t + c.peso, 0) * 100) / 100
 
   return {
     kbCode,
@@ -143,7 +154,7 @@ export async function extraerEvaluacionDeGuia(env: Env, kbCode: string, materia:
       Math.abs(sumaPesos - 100) < 0.5
         ? undefined
         : `Los porcentajes de la guía suman ${sumaPesos}, no 100. Revísalos antes de guardar.`,
-    componentes,
+    componentes: utiles,
     notaMinima: Number(datos.notaMinima) || 5,
     asistenciaMinima: typeof datos.asistenciaMinima === 'number' ? datos.asistenciaMinima : undefined,
     aviso: datos.aviso ? String(datos.aviso) : undefined,

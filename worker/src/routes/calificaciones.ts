@@ -4,7 +4,7 @@ import { EVALUACION } from '../data/evaluacion.js'
 import { PLAN_ESTUDIOS, bloqueDe } from '../data/planEstudios.js'
 import { extraerEvaluacionDeGuia } from '../lib/extraerEvaluacion.js'
 import { leer, escribir, calcular, estructuraDe, type CalculoMateria } from '../lib/calificacionesStore.js'
-import { obtenerHorarioPortal, vistaDelCurso, porDias, fijarCurso } from '../lib/horarioOficialStore.js'
+import { obtenerHorarioPortal, vistaDelCurso, porDias, fijarCurso, cursoActual } from '../lib/horarioOficialStore.js'
 
 export const calificaciones = new Hono<{ Bindings: Env }>()
 
@@ -318,13 +318,24 @@ calificaciones.post('/calificaciones/sincronizar-horario', async (c) => {
   const portal = await obtenerHorarioPortal(c.env, true)
   const { clases, sesiones } = vistaDelCurso(portal, curso, Number.isInteger(semestre) ? semestre : undefined)
 
-  // Que ella prepare un semestre de segundo significa que ya está en segundo. Es el momento
-  // natural para actualizarlo, y ahorra una pregunta más en una pantalla que ya tiene bastantes.
-  await fijarCurso(c.env, curso)
+  // Preparar un semestre de segundo significa que ya está en segundo, y es el momento natural para
+  // apuntarlo — pero solo se avanza de uno en uno.
+  //
+  // La pantalla lista los ocho bloques del plan, así que estando en primero puede tocar "Preparar"
+  // en cuarto por curiosidad o sin querer. Guardando ese curso a ciegas, su horario pasaría a ser
+  // el de cuarto y Maite le cantaría con toda seguridad aulas y profesores de asignaturas que no
+  // cursa. Nada fallaría; simplemente todo sería mentira. La carrera se hace 1, 2, 3, 4, uno detrás
+  // de otro: cualquier salto más grande es un error de dedo, no una promoción.
+  const antes = await cursoActual(c.env)
+  const avanza = curso <= antes + 1
+  if (avanza && curso !== antes) await fijarCurso(c.env, curso)
 
   return c.json({
     ok: clases.length > 0,
     curso,
+    // En qué curso queda ella después de esto, que puede no ser el que pidió ver.
+    cursoActual: avanza ? curso : antes,
+    soloVistaPrevia: !avanza,
     semestre: Number.isInteger(semestre) ? semestre : null,
     actualizado: portal.obtenido,
     aviso: portal.fallo || null,
@@ -333,9 +344,11 @@ calificaciones.post('/calificaciones/sincronizar-horario', async (c) => {
     // Las fechas no se guardan aquí: el radar las lee del portal cada vez que se abre, así que
     // sincronizar el horario ya las pone al día solo. Se devuelven para poder enseñarlas.
     sesiones,
-    mensaje: clases.length
-      ? `Horario de ${curso}º actualizado: ${clases.length} clases y ${sesiones.length} fechas señaladas.`
-      : 'El portal no tiene publicado todavía el horario de ese curso. Vuelve a intentarlo cuando lo publiquen.'
+    mensaje: !clases.length
+      ? 'El portal no tiene publicado todavía el horario de ese curso. Vuelve a intentarlo cuando lo publiquen.'
+      : avanza
+        ? `Horario de ${curso}º actualizado: ${clases.length} clases y ${sesiones.length} fechas señaladas.`
+        : `Este es el horario de ${curso}º, pero tú vas por ${antes}º: te lo enseño y ya, no te lo pongo como tuyo. Cuando llegues a ${antes + 1}º, prepara ese y se actualiza.`
   })
 })
 
