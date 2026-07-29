@@ -133,12 +133,23 @@ export function limpiarMateria(nombre: string): string {
 export function semestreDe(
   nombreAnio: string | null | undefined,
   primerLunes: string | null,
-  ultimoLunes?: string | null
+  ultimoLunes?: string | null,
+  esRecurrente = true
 ): number | null {
   const n = String(nombreAnio || '').toLowerCase()
   if (n.includes('primer')) return 1
   if (n.includes('segundo')) return 2
   if (!primerLunes) return null
+
+  // El portal deja el semestre en blanco en las sesiones sueltas de mayo y junio, y ahí NO se
+  // adivina.
+  //
+  // Se adivinaba por el mes, y salía mal de una forma que engañaba: las sesiones de junio de
+  // "Design Studio I" —que es una asignatura del PRIMER semestre— quedaban archivadas como del
+  // segundo. En la app aparecía una asignatura de septiembre dentro del semestre de febrero. El
+  // dato del portal era correcto; lo que estaba mal era mi regla. Sin semestre, la sesión se
+  // enseña por su fecha, que es lo único que el portal afirma de ella.
+  if (!esRecurrente) return null
 
   const esPrimero = (iso: string) => {
     const mes = Number(iso.slice(5, 7))
@@ -225,9 +236,10 @@ export function normalizar(eventos: any[]): { clases: ClaseHorario[]; sesiones: 
     const materia =
       limpiarMateria(typeof ev.module === 'object' ? ev.module?.name : '') ||
       (tipo === 'Cursos_y_Conferencias' ? 'Conferencia (sesión programada)' : 'Sesión programada')
+    const esClaseRecurrente = TIPOS_CLASE.has(tipo) && semanas.length >= MINIMO_SEMANAS_PARA_SER_CLASE
     const base = {
       cursos,
-      semestre: semestreDe(anio, semanas[0], semanas[semanas.length - 1]),
+      semestre: semestreDe(anio, semanas[0], semanas[semanas.length - 1], esClaseRecurrente),
       inicio: String(ev.startTime || ''),
       fin: String(ev.endTime || ''),
       materia,
@@ -237,7 +249,7 @@ export function normalizar(eventos: any[]): { clases: ClaseHorario[]; sesiones: 
     const dia = Number(ev.day)
     if (!Number.isInteger(dia) || dia < 0 || dia > 6) continue
 
-    if (TIPOS_CLASE.has(tipo) && semanas.length >= MINIMO_SEMANAS_PARA_SER_CLASE) {
+    if (esClaseRecurrente) {
       clases.push({ ...base, dia, desde: semanas[0], hasta: semanas[semanas.length - 1], semanas: semanas.length })
     } else {
       // Una sesión suelta puede tener varias semanas asignadas; cada una es una fecha distinta.

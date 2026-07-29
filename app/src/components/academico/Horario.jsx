@@ -78,7 +78,7 @@ export default function Horario() {
         materia: s.materia,
         aula: s.aulas.join(' / ')
       }))
-    : SESIONES_ESPECIALES.filter((s) => s.semestre === semestre)
+    : SESIONES_ESPECIALES.filter((s) => s.semestre === semestre || s.semestre === null)
 
   const porDia = DIAS_ORDEN.map((dia) => ({ dia, clases: clases.filter((h) => h.dia === dia) }))
   const notas = subido?.notas?.length ? subido.notas : HORARIO_INFO.notas
@@ -154,8 +154,19 @@ export default function Horario() {
           {/* Se dice lo que son y lo que no. El portal no distingue examen de entrega, y ponerle una
               etiqueta que no tiene sería inventarle a Carmen un dato que se creería. */}
           <p className="mt-1 text-xs leading-relaxed text-morado-900/55">
-            Sesiones sueltas que la universidad tiene publicadas fuera del horario semanal. El portal no
-            dice cuáles son examen y cuáles entrega — el día, la hora y el aula sí son exactos.
+            Sesiones sueltas que la universidad tiene publicadas fuera del horario semanal. El día, la
+            hora y el aula son exactos. Lo que el portal <strong>no</strong> dice es qué son: si un examen,
+            una entrega o una sesión de correcciones. Tampoco dice de qué semestre son las de mayo y junio,
+            así que salen por fecha.{' '}
+            <a
+              href="https://unav-publish.bulletscheduling.com/ArquitecturayDiseno"
+              target="_blank"
+              rel="noreferrer"
+              className="underline decoration-dotted"
+            >
+              Compruébalo en el portal
+            </a>
+            .
           </p>
           <div className="mt-2.5 flex flex-col gap-2">
             {sesiones.map((s, i) => (

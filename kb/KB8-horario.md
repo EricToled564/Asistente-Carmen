@@ -49,8 +49,11 @@ Va del 31 de agosto de 2026 al 23 de abril de 2027, veinticinco semanas.
 
 ## Sesiones sueltas: examenes, entregas y jornadas
 
-El portal publica estas sesiones aparte de la parrilla semanal. Las de diciembre caen despues de
-que acaben las clases del primer semestre; las de mayo y junio, despues del segundo.
+El portal publica estas sesiones aparte de la parrilla semanal. Las de diciembre caen despues de que
+acaben las clases del primer semestre; las de mayo y junio, despues del segundo.
+
+En las de mayo y junio el portal **deja el semestre en blanco**, asi que aqui van por fecha y no
+repartidas por semestre. No las asignes tu a uno u otro.
 
 **Muy importante y no lo puedes saltar:** el portal las publica todas como "Evento_Docencia" y NO
 dice cual es examen, cual es entrega y cual es una clase de correcciones. Da el dia, la hora y el
@@ -58,7 +61,7 @@ aula, que eso si es exacto, pero NO las llames "examen" ni "entrega final" a men
 haya llamado asi primero. Decirle "tu examen de Comprehensive Lab es el 14 de diciembre" cuando en
 realidad es una sesion de entregas es inventarle un dato que se va a creer.
 
-### Primer semestre
+### Diciembre de 2026, al acabar las clases del primer semestre
 
 | Fecha | Hora | Asignatura | Aula |
 |---|---|---|---|
@@ -69,7 +72,7 @@ realidad es una sesion de entregas es inventarle un dato que se va a creer.
 | Lunes 14 de diciembre de 2026 | 09:00-14:00 | Comprehensive Lab I (Graphics 2D) | ARQ-P1-AULA3 |
 | Viernes 18 de diciembre de 2026 | 09:00-14:00 | Es razonable creer hoy (MCCC) | ARQ-P0-MAGNA |
 
-### Segundo semestre
+### Mayo y junio de 2027 (el portal no dice de que semestre son)
 
 | Fecha | Hora | Asignatura | Aula |
 |---|---|---|---|
@@ -86,9 +89,12 @@ realidad es una sesion de entregas es inventarle un dato que se va a creer.
 | Viernes 18 de junio de 2027 | 09:00-13:00 | Comprehensive Lab I (Graphics 2D) | ARQ-P2-TALLER4A |
 | Martes 22 de junio de 2027 | 09:00-14:00 | Design Studio I (Design Thinking) | ARQ-P2-TALLER4A |
 
-Las de junio son de asignaturas del PRIMER semestre (Design Studio I, Art Culture, Comprehensive
-Lab I): son la convocatoria extraordinaria. Si Carmen ya aprobo esas asignaturas en diciembre, no
-tiene que ir. No des por hecho ninguna de las dos cosas.
+Fijate en que varias de junio son de asignaturas del PRIMER semestre (Design Studio I, Art Culture,
+Comprehensive Lab I). **El portal no dice por que**, y tu tampoco lo sabes. Podria ser la
+convocatoria extraordinaria, podria ser una entrega de recuperacion, podria ser otra cosa. Da la
+fecha, la hora y el aula, di que el portal no aclara de que se trata, y mandala a preguntarlo en ADI
+o al profesor. No lo llames "convocatoria extraordinaria": eso seria una suposicion tuya dicha como
+si fuera un dato.
 
 ## Notas importantes
 

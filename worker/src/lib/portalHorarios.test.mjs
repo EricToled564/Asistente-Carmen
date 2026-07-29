@@ -90,9 +90,21 @@ test('lo que cruza el cambio de año se marca como anual, no como del primer sem
   assert.ok(filtrar(h, 1, 2).clases.includes(anuales[0]))
 })
 
+test('a las sesiones que el portal no fecha por semestre no se les inventa uno', () => {
+  // Las de junio de "Design Studio I" son de una asignatura del PRIMER semestre. El portal deja su
+  // semestre en blanco; deducirlo del mes las archivaba en el segundo, y en la app aparecía una
+  // asignatura de septiembre dentro del semestre de febrero.
+  const junio = filtrar(h, 1).sesiones.filter((s) => s.fecha.startsWith('2027-06'))
+  assert.ok(junio.length > 0)
+  assert.ok(junio.every((s) => s.semestre === null), 'ninguna de junio puede llevar semestre asignado')
+  // Las de diciembre sí lo traen del propio portal, así que esas sí se respetan.
+  const dic = filtrar(h, 1).sesiones.filter((s) => s.fecha.startsWith('2026-12'))
+  assert.ok(dic.every((s) => s.semestre === 1))
+})
+
 test('las sesiones sueltas traen la fecha real, no la semana', () => {
   const { sesiones } = filtrar(h, 1, 1)
-  const f = sesiones.map((s) => `${s.fecha} ${s.inicio}-${s.fin}`)
+  const f = sesiones.filter((s) => s.semestre === 1).map((s) => `${s.fecha} ${s.inicio}-${s.fin}`)
   assert.deepEqual(f, [
     '2026-11-30 16:00-18:00',
     '2026-12-01 09:00-14:00',
