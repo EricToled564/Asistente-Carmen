@@ -10,7 +10,9 @@
 // estudios cambia como mucho una vez al año; una copia que se revisa en un diff es más barata que
 // esa inversión.
 //
-// Antropología (KB9-5) aparece en los dos semestres de primero a propósito: es anual y se cursa
+// Antropología ocupa los dos semestres de primero, pero con DOS códigos: KB9-5 para la I y
+// KB9-5B para la II. Comparten guía docente y profesora, pero reparten la nota de forma distinta,
+// así que fusionarlas daba un promedio equivocado en una de las dos. Es anual y se cursa
 // como Antropología I y II con la misma guía docente.
 
 export interface MateriaPlan {
@@ -37,7 +39,7 @@ export const PLAN_ESTUDIOS: BloquePlan[] = [
     { kbCode: 'KB9-7', titulo: 'Form and Matter (Properties)' },
     { kbCode: 'KB9-8', titulo: 'Comprehensive Lab II (Materials 3D)' },
     { kbCode: 'KB9-9', titulo: 'Design Studio II' },
-    { kbCode: 'KB9-5', titulo: 'Antropología II' }
+    { kbCode: 'KB9-5B', titulo: 'Antropología II' }
   ] },
   { curso: 2, semestre: 1, materias: [
     { kbCode: 'KB9-10', titulo: 'Tradiciones Creativas en la Cultura Hispana' },

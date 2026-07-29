@@ -89,17 +89,33 @@ export const EVALUACION: EvaluacionMateria[] = [
     aviso: 'El ÚLTIMO proyecto necesita un 5 por su cuenta. Cada proyecto se puntúa por dentro: exploración 20, concepto 20, desarrollo 20, resultado 30, presentación 10.'
   },
   {
+    // Antropología I y II van SEPARADAS, y no por pulcritud: sus guías reparten la nota de forma
+    // distinta. Estuvieron fusionadas en una sola entrada de 70 % exámenes y 30 % clase, con un
+    // aviso que decía que la guía no publicaba porcentajes. Las dos cosas eran falsas: la guía sí
+    // los publica —comprobado contra asignatura.unav.edu/antropologia--gr-diseno el 29-jul-2026— y
+    // ninguno de los dos repartos se parece al que había. Con aquellos números, un examen bien la
+    // habría hecho creerse aprobada teniendo el 70 % de la nota en otra cosa.
     kbCode: 'KB9-5',
-    materia: 'Antropología I y II',
+    materia: 'Antropología I',
     notaMinima: 5,
     componentes: [
-      { id: 'examenes', nombre: 'Exámenes escritos de desarrollo', peso: 70 },
-      { id: 'continua', nombre: 'Actividades y comentarios en clase', peso: 30 }
+      { id: 'asistencia', nombre: 'Asistencia y participación', peso: 30 },
+      { id: 'ensayos', nombre: 'Ensayos y exposición voluntaria', peso: 40 },
+      { id: 'final', nombre: 'Examen final', peso: 30 }
     ],
-    // Esta es la única de primero cuya guía NO publica porcentajes. Se pone un reparto plausible
-    // para que el tracker funcione, pero mentiría si lo presentara como oficial: por eso el aviso
-    // sale siempre en pantalla y le pide confirmarlo con su profesor.
-    aviso: 'ATENCIÓN: la guía docente de Antropología no publica porcentajes. Este reparto es una estimación, no el oficial — confírmalo con tu profesor y corrígelo si no coincide.'
+    aviso: 'En la convocatoria extraordinaria la nota es el examen final entero (en algún caso lo pueden sustituir por un trabajo).'
+  },
+  {
+    kbCode: 'KB9-5B',
+    materia: 'Antropología II',
+    notaMinima: 5,
+    componentes: [
+      { id: 'final', nombre: 'Examen final', peso: 40, minimo: 5 },
+      { id: 'participacion', nombre: 'Participación en clases magistrales', peso: 20 },
+      { id: 'proyectos', nombre: 'Entregas de proyectos', peso: 15 },
+      { id: 'cuaderno', nombre: 'Cuaderno de trabajo', peso: 25 }
+    ],
+    aviso: 'Hay que aprobar el examen para que haga media con el resto: sin eso, la asignatura suspende aunque los demás apartados vayan bien. Si no aprueba en mayo, en junio entra toda la materia y la nota es solo el examen.'
   },
   {
     kbCode: 'KB9-6',
@@ -132,7 +148,7 @@ export const EVALUACION: EvaluacionMateria[] = [
     asistenciaMinima: 75,
     componentes: [
       { id: 'asistencia', nombre: 'Asistencia', peso: 10 },
-      { id: 'pruebas', nombre: 'Pruebas escritas', peso: 10, cuantos: 3 },
+      { id: 'pruebas', nombre: 'Pruebas escritas', peso: 10, cuantos: 3, minimo: 4.5 },
       { id: 'ejercicios', nombre: 'Ejercicios individuales y grupales', peso: 40 },
       { id: 'portfolio', nombre: 'Portfolio y presentaciones', peso: 40 }
     ]
