@@ -15,7 +15,7 @@ tools; si el dashboard los llama distinto, el contenido es el mismo.
 
 ---
 
-## Los 8 tools de un vistazo
+## Los 10 tools de un vistazo
 
 | # | Name | Método | Ruta | Para qué |
 |---|---|---|---|---|
@@ -26,7 +26,9 @@ tools; si el dashboard los llama distinto, el contenido es el mismo.
 | 5 | `consultar_hora` | GET | `/hora?ciudad=` | Hora en cualquier ciudad del mundo |
 | 6 | `consultar_horario` | GET | `/horario/consulta?dia=` | ¿Hay un horario más nuevo que KB8? |
 | 7 | `consultar_promedio` | GET | `/notas` | Promedio ponderado por ECTS |
-| 8 | `consultar_apuntes` | GET | `/apuntes/buscar?q=` | Lo que se dijo en SU clase, para quizzes |
+| 8 | `consultar_calificaciones` | GET | `/calificaciones/consulta?materia=` | Cómo va en UNA asignatura ahora |
+| 9 | `consultar_fechas` | GET | `/fechas/consulta` | Qué tiene por delante: exámenes, entregas y sesiones |
+| 10 | `consultar_apuntes` | GET | `/apuntes/buscar?q=` | Lo que se dijo en SU clase, para quizzes |
 
 Ninguno lleva autenticación: el Worker no expone datos de terceros y el coste de un secreto mal
 copiado (Maite muda a mitad de una conversación) es mayor que el de que alguien descubra la URL.
@@ -248,7 +250,40 @@ para la mención de 4º.
   Si `materias` es 0, todavía no ha registrado nada: dile que puede subir una foto de su boletín en
   Académico → Mis calificaciones, sin dar un promedio inventado.
 
-## 8. `consultar_apuntes`
+## 8. `consultar_calificaciones`
+
+- **Name:** `consultar_calificaciones`
+- **Method:** `GET`
+- **URL:** `https://asistentecarmen.erictoled564.workers.dev/calificaciones/consulta`
+- **Query params:** `materia` (string, opcional) — nombre o parte del nombre de la asignatura
+  (`Form and Image`, `geometrías`). Vacío devuelve todas las que tengan alguna nota.
+- **Description:** Devuelve, asignatura por asignatura, las notas parciales que Carmen ha metido
+  (ejercicios, tests, examen final) con el peso de cada apartado, su media actual y cuánto necesita
+  en lo que le falta para aprobar. Úsala cuando pregunte cómo va en UNA asignatura concreta o qué
+  necesita sacar en un examen. Distinta de `consultar_promedio`, que es el expediente completo.
+
+La respuesta trae un `resumen` ya redactado por asignatura. Está así a propósito: la ponderación
+—con sus mínimos por apartado, que suspenden la asignatura aunque la media dé— es justo la clase de
+cuenta que un modelo hace mal en voz. El cálculo lo hace el Worker; el agente lee la frase.
+
+## 9. `consultar_fechas`
+
+- **Name:** `consultar_fechas`
+- **Method:** `GET`
+- **URL:** `https://asistentecarmen.erictoled564.workers.dev/fechas/consulta`
+- **Sin parámetros.**
+- **Description:** Devuelve lo que Carmen tiene por delante en su radar de fechas: las sesiones que
+  la universidad publica fuera del horario semanal (con día, hora y aula) y las que ella misma
+  apuntó. Úsala cuando pregunte qué tiene esta semana, cuándo es algo, o cuánto le falta para una
+  entrega. Ojo: el portal NO dice cuáles son examen y cuáles entrega, así que no lo afirmes tú.
+
+Cada fecha viene con `esOficial`. Ese campo importa: las oficiales salen del portal de la UNAV y su
+día, hora y aula son buenos, pero el portal las publica todas como "Evento_Docencia" sin distinguir
+examen de entrega de clase de correcciones. Por eso la respuesta trae un `comoDecirlo` que se lo
+recuerda al modelo en cada llamada — la regla vive en el prompt y también aquí, porque es el tipo de
+matiz que un agente se salta cuando la conversación va rápida.
+
+## 10. `consultar_apuntes`
 
 **Cuándo debe llamarlo:** siempre que Carmen pida un quiz, un repaso, o que le expliquen un tema.
 Antes de tirar del Knowledge Base.
