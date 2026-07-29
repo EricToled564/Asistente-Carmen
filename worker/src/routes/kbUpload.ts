@@ -18,7 +18,7 @@ const TIPO_A_KB_CODE: Record<string, string> = {
   alojamiento: 'KB3', // dónde vive, contrato, residencia
   campus: 'KB4', // edificios, servicios, biblioteca
   transporte: 'KB5', // villavesa, tarjetas, trenes
-  tramite: 'KB6', // TIE, empadronamiento, banco, sanidad
+  tramite: 'KB6', // DNI, empadronamiento, banco, sanidad
   ocio: 'KB11', // sitios, planes, vida social
   seguridad: 'KB12', // recursos de seguridad y apoyo
   otro: 'KB7' // cultura y vida diaria: el cajón de sastre, ahora sí solo para lo que no encaja

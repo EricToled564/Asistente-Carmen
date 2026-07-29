@@ -7,7 +7,7 @@ const AppContext = createContext(null)
 const DEFAULT_CHECKLIST = [
   { id: 'sos-nativo', label: 'Configura Emergencia SOS nativo del iPhone (contactos + info médica)', done: false },
   { id: 'empadronamiento', label: 'Agenda cita de empadronamiento', done: false },
-  { id: 'tie', label: 'Agenda cita de TIE (no puede pasar de 1 mes desde llegada)', done: false },
+  { id: 'dni', label: 'Saca el DNI español (si no lo tienes ya)', done: false },
   { id: 'banco', label: 'Abre cuenta bancaria', done: false },
   { id: 'sanidad', label: 'Trámite de tarjeta sanitaria', done: false },
   { id: 'movil', label: 'Línea de móvil española', done: false },

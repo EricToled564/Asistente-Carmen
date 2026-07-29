@@ -52,10 +52,12 @@ export const PINES = [
     lng: -1.6140
   },
   {
-    id: 'comisaria-extranjeria',
+    id: 'comisaria-dni',
     categoria: 'tramites',
-    nombre: 'Comisaría / Oficina de Extranjería (TIE)',
-    nota: 'Verifica la dirección exacta vigente antes de tu cita — puede reubicarse.',
+    // Antes esto era la Oficina de Extranjería, para la TIE. Carmen tiene pasaporte español, así
+    // que ahí no tiene nada que hacer: lo suyo es el DNI, que se saca en Policía Nacional.
+    nombre: 'Comisaría de Policía Nacional (DNI)',
+    nota: 'Confirma la dirección y el horario al pedir la cita: el punto del mapa es orientativo.',
     lat: 42.8140,
     lng: -1.6420
   },

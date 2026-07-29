@@ -56,7 +56,7 @@ const DOCS_MENSUALES: DocConfig[] = [
     nombre: 'KB6 Trámites de llegada',
     kbCode: 'KB6',
     fuenteUrl: 'https://parainmigrantes.info',
-    instrucciones: 'Busca cambios en empadronamiento, TIE (plazos, tasa EX-17), banco, sanidad o móvil.'
+    instrucciones: 'Busca cambios en empadronamiento, DNI español (documentos y tasa), banco, Osasunbidea o móvil. Carmen es española: NO investigues TIE, NIE ni extranjería, no le aplican.'
   }
 ]
 

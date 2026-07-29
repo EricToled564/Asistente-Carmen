@@ -4,9 +4,9 @@ import BotonMaite from '../agente/BotonMaite.jsx'
 
 // Los primeros 30 días, convertidos de lista de casillas en herramienta.
 //
-// La lista anterior decía "Agenda cita de TIE" y ya. No decía dónde, ni qué llevar, ni que el
-// plazo son 30 días desde que aterrizó, ni avisaba la víspera. Marcar la casilla era lo único que
-// se podía hacer, y marcarla no acerca nada.
+// La lista anterior decía "Agenda cita de empadronamiento" y ya. No decía dónde, ni qué llevar, ni
+// por qué va primero, ni avisaba la víspera. Marcar la casilla era lo único que se podía hacer, y
+// marcarla no acerca nada.
 //
 // Aquí cada trámite trae sus pasos, se le pone fecha y hora, y el Worker manda el aviso el día
 // antes y el mismo día. Al día siguiente pregunta cómo fue: sin esa última pregunta, una cita a la
@@ -265,7 +265,7 @@ function Tarjeta({ tramite, hoy, acciones, onNavigate }) {
             </p>
           )}
 
-          {/* Los requisitos exactos de extranjería cambian, y KB6 lo dice explícitamente. Antes de
+          {/* Los requisitos y las tasas cambian, y KB6 lo dice explícitamente. Antes de
               inventar aquí una dirección o una tasa que puede estar desfasada, se manda a
               preguntárselo a Maite, que sí consulta la documentación al día. */}
           <BotonMaite

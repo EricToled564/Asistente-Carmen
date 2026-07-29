@@ -3,9 +3,15 @@ import type { Env } from '../types.js'
 // Los trámites de los primeros 30 días, con cita agendable y recordatorios.
 //
 // Antes esto era una lista de casillas en localStorage. Servía para no olvidarse de que existían,
-// pero no para hacerlos: "Agenda cita de TIE" no dice dónde, ni qué llevar, ni que el plazo es de
-// un mes desde que aterrizó, ni avisa el día antes. Y viviendo en el navegador, ningún cron podía
-// recordarle nada — que es justo lo que hace falta cuando la cita se pidió hace tres semanas.
+// pero no para hacerlos: "Agenda cita de empadronamiento" no dice dónde, ni qué llevar, ni por qué
+// va primero, ni avisa el día antes. Y viviendo en el navegador, ningún cron podía recordarle nada
+// — que es justo lo que hace falta cuando la cita se pidió hace tres semanas.
+//
+// Carmen tiene pasaporte español. Eso quita de esta lista el trámite que más pesaba —la T-I-E, con
+// su plazo de un mes y su cita de extranjería— y cambia varios de los que quedan: el banco y el
+// centro de salud dejan de pedirle papeles de extranjera. Lo que aparece en su lugar es el DNI, que
+// es lo que le van a pedir aquí en todas partes. Si algún día vuelve a haber aquí una palabra como
+// TIE, NIE o extranjería aplicada a ella, está mal.
 //
 // Por eso el estado vive aquí, en KV: es la única forma de que el Worker pueda mandar el aviso de
 // la víspera y el del mismo día.
@@ -14,7 +20,7 @@ import type { Env } from '../types.js'
 // Donde KB6 avisa de que los requisitos exactos cambian —tasas, documentos, horarios de oficina—
 // aquí NO se inventa un dato concreto: se dan los pasos y se manda a confirmarlo. Un dato
 // inventado en este módulo es el que más caro sale de toda la app: significa presentarse a una
-// cita de extranjería sin un papel.
+// cita sin un papel.
 
 export type TipoTramite = 'cita' | 'configuracion'
 export type EstadoTramite = 'pendiente' | 'agendado' | 'hecho'
@@ -63,42 +69,42 @@ export const CATALOGO: TramiteCatalogo[] = [
     icono: '🏛️',
     tipo: 'cita',
     resumen: 'Registrarte en el Ayuntamiento de Pamplona como residente.',
-    porQue: 'Va primero porque varios de los demás trámites lo piden. Sin esto, el banco y parte del papeleo se atascan.',
+    porQue: 'Va primero porque varios de los demás trámites lo piden. Sin esto, el DNI, el banco y el centro de salud se atascan. El empadronamiento lo hace todo el mundo que vive aquí, seas española o no.',
     plazo: 'Cuanto antes. Es el que desbloquea a los demás.',
     pasos: [
       'Pide cita previa en el Ayuntamiento de Pamplona. Pregúntale a Maite cómo se pide ahora mismo, que cambia.',
-      'Reúne el pasaporte y un papel que demuestre dónde vives.',
+      'Reúne tu documento de identidad —DNI o pasaporte español— y un papel que demuestre dónde vives.',
       'En CampusHome pide una carta o el contrato: eso es lo que vale como comprobante de domicilio.',
       'Ve a la cita y guarda el volante de empadronamiento que te den.',
       'Hazle una foto al volante y súbela en Ajustes → Actualizar mi info, para que Maite lo sepa.'
     ],
-    queLlevar: ['Pasaporte', 'Contrato o carta de CampusHome', 'La cita (impresa o en el móvil)']
+    queLlevar: ['DNI o pasaporte español', 'Contrato o carta de CampusHome', 'La cita (impresa o en el móvil)']
   },
   {
-    id: 'tie',
-    titulo: 'TIE — Tarjeta de Identidad de Extranjero',
+    id: 'dni',
+    titulo: 'DNI español',
     icono: '🪪',
     tipo: 'cita',
-    resumen: 'Tu documento de identidad como estudiante extranjera en España.',
-    porQue: 'Es el trámite con plazo legal de toda la lista. Con la TIE en regla puedes además trabajar hasta 30 horas a la semana.',
-    plazo: 'Dentro del PRIMER MES desde que entraste a España. La cita puede tardar semanas en salir, así que pídela ya aunque la fecha caiga después.',
+    resumen: 'Tu documento de identidad español. Si ya lo tienes, márcalo como hecho y sigue.',
+    porQue:
+      'Con pasaporte español eres española a todos los efectos: nada de TIE, nada de NIE, nada de extranjería. Lo que sí te va a pedir todo el mundo aquí es el DNI: el banco, el centro de salud, la universidad y cualquier gestión por internet. El pasaporte sirve para identificarte, pero el número que te piden en los formularios es el del DNI.',
+    plazo: 'Si no lo tienes, cuanto antes: te lo van a pedir para casi todo lo demás.',
     pasos: [
-      'Pide la cita previa HOY. Es lo primero, antes de tener los papeles: las citas van con semanas de espera y el plazo corre igual.',
-      'Descarga y rellena el formulario EX-17.',
-      'Paga la tasa y guarda el justificante.',
-      'Hazte 3 fotografías tamaño carnet.',
-      'Confirma la lista exacta de documentos en la web oficial de extranjería o con la oficina de estudiantes internacionales de la UNAV antes de ir.',
-      'Ve a la cita en la Oficina de Extranjería de Navarra.'
+      'Si ya tienes DNI español y está en vigor, no tienes que hacer nada: márcalo como hecho.',
+      'Si no lo tienes o está caducado, pide cita previa en una Comisaría de Policía Nacional de Pamplona. Pregúntale a Maite cómo se pide ahora mismo, que el sistema de cita cambia.',
+      'Reúne el certificado literal de nacimiento español (el del Registro Civil, no el mexicano traducido) y una foto reciente tamaño carnet con fondo claro.',
+      'Lleva también el volante de empadronamiento si ya lo tienes: es lo que fija tu domicilio en el DNI.',
+      'Ve a la cita. El DNI te lo dan en el momento.',
+      'Cuando lo tengas, súbelo en Ajustes → Actualizar mi info para que Maite lo sepa.'
     ],
     queLlevar: [
-      'Pasaporte',
-      'Visado',
-      'Formulario EX-17 relleno',
-      'Justificante de la tasa pagada',
-      '3 fotos tamaño carnet'
+      'Pasaporte español',
+      'Certificado literal de nacimiento español',
+      'Una foto tamaño carnet, fondo claro',
+      'Volante de empadronamiento (si ya lo tienes)'
     ],
     aviso:
-      'Las tasas y los documentos cambian con frecuencia. Confirma la lista en la oficina o con estudiantes internacionales antes de ir — presentarte sin un papel significa volver otro día.'
+      'Los documentos exactos y la tasa cambian, y no es lo mismo el primer DNI que una renovación. Confírmalo al pedir la cita: presentarte sin un papel significa volver otro día. Si te dicen algo distinto de esto, hazles caso a ellos.'
   },
   {
     id: 'banco',
@@ -109,29 +115,29 @@ export const CATALOGO: TramiteCatalogo[] = [
     porQue: 'Sin cuenta española, cada transferencia desde México te cuesta comisión y tarda.',
     plazo: 'Después del empadronamiento.',
     pasos: [
-      'Pregunta en la universidad qué banco tiene mejores condiciones para estudiantes internacionales.',
+      'Pregunta en la universidad qué banco tiene mejores condiciones para estudiantes.',
       'Pide cita en la sucursal que elijas.',
-      'Lleva pasaporte, volante de empadronamiento y, si ya la tienes, la TIE o el justificante de haberla solicitado.',
-      'Algunos bancos aceptan el resguardo de la TIE en vez de la tarjeta: pregúntalo por teléfono antes de ir.'
+      'Lleva el DNI y el volante de empadronamiento. Con DNI español el trámite es el normal de cualquiera: no te pueden pedir NIE ni papeles de extranjería.',
+      'Pregunta por la cuenta de estudiante, que suele no tener comisiones de mantenimiento.'
     ],
-    queLlevar: ['Pasaporte', 'Volante de empadronamiento', 'TIE o resguardo de la solicitud']
+    queLlevar: ['DNI (o pasaporte español si aún no lo tienes)', 'Volante de empadronamiento']
   },
   {
     id: 'sanidad',
     titulo: 'Tarjeta sanitaria',
     icono: '🩺',
     tipo: 'cita',
-    resumen: 'Para que te atiendan sin pagar en el momento si te pones mala.',
-    porQue: 'El día que te haga falta no vas a estar para averiguar cómo funciona.',
+    resumen: 'La tarjeta de Osasunbidea, el servicio de salud de Navarra.',
+    porQue: 'Siendo española tienes derecho a la sanidad pública como cualquiera: no necesitas seguro privado ni el seguro del visado. Con la tarjeta te atienden en tu centro de salud sin pagar. El día que te haga falta no vas a estar para averiguar cómo funciona.',
     plazo: 'Cuando tengas el empadronamiento.',
     pasos: [
-      'Mira primero qué cubre el seguro médico con el que sacaste el visado: puede que ya tengas cobertura y solo necesites saber a qué centro ir.',
-      'Localiza tu centro de salud, que te toca por la dirección donde estás empadronada.',
-      'Pide cita para darte de alta.',
-      'Lleva pasaporte, volante de empadronamiento y la póliza del seguro.',
+      'Localiza tu centro de salud: te toca por la dirección donde estás empadronada.',
+      'Pide cita en el mostrador de tu centro de salud para darte de alta y pedir la tarjeta (la T-I-S).',
+      'Lleva el DNI y el volante de empadronamiento. Eso es todo lo que hace falta.',
+      'Mientras te llega la tarjeta te atienden igual: guarda el resguardo que te den.',
       'Apunta el teléfono de tu centro de salud donde lo encuentres rápido.'
     ],
-    queLlevar: ['Pasaporte', 'Volante de empadronamiento', 'Póliza del seguro médico']
+    queLlevar: ['DNI (o pasaporte español)', 'Volante de empadronamiento']
   },
   {
     id: 'movil',
@@ -143,11 +149,11 @@ export const CATALOGO: TramiteCatalogo[] = [
     plazo: 'Los primeros días.',
     pasos: [
       'Compara tarifas de prepago: no te ates a un contrato el primer mes.',
-      'Ve a una tienda con el pasaporte.',
+      'Ve a una tienda con el DNI o el pasaporte español.',
       'Cuando tengas el número, dáselo a la universidad y a la residencia.',
       'Guárdalo también en tus datos de contacto para tu familia.'
     ],
-    queLlevar: ['Pasaporte']
+    queLlevar: ['DNI o pasaporte español']
   },
   {
     id: 'villavesa',
@@ -187,7 +193,7 @@ export const CATALOGO: TramiteCatalogo[] = [
     icono: '🔔',
     tipo: 'configuracion',
     resumen: 'Que la app pueda avisarte de estas citas.',
-    porQue: 'Sin esto, los recordatorios de "mañana tienes la cita de la TIE" no llegan a ninguna parte.',
+    porQue: 'Sin esto, los recordatorios de "mañana tienes la cita del DNI" no llegan a ninguna parte.',
     pasos: [
       'Instala la app en tu pantalla de inicio. En iPhone tiene que ser desde Safari: Compartir → Añadir a pantalla de inicio.',
       'En Android, desde Chrome: los tres puntos → Instalar aplicación.',

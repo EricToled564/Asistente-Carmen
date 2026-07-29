@@ -47,7 +47,7 @@ const CATEGORIAS = [
     value: 'tramite',
     icono: '📋',
     label: 'Trámites',
-    ejemplo: 'TIE, empadronamiento, banco, tarjeta sanitaria, seguro, NIE. Cita, papel o resguardo.'
+    ejemplo: 'DNI, empadronamiento, banco, tarjeta sanitaria de Osasunbidea. La cita, el papel o el resguardo.'
   },
   {
     value: 'ocio',

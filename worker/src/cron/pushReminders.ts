@@ -83,7 +83,7 @@ export async function checkInProactivo(env: Env) {
 //
 // Tres avisos por cita, y el tercero es el que hace que la lista no se quede a medias:
 //
-//   víspera     -> "mañana a las 9:30 tienes la cita del TIE". El útil de verdad: da tiempo a
+//   víspera     -> "mañana a las 9:30 tienes la cita del DNI". El útil de verdad: da tiempo a
 //                  reunir los papeles.
 //   mismo día   -> por si el de ayer se le pasó.
 //   seguimiento -> el día después, "¿cómo fue?, márcalo o agenda otra". Sin esto, una cita a la

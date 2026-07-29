@@ -7,7 +7,7 @@ const SUGERENCIAS = [
   '¿Qué clase tengo hoy?',
   'Estoy en la biblioteca, ¿cómo llego al Taller 01?',
   '¿Qué hora es en México?',
-  'Ayúdame con lo del TIE',
+  '¿Qué necesito para el empadronamiento?',
   'Hazme un quiz de mi última clase',
   '¿Cómo voy de promedio?'
 ]

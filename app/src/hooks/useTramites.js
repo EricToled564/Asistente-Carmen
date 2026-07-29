@@ -5,7 +5,7 @@ import { api } from '../lib/api.js'
 // Inicio y la pantalla completa de Ajustes.
 //
 // Vive en el Worker y no en localStorage como la vieja lista de casillas, y esa es la diferencia
-// que hace que la función exista: el cron que manda "mañana tienes la cita del TIE" no puede leer
+// que hace que la función exista: el cron que manda "mañana tienes la cita del DNI" no puede leer
 // el navegador de nadie. Si el estado se quedara en el móvil, los recordatorios serían imposibles.
 export function useTramites() {
   const [datos, setDatos] = useState(null)
