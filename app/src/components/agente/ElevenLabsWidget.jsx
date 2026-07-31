@@ -59,6 +59,36 @@ function calcularVariablesDeHora({ modoViaje, ciudadViaje, ciudadCasa }) {
   }
 }
 
+// El widget puede enseñar texto además de hablar, y hasta ahora no se estaba usando.
+//
+// Qué hace cada uno (comprobado leyendo el bundle de @elevenlabs/convai-widget-embed 0.15.1, no
+// la documentación):
+//
+// - `transcript`: pinta lo que Maite va diciendo mientras lo dice. Sin esto, el panel solo tiene
+//   la onda de audio: si Carmen no pilla un aula ("ARQ-P2-TALLER4A" dicho en voz alta) no tiene
+//   dónde mirarlo. Con esto lo lee.
+// - `text-input`: añade el botón de modo texto, para escribirle en una biblioteca o con ruido.
+// - `markdown-link-allowed-hosts`: en modo texto los mensajes se pintan como markdown y los
+//   enlaces son pulsables, PERO solo los de hosts en esta lista; por defecto la lista es
+//   únicamente el origen de la propia página, así que un enlace a Google Maps saldría muerto.
+// - `strip-audio-tags`: quita de la transcripción las etiquetas tipo `[Warmly]` que el modelo
+//   sigue colando. Ojo: esto solo las OCULTA en pantalla. Que el modelo las siga generando es un
+//   problema del prompt que sigue sin resolverse.
+//
+// Y el límite que importa, porque cambia lo que se le puede pedir a Maite: en modo VOZ la
+// transcripción se pinta en texto plano, sin markdown y sin enlaces pulsables (el widget solo
+// aplica markdown a los mensajes marcados `isText`, o sea a los de modo texto). Además el texto
+// de la transcripción es literalmente lo que dice el TTS: no hay un canal aparte para "enseñar
+// esto sin decirlo". Si Maite mete una URL en su respuesta, la va a LEER EN VOZ ALTA letra por
+// letra. Por eso una URL nunca debe salir de su boca: para abrir un mapa hace falta una client
+// tool que lo abra desde la app.
+const ATRIBUTOS_TEXTO = {
+  transcript: 'true',
+  'text-input': 'true',
+  'strip-audio-tags': 'true',
+  'markdown-link-allowed-hosts': 'google.com,unav.edu,bulletscheduling.com'
+}
+
 /**
  * Widget del agente de voz (ElevenLabs Agents / Convai). Vive SOLO en la pantalla de Maite.
  *
@@ -96,6 +126,7 @@ export default function ElevenLabsWidget() {
         const el = document.createElement('elevenlabs-convai')
         el.setAttribute('agent-id', config.elevenLabsAgentId)
         el.setAttribute('placement', 'bottom-right')
+        for (const [attr, valor] of Object.entries(ATRIBUTOS_TEXTO)) el.setAttribute(attr, valor)
         elRef.current = el
         containerRef.current.appendChild(el)
       })
