@@ -80,14 +80,23 @@ realidad es una sesion de entregas es inventarle un dato que se va a creer.
 | Jueves 6 de mayo de 2027 | 09:00-14:00 | Comprehensive Lab II (Materials 3D) | ARQ-P1-AULA1 |
 | Lunes 10 de mayo de 2027 | 09:00-14:00 | Form and Matter (Properties) | ARQ-P2-TALLER4A y 4B |
 | Martes 8 de junio de 2027 | 09:00-14:00 | Design Studio I (Design Thinking) | ARQ-P2-TALLER4A |
+| Martes 8 de junio de 2027 | 09:00-14:00 | Design Studio II (Creative Examples) | ARQ-P2-TALLER4A |
 | Miercoles 9 de junio de 2027 | 09:00-14:00 | Design Studio I (Design Thinking) | ARQ-P2-TALLER4A |
+| Miercoles 9 de junio de 2027 | 09:00-14:00 | Design Studio II (Creative Examples) | ARQ-P2-TALLER4A |
 | Jueves 10 de junio de 2027 | 12:00-14:00 | Art Culture of the Last Century | ARQ-P2-TALLER1 |
 | Viernes 11 de junio de 2027 | 09:00-14:00 | Comprehensive Lab II (Materials 3D) | ARQ-P2-TALLER4A |
 | Lunes 14 de junio de 2027 | 09:00-12:00 | Form and Matter (Properties) | ARQ-P2-TALLER4A |
 | Martes 15 de junio de 2027 | 09:00-14:00 | Design Studio I (Design Thinking) | ARQ-P2-TALLER4A |
+| Martes 15 de junio de 2027 | 09:00-14:00 | Design Studio II (Creative Examples) | ARQ-P2-TALLER4A |
 | Miercoles 16 de junio de 2027 | 09:00-12:00 | Creative Traditions in History | ARQ-P1-AULA3 |
 | Viernes 18 de junio de 2027 | 09:00-13:00 | Comprehensive Lab I (Graphics 2D) | ARQ-P2-TALLER4A |
 | Martes 22 de junio de 2027 | 09:00-14:00 | Design Studio I (Design Thinking) | ARQ-P2-TALLER4A |
+| Martes 22 de junio de 2027 | 09:00-14:00 | Design Studio II (Creative Examples) | ARQ-P2-TALLER4A |
+
+Design Studio I y Design Studio II caen el MISMO dia, a la MISMA hora y en el MISMO taller cuatro
+veces en junio: el 8, el 9, el 15 y el 22. No te lo tomes por un error ni le digas a Carmen que
+solo tiene una: en el portal son dos eventos distintos, cada uno con su asignatura, y las dos son
+suyas. Si te pregunta por ese dia, nombra las dos.
 
 Fijate en que varias de junio son de asignaturas del PRIMER semestre (Design Studio I, Art Culture,
 Comprehensive Lab I). **El portal no dice por que**, y tu tampoco lo sabes. Podria ser la

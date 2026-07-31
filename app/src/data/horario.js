@@ -67,6 +67,12 @@ export const HORARIO = [
 // Decirle que un bloque de cinco horas es "el examen final" sería un dato falso dicho con
 // seguridad, que es la clase de error que más daño hace.
 //
+// Design Studio I y II caen el MISMO dia, a la MISMA hora y en el MISMO taller cuatro veces en
+// junio. No es un duplicado ni un error de copia: en el portal son dos eventos distintos, cada uno
+// con su asignatura, y las dos son suyas. Faltaban aqui hasta el 31-jul-2026 —el portal publica 16
+// sesiones para el segundo semestre y este archivo traia 12— asi que sin cobertura veia cuatro
+// fechas menos de las que tiene.
+//
 // `semestre: null` en las de mayo y junio no es un descuido: el portal deja ese campo en blanco en
 // esas y **no se adivina**. Antes se deducía del mes, y salía mal de una forma que engañaba —
 // "Design Studio I", que es del PRIMER semestre, quedaba archivada dentro del segundo solo porque
@@ -82,14 +88,18 @@ export const SESIONES_ESPECIALES = [
   { semestre: null, fecha: '2027-05-06', hora: '09:00–14:00', materia: 'Comprehensive Lab II (Materials 3D)', aula: 'ARQ-P1-AULA1' },
   { semestre: null, fecha: '2027-05-10', hora: '09:00–14:00', materia: 'Form and Matter (Properties)', aula: 'ARQ-P2-TALLER4A / 4B' },
   { semestre: null, fecha: '2027-06-08', hora: '09:00–14:00', materia: 'Design Studio I (Design Thinking)', aula: 'ARQ-P2-TALLER4A' },
+  { semestre: null, fecha: '2027-06-08', hora: '09:00–14:00', materia: 'Design Studio II (Creative Examples)', aula: 'ARQ-P2-TALLER4A' },
   { semestre: null, fecha: '2027-06-09', hora: '09:00–14:00', materia: 'Design Studio I (Design Thinking)', aula: 'ARQ-P2-TALLER4A' },
+  { semestre: null, fecha: '2027-06-09', hora: '09:00–14:00', materia: 'Design Studio II (Creative Examples)', aula: 'ARQ-P2-TALLER4A' },
   { semestre: null, fecha: '2027-06-10', hora: '12:00–14:00', materia: 'Art Culture of the Last Century', aula: 'ARQ-P2-TALLER1' },
   { semestre: null, fecha: '2027-06-11', hora: '09:00–14:00', materia: 'Comprehensive Lab II (Materials 3D)', aula: 'ARQ-P2-TALLER4A' },
   { semestre: null, fecha: '2027-06-14', hora: '09:00–12:00', materia: 'Form and Matter (Properties)', aula: 'ARQ-P2-TALLER4A' },
   { semestre: null, fecha: '2027-06-15', hora: '09:00–14:00', materia: 'Design Studio I (Design Thinking)', aula: 'ARQ-P2-TALLER4A' },
+  { semestre: null, fecha: '2027-06-15', hora: '09:00–14:00', materia: 'Design Studio II (Creative Examples)', aula: 'ARQ-P2-TALLER4A' },
   { semestre: null, fecha: '2027-06-16', hora: '09:00–12:00', materia: 'Creative Traditions in History', aula: 'ARQ-P1-AULA3' },
   { semestre: null, fecha: '2027-06-18', hora: '09:00–13:00', materia: 'Comprehensive Lab I (Graphics 2D)', aula: 'ARQ-P2-TALLER4A' },
-  { semestre: null, fecha: '2027-06-22', hora: '09:00–14:00', materia: 'Design Studio I (Design Thinking)', aula: 'ARQ-P2-TALLER4A' }
+  { semestre: null, fecha: '2027-06-22', hora: '09:00–14:00', materia: 'Design Studio I (Design Thinking)', aula: 'ARQ-P2-TALLER4A' },
+  { semestre: null, fecha: '2027-06-22', hora: '09:00–14:00', materia: 'Design Studio II (Creative Examples)', aula: 'ARQ-P2-TALLER4A' }
 ]
 
 // Qué semestre toca hoy. Sin esto, en febrero se le enseñaría la parrilla de septiembre.
