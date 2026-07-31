@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useApp } from '../../context/AppContext.jsx'
+import { crearClientTools } from '../../lib/clientTools.js'
 
 const SCRIPT_SRC = 'https://unpkg.com/@elevenlabs/convai-widget-embed'
 let scriptLoadingPromise = null
@@ -112,6 +113,15 @@ export default function ElevenLabsWidget() {
   const elRef = useRef(null)
   const { config, contextoAgente, modoViaje, ciudadViaje, ciudadReferencia } = useApp()
 
+  // Las herramientas que corren en el teléfono se rearman en cada render y se leen por ref al
+  // arrancar la llamada. Van por ref y no por dependencia del efecto de montaje a propósito:
+  // recrear el elemento para actualizarlas cortaría la conversación en curso, y lo que cambia
+  // (que esté o no en modo viaje) tiene que poder cambiar sin cortar nada.
+  const toolsRef = useRef(null)
+  toolsRef.current = crearClientTools({
+    ciudadActual: modoViaje ? `${ciudadViaje.nombre}, ${ciudadViaje.pais}` : 'Pamplona, España'
+  })
+
   // Se crea al entrar a la pantalla y se destruye al salir.
   //
   // El `remove()` de la limpieza no es opcional: el widget se pinta con position:fixed sobre toda
@@ -127,6 +137,14 @@ export default function ElevenLabsWidget() {
         el.setAttribute('agent-id', config.elevenLabsAgentId)
         el.setAttribute('placement', 'bottom-right')
         for (const [attr, valor] of Object.entries(ATRIBUTOS_TEXTO)) el.setAttribute(attr, valor)
+
+        // Así se registran las herramientas que corren aquí, en el teléfono. El widget dispara
+        // este evento justo antes de abrir la conversación y luego RELEE `detail.config`: hay que
+        // mutar el objeto que viene, no devolver uno nuevo.
+        el.addEventListener('elevenlabs-convai:call', (e) => {
+          e.detail.config.clientTools = { ...(e.detail.config.clientTools || {}), ...toolsRef.current }
+        })
+
         elRef.current = el
         containerRef.current.appendChild(el)
       })

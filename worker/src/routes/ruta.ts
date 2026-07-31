@@ -74,10 +74,26 @@ ruta.post('/ruta/iniciar', async (c) => {
       })
     }
     if ('desconocido' in r) {
+      // El mensaje no se limita a decir que no: dice qué hacer en su lugar.
+      //
+      // Antes solo decía "no tengo ese sitio, pregúntale el número de sala", y con eso el agente
+      // se inventaba el camino igual — en una simulación, pedirle "de la biblioteca a la catedral"
+      // le sacó "continúa por la acera hasta el semáforo, gira a la derecha, atraviesa la plaza
+      // pequeña y pasa junto al quiosco". Nada de eso existe en ningún dato: se lo inventó entero
+      // después de que esta misma respuesta le dijera que no sabía.
+      //
+      // La razón de que fallara es que un "no" a secas deja el hueco abierto, y el modelo lo
+      // rellena. La regla equivalente ya estaba escrita en el system prompt y tampoco bastó: lo
+      // que sí funciona es que la instrucción venga pegada al resultado, justo antes de hablar.
       return c.json({
         necesitaAclaracion: true,
         campo: quien,
-        mensaje: `No tengo ese sitio en el plano del edificio como ${quien}. Pregúntale a Carmen el nombre del aula, seminario o taller, o el número de sala.`
+        mensaje:
+          `No tengo ese sitio en el plano del edificio como ${quien}. Este plano SOLO cubre el interior ` +
+          `de la Escuela de Arquitectura y acaba en la puerta de la calle. Si lo que quiere es ir a un ` +
+          `sitio de FUERA, no le describas el camino —no lo sabes— y usa la herramienta abrir_mapa con ` +
+          `ese destino. Si es un sitio de dentro, pregúntale el nombre del aula, seminario o taller, o ` +
+          `el número de sala.`
       })
     }
   }

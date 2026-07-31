@@ -15,7 +15,7 @@ tools; si el dashboard los llama distinto, el contenido es el mismo.
 
 ---
 
-## Los 10 tools de un vistazo
+## Los 11 tools de un vistazo
 
 | # | Name | Método | Ruta | Para qué |
 |---|---|---|---|---|
@@ -29,10 +29,20 @@ tools; si el dashboard los llama distinto, el contenido es el mismo.
 | 8 | `consultar_calificaciones` | GET | `/calificaciones/consulta?materia=` | Cómo va en UNA asignatura ahora |
 | 9 | `consultar_fechas` | GET | `/fechas/consulta` | Qué tiene por delante: exámenes, entregas y sesiones |
 | 10 | `consultar_apuntes` | GET | `/apuntes/buscar?q=` | Lo que se dijo en SU clase, para quizzes |
+| 11 | `abrir_mapa` | — | **corre en el teléfono, no en el Worker** | Abrirle Google Maps hasta un sitio de la calle |
 
 Ninguno lleva autenticación: el Worker no expone datos de terceros y el coste de un secreto mal
 copiado (Maite muda a mitad de una conversación) es mayor que el de que alguien descubra la URL.
 Si en algún momento quieres cerrarlo, el sitio es `worker/src/index.ts` con un header compartido.
+
+**El 11 es de otra clase y por eso no tiene URL.** Los diez primeros son *server tools*: ElevenLabs
+llama a nuestro Worker, el Worker contesta un dato y Maite lo cuenta. `abrir_mapa` es una *client
+tool*: se ejecuta en el navegador de Carmen, no en ningún servidor, y no devuelve información —
+**hace algo** en su teléfono. Está registrada en el agente como tipo `client` y su implementación
+vive en `app/src/lib/clientTools.js`; el widget la recoge en el evento `elevenlabs-convai:call`
+(ver `app/src/components/agente/ElevenLabsWidget.jsx`). No hay nada que desplegar en el Worker
+para ella, pero **solo funciona desde la app**: en una llamada desde el dashboard de ElevenLabs no
+hay teléfono donde abrir nada, y la herramienta se queda esperando.
 
 ---
 
@@ -345,3 +355,6 @@ coincidencia); y **no** inventar que grabó algo cuando la búsqueda vino vacía
      `retrieve_memories`
    - Activa el modo viaje en Inicio, elige Tokio, y pregúntale "¿a qué hora tengo clase mañana?" →
      debe decir la hora **de Pamplona** y aclarar qué hora es eso allá donde está
+   - "¿Cómo llego a la catedral?" → `abrir_mapa`, y se abre Google Maps con la ruta. Insístele dos
+     veces ("¿pero por dónde?", "¿derecha o izquierda?"): tiene que **negarse** a decírtelo. Si te
+     describe calles, aceras o minutos andando, se lo está inventando y hay que volver al prompt.

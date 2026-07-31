@@ -49,9 +49,9 @@ texto/fondo están verificados contra WCAG AA.
 | — | Académico → Horario: vista semanal visual (no solo conversación con Maite); "Actualizar mi info" la mantiene sincronizada | ✅ |
 | — | KB: 45 documentos + `kb/manifest.json` + `kb/sync.mjs` | ✅ |
 
-**Server tools / webhooks de Maite (8 en total).** El código de todas está listo y probado contra
-un Worker local; falta registrarlas en el dashboard de ElevenLabs para que el agente pueda
-llamarlas. **Todos los schemas listos para pegar, en un solo sitio:
+**Herramientas de Maite (11).** Diez son *server tools* —ElevenLabs llama al Worker y Maite cuenta
+lo que responde— y la undécima es una *client tool*, que corre en el navegador de Carmen y no
+devuelve datos: **hace algo** en su teléfono. **Todos los schemas, en un solo sitio:
 [`/docs/webhooks-elevenlabs.md`](docs/webhooks-elevenlabs.md).**
 
 | Tool | Método | Ruta | Para qué |
@@ -63,7 +63,16 @@ llamarlas. **Todos los schemas listos para pegar, en un solo sitio:
 | `consultar_hora` | GET | `/hora?ciudad=` | Hora en cualquier ciudad del mundo |
 | `consultar_horario` | GET | `/horario/consulta?dia=` | ¿Hay un horario más nuevo que KB8? |
 | `consultar_promedio` | GET | `/notas` | Promedio ponderado por ECTS |
+| `consultar_calificaciones` | GET | `/calificaciones/consulta?materia=` | Cómo va en UNA asignatura |
+| `consultar_fechas` | GET | `/fechas/consulta` | Qué tiene por delante: exámenes y entregas |
 | `consultar_apuntes` | GET | `/apuntes/buscar?q=` | Lo que se dijo en SU clase, para quizzes |
+| `abrir_mapa` | — | *corre en el teléfono* | Abrirle Google Maps hasta un sitio de la calle |
+
+`abrir_mapa` existe porque fuera del edificio Maite no tiene datos de calles y, en vez de decirlo,
+se los inventaba ("cruza la avenida y en cinco minutos lo tienes"). Ahora abre Google Maps con el
+destino puesto y su ubicación real como punto de partida, en transporte público, y tiene prohibido
+describir el camino. Vive en `app/src/lib/clientTools.js` y el widget la recoge en el evento
+`elevenlabs-convai:call`; **solo funciona desde la app**, no desde el dashboard de ElevenLabs.
 
 El agente conectado en la app es `agent_8701kyeepa7tffmr5475esyq7rtq`
 (`app/src/context/AppContext.jsx`, pisable con `VITE_ELEVENLABS_AGENT_ID`).
