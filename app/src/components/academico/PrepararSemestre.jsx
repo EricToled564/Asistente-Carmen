@@ -94,12 +94,27 @@ export default function PrepararSemestre({ onListo }) {
   const [propuestas, setPropuestas] = useState([])
   const [mensaje, setMensaje] = useState('')
   const [horario, setHorario] = useState(null)
+  const [sinConexion, setSinConexion] = useState(false)
 
+  // Si la lista no se puede traer, hay que DECIRLO.
+  //
+  // Antes el fallo se tragaba con `.catch(() => setSemestres([]))`: la lista quedaba vacía y la
+  // pantalla no pintaba nada — ni un error, ni un reintento, ni una explicación. Carmen, que llegó
+  // aquí a preparar su semestre, se quedaba mirando una pantalla en blanco sin saber si es que ya
+  // no había nada que preparar o si es que el móvil no tenía cobertura. Son dos cosas muy
+  // distintas y la app las enseñaba igual.
   const cargar = useCallback(() => {
+    setSinConexion(false)
     return api
       .calificacionesSemestres()
-      .then((d) => setSemestres(d.semestres || []))
-      .catch(() => setSemestres([]))
+      .then((d) => {
+        setSemestres(d.semestres || [])
+        setSinConexion(false)
+      })
+      .catch(() => {
+        setSemestres([])
+        setSinConexion(true)
+      })
   }, [])
 
   useEffect(() => {
@@ -244,6 +259,16 @@ export default function PrepararSemestre({ onListo }) {
 
       {semestres === null ? (
         <p className="text-sm text-morado-900/50">Cargando…</p>
+      ) : sinConexion ? (
+        <div className="rounded-2xl bg-melocoton-300/60 p-4 text-sm leading-relaxed text-morado-900">
+          <p>No pude traer la lista de semestres. Suele ser la conexión.</p>
+          <button
+            onClick={cargar}
+            className="mt-3 rounded-full bg-lavanda-700 px-4 py-1.5 text-xs font-semibold text-white"
+          >
+            Reintentar
+          </button>
+        </div>
       ) : (
         semestres.map((b) => {
           const completo = b.preparadas === b.total
