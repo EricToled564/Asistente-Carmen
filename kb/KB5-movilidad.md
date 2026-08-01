@@ -8,7 +8,12 @@ La parada Fuente del Hierro es la mas cercana a la Universidad de Navarra y al H
 
 App oficial "Tu Villavesa" con seguimiento de buses en tiempo real
 
-Horario de verano: del 15 de julio al 30 de agosto aplica horario reducido, con menor frecuencia de paso
+Horario de verano: del 15 de julio al 30 de agosto aplica horario reducido, con menor frecuencia de paso en algunas lineas.
+
+El Transporte Urbano Comarcal ha incorporado 16 nuevas villavesas propulsadas por gas de origen renovable.
+
+## Accesibilidad
+Codigos NaviLens instalados en las villavesas para guiar a personas con discapacidad visual.
 
 ## Seguridad nocturna
 En las lineas nocturnas (N1-N10) existe el servicio de "paradas a demanda", exclusivo para mujeres, que permite bajar mas cerca de casa que en una parada oficial - ver detalle completo del protocolo en KB12 (Seguridad urbana).
