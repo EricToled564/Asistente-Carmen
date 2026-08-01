@@ -1,24 +1,25 @@
 import { useState } from 'react'
+import { ATAJOS, HAY_ENLACES_DE_INSTALACION, urlEjecutar } from '../../data/atajos.js'
 
 // Los botones de "grabar clase con dos taps", vía el esquema `shortcuts://` de iOS.
 //
 // Esto salió mal en el mundo real y conviene dejar escrito por qué, porque el fallo no estaba en
 // el código: estaba en ofrecer un botón que no puede funcionar sin un paso que nadie hizo.
 //
-// Los dos Atajos ("GrabarClase" y "TerminarClase") hay que crearlos A MANO, una vez, en la app
-// Atajos del iPhone. La PWA no puede grabar con la pantalla bloqueada —limitación de Safari en
-// iOS, no algo que se arregle con más código— y por eso esa parte vive fuera.
+// La app NO puede crear los Atajos. iOS no expone ninguna API para eso —ni para crearlos, ni
+// siquiera para preguntar cuáles tienes— y es deliberado: si la hubiera, cualquier web podría
+// meterte automatizaciones en el teléfono. Lo único que se puede hacer desde aquí es pedirle a iOS
+// que EJECUTE uno por su nombre, y si no existe, iOS enseña su propio error ("el archivo de atajo
+// no existe") que esta app ni ve ni puede prevenir.
 //
-// El problema: **el navegador no tiene forma de saber si esos Atajos existen.** No hay API. Al
-// tocar el enlace, iOS abre la app Atajos y, si no lo encuentra, enseña su propio error ("el
-// archivo de atajo no existe") que esta app ni ve ni puede prevenir. Antes, esta tarjeta era dos
-// botones grandes y una línea gris diciendo "instrucciones en Ajustes → Ayuda". El resultado
-// predecible: tocas, sale un error del sistema que parece un fallo de la app, y las instrucciones
-// están en otra pestaña.
+// Lo que sí se puede: un enlace de iCloud que los instala de un toque. Alguien tiene que
+// construirlos una vez en un iPhone de verdad; a partir de ahí es un botón. Ver data/atajos.js.
 //
-// Así que ahora: se dice ANTES de que lo toque que hace falta instalarlos, las instrucciones están
-// aquí mismo, y lo primero de la tarjeta es que grabar desde la propia app funciona sin nada de
-// esto. Los Atajos son un atajo, no el camino.
+// Antes esta tarjeta eran dos botones grandes y una línea gris diciendo "instrucciones en Ajustes
+// → Ayuda". Resultado predecible: tocas, sale un error del sistema que parece un fallo de la app,
+// y las instrucciones estaban en otra pestaña. Ahora se dice ANTES de tocar nada, las
+// instrucciones están aquí mismo, y lo primero es que grabar desde la propia app funciona sin nada
+// de esto. Los Atajos son un atajo, no el camino.
 export default function BotonesAtajos() {
   const [abierto, setAbierto] = useState(false)
 
@@ -26,33 +27,69 @@ export default function BotonesAtajos() {
     <div className="flex flex-col gap-2 rounded-2xl bg-white p-4 shadow-soft">
       <p className="text-sm font-semibold text-lavanda-800">Grabar clase con 2 taps</p>
 
-      <p className="rounded-xl bg-melocoton-300/50 p-2.5 text-xs leading-relaxed text-morado-900">
-        <span className="font-semibold">Hay que instalarlos una vez.</span> Son dos Atajos de iPhone
-        que no vienen puestos. Si tocas los botones sin haberlos creado, iOS te dirá{' '}
-        <span className="italic">"el archivo de atajo no existe"</span> — no es un fallo de la app, es
-        que faltan. Desde aquí no hay manera de saber si los tienes.
-      </p>
+      {HAY_ENLACES_DE_INSTALACION ? (
+        <>
+          <p className="rounded-xl bg-lavanda-50 p-2.5 text-xs leading-relaxed text-morado-900">
+            <span className="font-semibold">Instálalos una vez</span> con estos dos botones y ya no
+            vuelves a tocarlos. Si al grabar te sale <span className="italic">"el archivo de atajo no
+            existe"</span>, es que falta alguno.
+          </p>
+          <div className="flex gap-2">
+            <a
+              href={ATAJOS.grabar.instalarUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="flex-1 rounded-xl border border-lavanda-300 bg-lavanda-50 py-2 text-center text-xs font-semibold text-lavanda-800"
+            >
+              ⬇️ Instalar “Grabar”
+            </a>
+            <a
+              href={ATAJOS.terminar.instalarUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="flex-1 rounded-xl border border-lavanda-300 bg-lavanda-50 py-2 text-center text-xs font-semibold text-lavanda-800"
+            >
+              ⬇️ Instalar “Terminar”
+            </a>
+          </div>
+        </>
+      ) : (
+        <p className="rounded-xl bg-melocoton-300/50 p-2.5 text-xs leading-relaxed text-morado-900">
+          <span className="font-semibold">Hay que crearlos a mano una vez.</span> Son dos Atajos de
+          iPhone que no vienen puestos, y la app no puede instalártelos: iOS no deja que una web cree
+          Atajos, ni siquiera saber cuáles tienes. Si tocas los botones sin haberlos creado, iOS te
+          dirá <span className="italic">"el archivo de atajo no existe"</span> — no es un fallo de la
+          app, es que faltan.
+        </p>
+      )}
 
-      <div className="flex gap-2">
+      <div className="mt-1 flex gap-2">
         <a
-          href="shortcuts://run-shortcut?name=GrabarClase"
+          href={urlEjecutar(ATAJOS.grabar.nombre)}
           className="flex-1 rounded-xl bg-lavanda-700 py-2.5 text-center text-sm font-semibold text-white"
         >
           ▶️ Grabar clase
         </a>
         <a
-          href="shortcuts://run-shortcut?name=TerminarClase"
+          href={urlEjecutar(ATAJOS.terminar.nombre)}
           className="flex-1 rounded-xl bg-morado-900 py-2.5 text-center text-sm font-semibold text-white"
         >
           ⏹️ Terminar clase
         </a>
       </div>
 
+      {/* Fuera del acordeón a propósito: es lo que más tranquiliza y lo que menos se debe esconder
+          detrás de un "ver más". Si los Atajos no van, no pasa nada. */}
+      <p className="text-xs leading-relaxed text-morado-900/55">
+        No hacen falta: el botón del micrófono de arriba graba desde la propia app y sube el audio
+        igual. Los Atajos solo ahorran toques.
+      </p>
+
       <button
         onClick={() => setAbierto((x) => !x)}
         className="mt-1 text-left text-xs font-semibold text-lavanda-700 underline decoration-dotted"
       >
-        {abierto ? 'Ocultar cómo se instalan' : 'Cómo se instalan (5 minutos, una sola vez)'}
+        {abierto ? 'Ocultar cómo se crean' : 'Cómo se crean a mano (5 minutos, una sola vez)'}
       </button>
 
       {abierto && (
@@ -61,9 +98,9 @@ export default function BotonesAtajos() {
           <ol className="mt-1.5 list-decimal space-y-1.5 pl-4">
             <li>
               Toca <span className="font-semibold">+</span> arriba a la derecha y llama al atajo{' '}
-              <span className="rounded bg-white px-1 font-mono font-semibold">GrabarClase</span>. Tiene que
-              escribirse exactamente así: junto, con las mayúsculas donde están y sin acentos. Si cambia una
-              letra, el botón no lo encuentra.
+              <span className="rounded bg-white px-1 font-mono font-semibold">{ATAJOS.grabar.nombre}</span>.
+              Tiene que escribirse exactamente así: junto, con las mayúsculas donde están y sin acentos.
+              Si cambia una letra, el botón no lo encuentra.
             </li>
             <li>
               Añádele la acción <span className="font-semibold">Grabar audio</span>. Si tu iOS no la tiene,
@@ -71,14 +108,17 @@ export default function BotonesAtajos() {
             </li>
             <li>
               Crea otro llamado{' '}
-              <span className="rounded bg-white px-1 font-mono font-semibold">TerminarClase</span> que pare la
-              grabación, coja la última nota de voz y la mande con{' '}
+              <span className="rounded bg-white px-1 font-mono font-semibold">{ATAJOS.terminar.nombre}</span>{' '}
+              que pare la grabación, coja la última nota de voz y la mande con{' '}
               <span className="font-semibold">Obtener contenido de URL</span> a{' '}
-              <span className="break-all font-mono">
-                asistentecarmen.erictoled564.workers.dev/audio
-              </span>{' '}
-              por <span className="font-semibold">POST</span>, en un campo de formulario llamado{' '}
+              <span className="break-all font-mono">asistentecarmen.erictoled564.workers.dev/audio</span> por{' '}
+              <span className="font-semibold">POST</span>, en un campo de formulario llamado{' '}
               <span className="font-mono">audio</span>.
+            </li>
+            <li>
+              Cuando estén los dos, tócale a <span className="font-semibold">Compartir</span> en cada uno y
+              guarda los dos enlaces de iCloud: pegándolos en la app, esto se convierte en un botón de
+              instalar y nadie más tiene que repetir estos pasos.
             </li>
           </ol>
           <p className="mt-2.5 rounded-lg bg-white p-2">

@@ -9,6 +9,26 @@ Por eso esta parte vive fuera de la app, en la app **Atajos** (Shortcuts) de iOS
 Esto lo tiene que crear **Eric, una sola vez, en el iPhone de ella** (o ella misma, siguiendo esta
 guía). Toma ~10 minutos.
 
+## ¿No puede la app crearlos sola?
+
+No, y no es por falta de ganas: **iOS no lo permite.** Una página web no puede crear ni modificar
+Atajos, y ni siquiera puede PREGUNTAR cuáles tienes instalados. No existe ninguna API para eso, y
+es a propósito — si la hubiera, cualquier web podría meterte automatizaciones en el móvil.
+
+Lo único que se puede hacer desde una web es pedirle a iOS que EJECUTE uno por su nombre
+(`shortcuts://run-shortcut?name=...`). Si no existe, iOS enseña su propio error —"el archivo de
+atajo no existe"— que la app ni ve ni puede prevenir. Por eso la pantalla de Captura avisa ANTES
+de que se toque el botón, en vez de dejar que el error del sistema parezca un fallo de la app.
+
+**Pero el trabajo manual se hace UNA vez y solo una.** Cuando los dos Atajos estén creados en un
+iPhone, tócale a **Compartir** en cada uno: sale un enlace `icloud.com/shortcuts/...` que los
+instala de un toque. Pega esos dos enlaces en `VITE_ATAJO_GRABAR_URL` y `VITE_ATAJO_TERMINAR_URL`
+(o directamente en `app/src/data/atajos.js`) y la pantalla de Captura deja de enseñar la receta y
+enseña dos botones de "Instalar". Nadie más tiene que volver a montarlos a mano.
+
+Mientras esos enlaces estén vacíos no se finge nada: la app dice claramente que hay que crearlos y
+explica cómo, en la misma pantalla.
+
 ## ⚠️ Nota de verificación
 
 Esto **no se pudo verificar en hardware real** durante la construcción de la app (Claude Code no
