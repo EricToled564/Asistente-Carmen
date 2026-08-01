@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useApp } from '../../context/AppContext.jsx'
+import { usePush } from '../../hooks/usePush.js'
 import { api } from '../../lib/api.js'
 import { estaInstalada, esIOS } from '../../lib/instalacion.js'
 import PrimerosDias from '../tramites/PrimerosDias.jsx'
@@ -33,7 +34,9 @@ const TIPOS_SANGRE = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-']
 // (estaInstalada/esIOS viven en lib/instalacion.js — los usa también la sección de Ayuda.)
 
 export default function OnboardingFlow({ onGoTo }) {
-  const { completeOnboarding, updatePermission, permissions } = useApp()
+  const { completeOnboarding, updatePermission, permissions, config } = useApp()
+  // Pedir el permiso NO es suscribirse. Ver askNotifications.
+  const { estado: estadoPush, detalle: detallePush, suscribir } = usePush(config.vapidPublicKey)
   const [step, setStep] = useState(0)
   const [nombreLegal, setNombreLegal] = useState('Carmen Toledano Peláez')
   const [tipoSangre, setTipoSangre] = useState('')
@@ -64,17 +67,28 @@ export default function OnboardingFlow({ onGoTo }) {
     )
   }
 
+  // Pedir el permiso NO es suscribirse, y confundir las dos cosas rompía las notificaciones
+  // enteras sin que nadie se enterara.
+  //
+  // Antes esto llamaba a `Notification.requestPermission()` y guardaba el resultado. Nada más.
+  // Carmen tocaba "Permitir notificaciones", decía que sí, el botón pasaba a "Concedido ✓"... y su
+  // teléfono NUNCA quedaba registrado en el servidor. Sin registro no hay a dónde mandar nada: los
+  // recordatorios de trámites, los avisos de entregas y los cinco crons no le llegaban jamás. Y no
+  // fallaba nada visible — la app enseñaba el permiso concedido, que es lo que hace que este tipo
+  // de fallo sobreviva meses.
+  //
+  // Lo cazó el autodiagnóstico en el teléfono de Eric: "el permiso está dado, pero este teléfono no
+  // está suscrito en el servidor".
+  //
+  // `suscribir()` hace las dos cosas: pide el permiso Y registra la suscripción. Se usa el mismo
+  // hook que Ajustes para que no haya dos caminos que puedan divergir otra vez.
   async function askNotifications() {
     if (!('Notification' in window)) {
       updatePermission('notifications', 'unsupported')
       return
     }
-    try {
-      const result = await Notification.requestPermission()
-      updatePermission('notifications', result)
-    } catch {
-      updatePermission('notifications', 'denied')
-    }
+    await suscribir()
+    updatePermission('notifications', Notification.permission)
   }
 
   async function siguienteDesdeEmergencia() {
@@ -199,10 +213,29 @@ export default function OnboardingFlow({ onGoTo }) {
             </p>
             <button
               onClick={askNotifications}
-              className="mt-3 rounded-full bg-white px-4 py-2 text-sm font-semibold text-lavanda-800"
+              disabled={estadoPush === 'pidiendo'}
+              className="mt-3 rounded-full bg-white px-4 py-2 text-sm font-semibold text-lavanda-800 disabled:opacity-60"
             >
-              {permissions.notifications === 'granted' ? 'Concedido ✓' : 'Permitir notificaciones'}
+              {estadoPush === 'pidiendo'
+                ? 'Activando…'
+                : estadoPush === 'suscrito'
+                  ? 'Activadas ✓'
+                  : 'Permitir notificaciones'}
             </button>
+            {/* El estado real, no solo el del permiso. "Concedido ✓" con el teléfono sin registrar
+                es la mentira que dejó las notificaciones muertas sin que nadie lo notara. */}
+            {estadoPush !== 'idle' && estadoPush !== 'suscrito' && estadoPush !== 'pidiendo' && (
+              <p className="mt-2 text-xs leading-relaxed text-melocoton-300">
+                No se pudieron activar
+                {estadoPush === 'sin-permiso'
+                  ? ': hace falta que digas que sí.'
+                  : estadoPush === 'fallo-servidor'
+                    ? ': el permiso está dado pero no se pudo registrar tu teléfono. Vuelve a intentarlo desde Ajustes.'
+                    : '.'}{' '}
+                Puedes seguir y activarlas luego en Ajustes → Notificaciones.
+                {detallePush ? ` (${detallePush})` : ''}
+              </p>
+            )}
           </div>
         </div>
       )}

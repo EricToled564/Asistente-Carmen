@@ -74,7 +74,8 @@ test('con el servidor contestando de verdad, ningún SERVICIO sale en rojo', asy
 test('las rutas del edificio se cuentan de la respuesta real (plantas, no lugares)', async () => {
   const r = await correr('ruta')
   assert.equal(r.estado, 'bien')
-  // 3 plantas y 24 sitios en la respuesta real del 31-jul-2026.
+  // El número no se escribe a mano aquí: se calcula del fixture. Poner "24" de memoria —que fue
+  // el primer intento— es el mismo error que este archivo existe para impedir. Son 38.
   const esperados = REAL.rutaLugares.plantas.reduce((t, p) => t + p.lugares.length, 0)
   assert.ok(esperados > 0)
   assert.match(r.detalle, new RegExp(`^${esperados} sitios en ${REAL.rutaLugares.plantas.length} plantas`))
