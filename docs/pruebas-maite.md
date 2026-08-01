@@ -347,6 +347,27 @@ se puede comprobar es que las notificaciones push llegan al móvil:
 
 ---
 
+## Antes de nada: corre el diagnóstico
+
+**Ajustes → ¿Funciona todo? → Comprobar ahora**, en el teléfono de Carmen. Tarda menos de un minuto
+y prueba las 16 piezas contra el servidor real, con sus permisos.
+
+Lee bien los tres colores, porque el tercero es el que importa:
+
+- **Verde** — se probó y respondió.
+- **Rojo** — se probó y falló. Trae la instrucción de qué hacer.
+- **Ámbar** — **no se puede comprobar desde la app.** Hay que probarlo a mano. Son los Atajos de
+  iOS (iOS no deja preguntar qué atajos tienes), que un aviso push llegue de verdad, y que el
+  correo del SOS se entregue. Un ámbar no es un fallo del diagnóstico: es la lista de lo que
+  todavía nadie ha comprobado.
+
+Los tres ámbar hay que cerrarlos a mano, una vez, antes de entregar el regalo:
+
+1. Crear los dos Atajos en el iPhone (Académico → Captura trae las instrucciones) y tocar los
+   botones para ver que arrancan.
+2. Mandarle un push de prueba y confirmar que suena en el teléfono, con la pantalla bloqueada.
+3. Disparar un SOS de prueba y confirmar que el correo llega — mirando también la carpeta de spam.
+
 ## Cómo anotar los fallos
 
 Para cada fallo, apunta tres cosas:

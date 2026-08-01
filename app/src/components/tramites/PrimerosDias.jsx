@@ -286,7 +286,11 @@ export default function PrimerosDias({ onNavigate }) {
   const acciones = { agendar, quitarCita, completar, reabrir }
 
   if (error) return <p className="px-5 text-sm text-red-700">{error}</p>
-  if (!tramites) return <p className="px-5 text-sm text-morado-900/65">Cargando…</p>
+  // Se comprueba `resumen` además de `tramites`, y no es redundante: una lista vacía es un array,
+  // que en JavaScript es "verdadero", así que una respuesta con trámites pero sin resumen pasaba
+  // este filtro y reventaba dos líneas más abajo en `resumen.hechos` — llevándose por delante la
+  // app entera, porque no había nada que atrapara el error.
+  if (!tramites || !resumen) return <p className="px-5 text-sm text-morado-900/65">Cargando…</p>
 
   const pendientesDeCerrar = tramites.filter((t) => t.citaPasada)
   const proxima = tramites

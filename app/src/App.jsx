@@ -10,6 +10,7 @@ import SOS from './pages/SOS.jsx'
 import Ajustes from './pages/Ajustes.jsx'
 import FotoInfo from './pages/FotoInfo.jsx'
 import ModoFamilia from './pages/ModoFamilia.jsx'
+import RedDeSeguridad from './components/comun/RedDeSeguridad.jsx'
 
 const TABS = {
   inicio: { label: 'Inicio', icon: '🏠', Component: Inicio },
@@ -57,7 +58,13 @@ export default function App() {
     <div className="relative flex h-full flex-col overflow-hidden bg-lavanda-50">
       <FondoDecorativo />
       <main className="relative z-10 flex-1 overflow-y-auto safe-top">
-        <Contenido {...propsContenido} />
+        {/* Envuelve el CONTENIDO, no la app entera: si una pantalla revienta, la barra de abajo
+            sobrevive y Carmen puede irse al SOS o a Maite. `clave` hace que al cambiar de pestaña
+            se limpie el error, para que una rotura pasajera no deje la pestaña muerta toda la
+            sesión. */}
+        <RedDeSeguridad clave={overlay || active}>
+          <Contenido {...propsContenido} />
+        </RedDeSeguridad>
       </main>
       {!overlay && <NavTabs tabs={TABS} active={active} onChange={navigate} />}
     </div>

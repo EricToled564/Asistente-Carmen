@@ -5,6 +5,7 @@ import ActualizarInfo from '../components/kb/ActualizarInfo.jsx'
 import DatosEmergenciaForm from '../components/emergencia/DatosEmergenciaForm.jsx'
 import PreguntasActualizacion from '../components/kb/PreguntasActualizacion.jsx'
 import Ayuda from '../components/ayuda/Ayuda.jsx'
+import Comprobacion from '../components/ayuda/Comprobacion.jsx'
 import PrimerosDias from '../components/tramites/PrimerosDias.jsx'
 import MenuColapsable from '../components/comun/MenuColapsable.jsx'
 
@@ -14,7 +15,8 @@ const SECCIONES = [
   { id: 'preguntas', label: '🗨️ Preguntas' },
   { id: 'emergencia', label: '🩸 Emergencia' },
   { id: 'notificaciones', label: '🔔 Notificaciones' },
-  { id: 'ayuda', label: 'ℹ️ Ayuda' }
+  { id: 'ayuda', label: 'ℹ️ Ayuda' },
+  { id: 'comprobar', label: '🩺 ¿Funciona todo?' }
 ]
 
 export default function Ajustes({ onNavigate }) {
@@ -47,6 +49,12 @@ export default function Ajustes({ onNavigate }) {
         {seccion === 'kb' && <ActualizarInfo onIrASeccion={setSeccion} onNavigate={onNavigate} />}
 
         {seccion === 'preguntas' && <PreguntasActualizacion />}
+
+        {seccion === 'comprobar' && (
+          <div className="px-5">
+            <Comprobacion />
+          </div>
+        )}
 
         {seccion === 'emergencia' && <DatosEmergenciaForm />}
 

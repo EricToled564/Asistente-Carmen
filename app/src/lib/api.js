@@ -95,6 +95,11 @@ export const api = {
   notaGuardar: (payload) => request('/notas', { method: 'POST', body: JSON.stringify(payload) }),
   notaBorrar: (id) => request(`/notas/${id}`, { method: 'DELETE' }),
   notaExtraerDeFoto: (formData) => request('/notas/extraer', { method: 'POST', body: formData }),
+  // La memoria de Maite normalmente la llama ElevenLabs, no la app. Se expone aquí solo para el
+  // autodiagnóstico: es la forma de comprobar, desde el teléfono de Carmen, que el almacén de
+  // recuerdos está en pie antes de que ella descubra que Maite se ha quedado en blanco.
+  memoriaRecuperar: (payload = { query: '', limite: 1 }) =>
+    request('/memory/retrieve', { method: 'POST', body: JSON.stringify(payload) }),
   apuntesListar: (materia) => request(`/apuntes${materia ? `?materia=${encodeURIComponent(materia)}` : ''}`, { method: 'GET' }),
   apunteObtener: (id) => request(`/apuntes/${id}`, { method: 'GET' }),
   apunteGuardar: (payload) => request('/apuntes', { method: 'POST', body: JSON.stringify(payload) }),
