@@ -9,7 +9,10 @@
 // Con la URL aquí, la app funciona recién clonada y recién desplegada, sin configurar nada.
 // VITE_WORKER_URL sigue mandando si se define — para apuntar a un Worker de pruebas o a
 // http://localhost:8787 durante el desarrollo.
-const BASE = import.meta.env.VITE_WORKER_URL || 'https://asistentecarmen.erictoled564.workers.dev'
+// El `?.` no es paranoia: `import.meta.env` solo existe cuando compila Vite. Sin él, este módulo
+// no se puede importar desde node, y eso deja fuera de las pruebas todo lo que dependa de la api —
+// que es justamente lo que hay que probar contra las respuestas reales del servidor.
+const BASE = import.meta.env?.VITE_WORKER_URL || 'https://asistentecarmen.erictoled564.workers.dev'
 
 async function request(path, options = {}) {
   const res = await fetch(`${BASE}${path}`, {

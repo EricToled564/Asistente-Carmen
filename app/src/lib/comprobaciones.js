@@ -34,7 +34,7 @@ function conLimite(promesa, ms = TIEMPO_LIMITE) {
 // Cada comprobación devuelve {estado, detalle, arreglo?}.
 // `arreglo` es lo que hay que HACER si sale mal. Un diagnóstico que solo dice "error" no sirve de
 // nada a las once de la noche.
-const COMPROBACIONES = [
+export const COMPROBACIONES = [
   {
     id: 'conexion',
     grupo: 'Lo básico',
@@ -120,10 +120,14 @@ const COMPROBACIONES = [
     grupo: 'Moverse',
     titulo: 'Las rutas dentro del edificio funcionan',
     async correr() {
+      // El endpoint devuelve {plantas: [{planta, lugares: [...]}]}, NO una lista plana de lugares.
+      // La primera versión leía `r.lugares`, que no existe, y sacaba un rojo en un servicio que
+      // estaba perfectamente. Lo detectó Eric corriendo el diagnóstico en su teléfono.
       const r = await conLimite(api.rutaLugares())
-      const n = (r.lugares || []).length
+      const plantas = r.plantas || []
+      const n = plantas.reduce((t, p) => t + (p.lugares?.length || 0), 0)
       if (!n) return { estado: 'mal', detalle: 'No devolvió ningún sitio del edificio.', arreglo: 'Avísale a Eric: el plano no está cargando.' }
-      return { estado: 'bien', detalle: `${n} sitios del edificio reconocidos.` }
+      return { estado: 'bien', detalle: `${n} sitios en ${plantas.length} plantas.` }
     }
   },
   {
@@ -263,16 +267,22 @@ const COMPROBACIONES = [
     grupo: 'Emergencia',
     titulo: 'Tus datos de emergencia están puestos',
     async correr() {
+      // Los únicos dos campos que existen. La primera versión pedía además `contactoPrincipal`, un
+      // campo que NO se guarda en ninguna parte: ni el formulario lo pide ni el Worker lo devuelve.
+      // Salía en rojo "falta contactoPrincipal" para siempre, hiciera Carmen lo que hiciera.
       const r = await conLimite(api.emergenciaObtener())
       const d = r?.datos || r || {}
-      const faltan = ['nombreLegal', 'tipoSangre', 'contactoPrincipal'].filter((k) => !d[k])
-      if (faltan.length === 3) {
+      const faltan = [
+        ['nombreLegal', 'tu nombre legal completo'],
+        ['tipoSangre', 'tu tipo de sangre']
+      ].filter(([k]) => !String(d[k] || '').trim() || d[k] === 'no proporcionado')
+      if (faltan.length === 2) {
         return { estado: 'mal', detalle: 'No hay ningún dato de emergencia guardado.', arreglo: 'Ajustes → Emergencia. Son dos minutos y es lo que se enseña si te pasa algo.' }
       }
       if (faltan.length) {
-        return { estado: 'mal', detalle: `Faltan: ${faltan.join(', ')}.`, arreglo: 'Ajustes → Emergencia.' }
+        return { estado: 'mal', detalle: `Falta ${faltan.map(([, n]) => n).join(' y ')}.`, arreglo: 'Ajustes → Emergencia.' }
       }
-      return { estado: 'bien', detalle: 'Nombre legal, tipo de sangre y contacto guardados.' }
+      return { estado: 'bien', detalle: 'Nombre legal y tipo de sangre guardados.' }
     }
   },
   {
