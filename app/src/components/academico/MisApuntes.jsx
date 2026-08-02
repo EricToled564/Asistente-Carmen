@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../../lib/api.js'
 import { conCache } from '../../lib/cacheApi.js'
+import TextoDeMaite from '../comun/TextoDeMaite.jsx'
 import AvisoSinConexion from '../comun/AvisoSinConexion.jsx'
 import BotonMaite from '../agente/BotonMaite.jsx'
 
@@ -81,8 +82,11 @@ export default function MisApuntes({ recargarToken, onNavigate }) {
           <p className="mt-1 text-xs text-lavanda-50/80">{fechaLegible(abierto.creadoEn)}</p>
         </div>
 
-        <div className="whitespace-pre-wrap rounded-3xl bg-white p-4 text-sm text-morado-900 shadow-soft">
-          {abierto.apuntes}
+        {/* Los apuntes los redacta el modelo y vienen en markdown. Sin formatear, Carmen ve los
+            asteriscos — el mismo fallo que tenía Foto → info. La transcripción de abajo NO pasa por
+            aquí a propósito: eso es voz transcrita en crudo, sin formato que interpretar. */}
+        <div className="rounded-3xl bg-white p-4 text-sm text-morado-900 shadow-soft">
+          <TextoDeMaite texto={abierto.apuntes} />
         </div>
 
         {abierto.transcripcion && (

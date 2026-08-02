@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { api } from '../../lib/api.js'
+import TextoDeMaite from '../comun/TextoDeMaite.jsx'
 
 export default function FotoCapture() {
   const inputRef = useRef(null)
@@ -51,7 +52,7 @@ export default function FotoCapture() {
       {respuesta && (
         <div className="rounded-2xl bg-white p-4 shadow-soft">
           <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-lavanda-700">Maite dice</p>
-          <p className="whitespace-pre-wrap text-sm text-morado-900/90">{respuesta}</p>
+          <TextoDeMaite texto={respuesta} className="text-sm text-morado-900/90" />
         </div>
       )}
     </div>
