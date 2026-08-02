@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../lib/api.js'
+import { conCache } from '../lib/cacheApi.js'
 
 // Estado de los trámites de los primeros 30 días, compartido entre la tarjeta de progreso de
 // Inicio y la pantalla completa de Ajustes.
@@ -12,8 +13,7 @@ export function useTramites() {
   const [error, setError] = useState(null)
 
   const cargar = useCallback(() => {
-    return api
-      .tramitesListar()
+    return conCache('tramites', () => api.tramitesListar())
       .then((d) => {
         setDatos(d)
         setError(null)
@@ -44,6 +44,7 @@ export function useTramites() {
     tramites: datos?.tramites || null,
     resumen: datos?.resumen || null,
     hoy: datos?.hoy || null,
+    desdeCache: datos?.__cache || null,
     error,
     recargar: cargar,
     agendar: (id, cita) => accion(() => api.tramiteAgendar(id, cita)),

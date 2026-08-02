@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../../lib/api.js'
+import { conCache } from '../../lib/cacheApi.js'
+import AvisoSinConexion from '../comun/AvisoSinConexion.jsx'
 
 // El radar de fechas: lo que viene y cuánto falta.
 //
@@ -39,8 +41,7 @@ export default function RadarFechas() {
 
   const cargar = useCallback(
     () =>
-      api
-        .fechasListar()
+      conCache('fechas', () => api.fechasListar())
         .then((d) => {
           setDatos(d)
           setError('')
@@ -125,6 +126,8 @@ export default function RadarFechas() {
 
   return (
     <div className="flex flex-col gap-4">
+      <AvisoSinConexion desde={datos.__cache} />
+
       {datos.avisoPortal && (
         <p className="rounded-xl bg-melocoton-300/60 p-3 text-xs leading-relaxed text-morado-900">⚠️ {datos.avisoPortal}</p>
       )}

@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../../lib/api.js'
+import { conCache } from '../../lib/cacheApi.js'
+import AvisoSinConexion from '../comun/AvisoSinConexion.jsx'
 import BotonMaite from '../agente/BotonMaite.jsx'
 
 function fechaLegible(iso) {
@@ -22,10 +24,11 @@ export default function MisApuntes({ recargarToken, onNavigate }) {
   const [abierto, setAbierto] = useState(null) // apunte completo, ya con transcripción
   const [cargandoDetalle, setCargandoDetalle] = useState(false)
   const [verTranscripcion, setVerTranscripcion] = useState(false)
+  const [desdeCache, setDesdeCache] = useState(null)
 
   const cargar = useCallback(() => {
-    api
-      .apuntesListar()
+    conCache('apuntes', () => api.apuntesListar())
+      .then((d) => { setDesdeCache(d.__cache || null); return d })
       // `|| []` a propósito: si la respuesta viniera sin el campo, dejar `lista` en null mantendría
       // la pantalla en "Cargando…" para siempre. Una lista vacía al menos dice la verdad.
       .then((d) => setLista(d.apuntes || []))
@@ -121,6 +124,7 @@ export default function MisApuntes({ recargarToken, onNavigate }) {
 
   return (
     <div className="flex flex-col gap-3">
+      <AvisoSinConexion desde={desdeCache} />
       {error && <p className="text-sm text-red-700">{error}</p>}
       {cargandoDetalle && <p className="text-sm text-morado-900/50">Abriendo…</p>}
 

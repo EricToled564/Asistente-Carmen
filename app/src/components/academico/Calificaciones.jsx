@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../../lib/api.js'
+import { conCache } from '../../lib/cacheApi.js'
+import AvisoSinConexion from '../comun/AvisoSinConexion.jsx'
 
 // Notas parciales por asignatura, con el promedio calculado.
 //
@@ -215,8 +217,7 @@ export default function Calificaciones({ recargarToken }) {
   const [error, setError] = useState(null)
 
   const cargar = useCallback(() => {
-    return api
-      .calificacionesListar()
+    return conCache('calificaciones', () => api.calificacionesListar())
       .then((d) => {
         setDatos(d)
         setError(null)
@@ -250,6 +251,8 @@ export default function Calificaciones({ recargarToken }) {
 
   return (
     <div className="flex flex-col gap-3">
+      <AvisoSinConexion desde={datos.__cache} />
+
       <div className="rounded-2xl bg-lavanda-50 p-4">
         <p className="text-sm font-semibold text-morado-900">Tus notas, apartado por apartado</p>
         <p className="mt-1 text-xs leading-relaxed text-morado-900/60">

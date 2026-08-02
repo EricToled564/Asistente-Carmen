@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTramites, citaLegible, diasHasta } from '../../hooks/useTramites.js'
 import BotonMaite from '../agente/BotonMaite.jsx'
+import AvisoSinConexion from '../comun/AvisoSinConexion.jsx'
 
 // Los primeros 30 días, convertidos de lista de casillas en herramienta.
 //
@@ -282,7 +283,7 @@ function Tarjeta({ tramite, hoy, acciones, onNavigate }) {
 }
 
 export default function PrimerosDias({ onNavigate }) {
-  const { tramites, resumen, hoy, error, agendar, quitarCita, completar, reabrir } = useTramites()
+  const { tramites, resumen, hoy, error, desdeCache, agendar, quitarCita, completar, reabrir } = useTramites()
   const acciones = { agendar, quitarCita, completar, reabrir }
 
   if (error) return <p className="px-5 text-sm text-red-700">{error}</p>
@@ -299,6 +300,8 @@ export default function PrimerosDias({ onNavigate }) {
 
   return (
     <div className="flex flex-col gap-3 px-5 pb-4">
+      <AvisoSinConexion desde={desdeCache} />
+
       <div className="rounded-2xl bg-gradient-to-br from-lavanda-700 to-lavanda-500 p-4 text-white shadow-glow">
         <p className="text-sm font-medium text-lavanda-100">Primeros 30 días</p>
         <p className="font-display text-3xl font-bold tabular-nums">
