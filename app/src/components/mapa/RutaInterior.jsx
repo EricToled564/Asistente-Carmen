@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { api } from '../../lib/api.js'
+import { plantasParaSelector, calcularRuta } from '../../lib/rutaEdificio.js'
 import BotonMaite from '../agente/BotonMaite.jsx'
 
 // "¿Cómo llego?" — Carmen elige dónde está y a dónde quiere ir (ella misma, no hay
@@ -10,43 +11,62 @@ import BotonMaite from '../agente/BotonMaite.jsx'
 // cargó, no. Hablar con Maite queda como opción extra (útil si se pierde a media ruta o quiere
 // que le vayan cantando los pasos), no como el único camino.
 export default function RutaInterior({ onClose, destinoInicial, onNavigate }) {
-  const [plantas, setPlantas] = useState(null)
+  // El plano y el algoritmo viven en la app (lib/rutaEdificio.js), así que esto no espera a nadie
+  // y no puede quedarse cargando. Antes se le pedían al servidor las dos cosas —la lista de sitios
+  // y el cálculo del camino— justo en el único sitio donde suele no haber cobertura: dentro del
+  // edificio. Si una de las dos llamadas fallaba, la pantalla se quedaba muerta para siempre.
+  const [plantas] = useState(() => plantasParaSelector())
   const [error, setError] = useState(null)
   const [origenId, setOrigenId] = useState('')
   const [destinoId, setDestinoId] = useState(destinoInicial || '')
   const [ruta, setRuta] = useState(null)
-  const [iniciando, setIniciando] = useState(false)
   const [pasoHecho, setPasoHecho] = useState({}) // marcar pasos ya recorridos, a mano
 
-  useEffect(() => {
-    api
-      .rutaLugares()
-      .then((data) => setPlantas(data.plantas))
-      .catch(() => setError('No se pudo cargar la lista de lugares del edificio.'))
-  }, [])
 
   // Solo se le pasa contexto a Maite cuando Carmen elige hablar con ella — no de entrada, para
   // que la ruta escrita funcione sola sin depender del agente.
   function contextoDeRuta() {
     if (!ruta) return null
-    return (
-      `Carmen quiere que la guíes paso a paso dentro del edificio, desde "${ruta.origenNombre}" hasta "${ruta.destinoNombre}". El id de esta ruta activa es "${ruta.rutaId}". Dile primero este paso, tal cual: "${ruta.paso.instruccion}". Cuando ella confirme por voz que llegó a "${ruta.paso.checkpoint}", llama la herramienta avanzar_ruta con rutaId="${ruta.rutaId}" para obtener el siguiente paso y díselo. Repite hasta que la herramienta indique que ya llegó al destino final.`
-    )
+    const cabecera = `Carmen quiere que la guíes paso a paso dentro del edificio, desde "${ruta.origenNombre}" hasta "${ruta.destinoNombre}".`
+
+    // Si el registro en el servidor no salió (sin cobertura al calcular la ruta), NO se le pasa un
+    // rutaId inventado: llamar a `avanzar_ruta` con un id que el servidor no conoce le devolvería
+    // un error a mitad de pasillo. En su lugar se le dan los pasos ya escritos, que es lo que se
+    // calculó aquí y no depende de nadie.
+    if (!ruta.rutaId) {
+      const lista = ruta.pasos.map((p, i) => `${i + 1}) ${p.instruccion}`).join(' ')
+      return `${cabecera} No uses la herramienta avanzar_ruta en esta ruta: no está registrada. Estos son TODOS los pasos, en orden: ${lista} Dile solo el primero y espera a que confirme que llegó a "${ruta.paso.checkpoint}" antes de darle el siguiente. No te inventes ningún paso que no esté en esa lista.`
+    }
+
+    return `${cabecera} El id de esta ruta activa es "${ruta.rutaId}". Dile primero este paso, tal cual: "${ruta.paso.instruccion}". Cuando ella confirme por voz que llegó a "${ruta.paso.checkpoint}", llama la herramienta avanzar_ruta con rutaId="${ruta.rutaId}" para obtener el siguiente paso y díselo. Repite hasta que la herramienta indique que ya llegó al destino final.`
   }
 
-  async function iniciarRuta() {
+  // La ruta se calcula AQUÍ, al instante y sin red. Lo que se ve en pantalla no espera a nadie.
+  //
+  // Aparte, y sin bloquear nada, se registra en el servidor. Eso es solo para el botón de "que me
+  // vaya guiando": Maite avanza los pasos con `avanzar_ruta`, que necesita un rutaId que el
+  // servidor conozca. Si no hay cobertura, el registro falla y ya está — la lista escrita sigue
+  // ahí, y hablar con Maite tampoco funcionaría sin señal, así que no se pierde nada.
+  //
+  // El orden importa: primero pintar, después registrar. Al revés —que fue como estuvo hasta
+  // hoy— un fallo de red dejaba a Carmen sin ruta dentro de un edificio, que es justo donde no
+  // hay red y justo donde hace falta la ruta.
+  function iniciarRuta() {
     if (!origenId || !destinoId) return
-    setIniciando(true)
     setError(null)
     setPasoHecho({})
-    try {
-      const data = await api.rutaIniciar({ origenId, destinoId })
-      setRuta(data)
-    } catch {
-      setError('No se pudo calcular la ruta. Intenta de nuevo.')
-    } finally {
-      setIniciando(false)
+    const r = calcularRuta(origenId, destinoId)
+    if (!r) {
+      setError('No reconozco alguno de esos dos sitios. Vuelve a elegirlos.')
+      return
     }
+    setRuta({ ...r, rutaId: null, paso: r.pasos[0] })
+    api
+      .rutaIniciar({ origenId, destinoId })
+      .then((d) => setRuta((actual) => (actual ? { ...actual, rutaId: d.rutaId } : actual)))
+      .catch(() => {
+        // Sin registro no hay guía por voz, pero la ruta escrita ya está en pantalla.
+      })
   }
 
   if (ruta) {
@@ -136,18 +156,18 @@ export default function RutaInterior({ onClose, destinoInicial, onNavigate }) {
 
         {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 
-        {!plantas ? (
-          <p className="mt-3 text-sm text-morado-900/50">Cargando lugares…</p>
+        {!plantas?.length ? (
+          <p className="mt-3 text-sm text-morado-900/50">No hay lugares que enseñar.</p>
         ) : (
           <div className="mt-4 flex flex-col gap-3">
             <SelectorLugar label="Estoy en" plantas={plantas} value={origenId} onChange={setOrigenId} />
             <SelectorLugar label="Quiero ir a" plantas={plantas} value={destinoId} onChange={setDestinoId} />
             <button
               onClick={iniciarRuta}
-              disabled={!origenId || !destinoId || iniciando}
+              disabled={!origenId || !destinoId}
               className="mt-1 rounded-full bg-gradient-to-r from-lavanda-700 to-lavanda-600 px-4 py-3 text-sm font-semibold text-white shadow-glow transition-transform active:scale-[0.98] disabled:opacity-40"
             >
-              {iniciando ? 'Calculando ruta…' : 'Ver la ruta'}
+              Ver la ruta
             </button>
           </div>
         )}

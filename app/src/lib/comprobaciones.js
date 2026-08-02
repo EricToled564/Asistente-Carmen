@@ -118,7 +118,7 @@ export const COMPROBACIONES = [
   {
     id: 'ruta',
     grupo: 'Moverse',
-    titulo: 'Las rutas dentro del edificio funcionan',
+    titulo: 'Maite puede guiarte dentro del edificio',
     async correr() {
       // El endpoint devuelve {plantas: [{planta, lugares: [...]}]}, NO una lista plana de lugares.
       // La primera versión leía `r.lugares`, que no existe, y sacaba un rojo en un servicio que
@@ -126,8 +126,14 @@ export const COMPROBACIONES = [
       const r = await conLimite(api.rutaLugares())
       const plantas = r.plantas || []
       const n = plantas.reduce((t, p) => t + (p.lugares?.length || 0), 0)
-      if (!n) return { estado: 'mal', detalle: 'No devolvió ningún sitio del edificio.', arreglo: 'Avísale a Eric: el plano no está cargando.' }
-      return { estado: 'bien', detalle: `${n} sitios en ${plantas.length} plantas.` }
+      if (!n) {
+        return {
+          estado: 'mal',
+          detalle: 'El servidor no devolvió ningún sitio del edificio.',
+          arreglo: 'La pantalla "¿Cómo llego?" sigue funcionando: lleva el plano dentro. Lo que no podría es que Maite te guíe por voz. Avísale a Eric.'
+        }
+      }
+      return { estado: 'bien', detalle: `${n} sitios en ${plantas.length} plantas. (La ruta escrita de la app funciona aunque esto falle: va sin red.)` }
     }
   },
   {
