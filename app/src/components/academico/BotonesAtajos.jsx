@@ -21,7 +21,11 @@ import { ATAJOS, HAY_ENLACES_DE_INSTALACION, urlEjecutar } from '../../data/ataj
 // instrucciones están aquí mismo, y lo primero es que grabar desde la propia app funciona sin nada
 // de esto. Los Atajos son un atajo, no el camino.
 export default function BotonesAtajos() {
-  const [abierto, setAbierto] = useState(false)
+  // Abierto de entrada, no detrás de un toggle. Antes se pedía a Carmen que tocara "Cómo se crean
+  // a mano" para verlas, y eso es exactamente lo mismo que no explicarlo "por ningún lado": si el
+  // primer intento con los botones falla con el error de iOS, lo que necesita está un toque más
+  // allá y en un tono que no invita a buscarlo.
+  const [abierto, setAbierto] = useState(!HAY_ENLACES_DE_INSTALACION)
 
   return (
     <div className="flex flex-col gap-2 rounded-2xl bg-white p-4 shadow-soft">
