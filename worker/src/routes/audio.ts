@@ -2,6 +2,8 @@ import { Hono } from 'hono'
 import type { Env } from '../types.js'
 import { transcribirAudio } from '../lib/elevenlabs.js'
 import { structureText } from '../lib/claude.js'
+import { guardarApunte } from '../lib/apuntesStore.js'
+import { agregarApunteAlKb } from '../lib/kbApuntes.js'
 
 export const audio = new Hono<{ Bindings: Env }>()
 
@@ -28,12 +30,29 @@ audio.post('/audio', async (c) => {
     return c.json({ error: 'Falta el campo "audio"' }, 400)
   }
 
+  // Campo opcional, solo lo manda el Atajo de iOS (la app web nunca lo incluye). Su presencia es
+  // la señal de "guarda esto ya, no hay pantalla donde Carmen pueda revisarlo antes" — el atajo no
+  // tiene forma de mostrarle un borrador para corregir ni de preguntarle la materia.
+  const materia = formData.get('materia')
+
   try {
     const transcripcion = await transcribirAudio(c.env.ELEVENLABS_API_KEY, file, file.name || 'audio.webm')
     if (!transcripcion.trim()) {
       return c.json({ texto: 'No detecté audio claro. ¿Puedes intentar de nuevo más cerca del micrófono?' })
     }
     const texto = await structureText(c.env.ANTHROPIC_API_KEY, SYSTEM_PROMPT, transcripcion)
+
+    if (typeof materia === 'string' && materia.trim()) {
+      const apunte = await guardarApunte(c.env, { materia: materia.trim(), apuntes: texto, transcripcion })
+      // No bloquea la respuesta ni la deshace si falla: el apunte ya está a salvo en KV en este
+      // punto (mismo razonamiento que en routes/apuntes.ts).
+      const kb = await agregarApunteAlKb(c.env, apunte).catch((err) => {
+        console.error('[audio] no se pudo llevar el resumen al KB', err)
+        return { ok: false as const, motivo: 'No se pudo actualizar la base de conocimiento de Maite.' }
+      })
+      return c.json({ texto, transcripcion, guardado: true, apunte, kb })
+    }
+
     return c.json({ texto, transcripcion })
   } catch (err) {
     console.error(err)
