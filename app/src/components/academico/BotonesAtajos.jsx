@@ -1,99 +1,148 @@
 import { useState } from 'react'
 import { ATAJOS, HAY_ENLACES_DE_INSTALACION, urlEjecutar } from '../../data/atajos.js'
+import { TODAS_LAS_MATERIAS } from '../../data/indiceAcademico.js'
 
 // Los botones de "grabar clase con dos taps", vía el esquema `shortcuts://` de iOS.
 //
 // Esto salió mal en el mundo real y conviene dejar escrito por qué, porque el fallo no estaba en
 // el código: estaba en ofrecer un botón que no puede funcionar sin un paso que nadie hizo.
 //
-// La app NO puede crear los Atajos. iOS no expone ninguna API para eso —ni para crearlos, ni
-// siquiera para preguntar cuáles tienes— y es deliberado: si la hubiera, cualquier web podría
-// meterte automatizaciones en el teléfono. Lo único que se puede hacer desde aquí es pedirle a iOS
-// que EJECUTE uno por su nombre, y si no existe, iOS enseña su propio error ("el archivo de atajo
-// no existe") que esta app ni ve ni puede prevenir.
+// La app NO puede crear el Atajo. iOS no expone ninguna API para eso —ni para crearlo, ni siquiera
+// para preguntar cuáles tienes— y es deliberado: si la hubiera, cualquier web podría meterte
+// automatizaciones en el teléfono. Lo único que se puede hacer desde aquí es pedirle a iOS que
+// EJECUTE uno por su nombre, y si no existe, iOS enseña su propio error ("el archivo de atajo no
+// existe") que esta app ni ve ni puede prevenir.
 //
-// Lo que sí se puede: un enlace de iCloud que los instala de un toque. Alguien tiene que
-// construirlos una vez en un iPhone de verdad; a partir de ahí es un botón. Ver data/atajos.js.
-//
-// Antes esta tarjeta eran dos botones grandes y una línea gris diciendo "instrucciones en Ajustes
-// → Ayuda". Resultado predecible: tocas, sale un error del sistema que parece un fallo de la app,
-// y las instrucciones estaban en otra pestaña. Ahora se dice ANTES de tocar nada, las
-// instrucciones están aquí mismo, y lo primero es que grabar desde la propia app funciona sin nada
-// de esto. Los Atajos son un atajo, no el camino.
+// Lo que sí se puede: un enlace de iCloud que lo instala de un toque. Alguien tiene que
+// construirlo una vez en un iPhone de verdad; a partir de ahí es un botón. Ver data/atajos.js.
 export default function BotonesAtajos() {
-  // Abierto de entrada, no detrás de un toggle. Antes se pedía a Carmen que tocara "Cómo se crean
-  // a mano" para verlas, y eso es exactamente lo mismo que no explicarlo "por ningún lado": si el
-  // primer intento con los botones falla con el error de iOS, lo que necesita está un toque más
-  // allá y en un tono que no invita a buscarlo.
   const [abierto, setAbierto] = useState(!HAY_ENLACES_DE_INSTALACION)
+  const [menuMaterias, setMenuMaterias] = useState(false)
+  const [materiaKb, setMateriaKb] = useState('') // '' = nada elegido, 'otras' = tema libre
+  const [temaLibre, setTemaLibre] = useState('')
+
+  const materiaDeLista = TODAS_LAS_MATERIAS.find((m) => m.kbCode === materiaKb)
+  // Esto es justo lo que faltaba: sin elegir materia ANTES de grabar, todo lo grabado por Atajo
+  // caía en el mismo cajón "Sin clasificar" en Mis apuntes, porque el Atajo no tiene pantalla donde
+  // Carmen pueda revisar ni elegir nada después. Eligiendo aquí, el nombre viaja como entrada del
+  // propio Atajo y sale ya clasificado.
+  const textoParaAtajo = materiaKb === 'otras' ? temaLibre.trim() : materiaDeLista?.titulo || ''
+  const listoParaGrabar = Boolean(textoParaAtajo)
+
+  function elegir(kb) {
+    setMateriaKb(kb)
+    if (kb !== 'otras') setMenuMaterias(false)
+  }
 
   return (
     <div className="flex flex-col gap-2 rounded-2xl bg-white p-4 shadow-soft">
       <p className="text-sm font-semibold text-lavanda-800">Grabar clase con 2 taps</p>
 
       {HAY_ENLACES_DE_INSTALACION ? (
-        <>
-          <p className="rounded-xl bg-lavanda-50 p-2.5 text-xs leading-relaxed text-morado-900">
-            <span className="font-semibold">Instálalos una vez</span> con estos dos botones y ya no
-            vuelves a tocarlos. Si al grabar te sale <span className="italic">"el archivo de atajo no
-            existe"</span>, es que falta alguno.
-          </p>
-          <div className="flex gap-2">
-            <a
-              href={ATAJOS.grabar.instalarUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="flex-1 rounded-xl border border-lavanda-300 bg-lavanda-50 py-2 text-center text-xs font-semibold text-lavanda-800"
-            >
-              ⬇️ Instalar “Grabar”
-            </a>
-            <a
-              href={ATAJOS.terminar.instalarUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="flex-1 rounded-xl border border-lavanda-300 bg-lavanda-50 py-2 text-center text-xs font-semibold text-lavanda-800"
-            >
-              ⬇️ Instalar “Terminar”
-            </a>
-          </div>
-        </>
+        <p className="rounded-xl bg-lavanda-50 p-2.5 text-xs leading-relaxed text-morado-900">
+          <span className="font-semibold">Instálalo una vez</span> con este botón y ya no vuelves a
+          tocarlo. Si al grabar te sale <span className="italic">"el archivo de atajo no existe"</span>,
+          es que falta.
+        </p>
       ) : (
         <p className="rounded-xl bg-melocoton-300/50 p-2.5 text-xs leading-relaxed text-morado-900">
-          <span className="font-semibold">Hay que crearlos a mano una vez.</span> Son dos Atajos de
-          iPhone que no vienen puestos, y la app no puede instalártelos: iOS no deja que una web cree
-          Atajos, ni siquiera saber cuáles tienes. Si tocas los botones sin haberlos creado, iOS te
-          dirá <span className="italic">"el archivo de atajo no existe"</span> — no es un fallo de la
-          app, es que faltan.
+          <span className="font-semibold">Hay que crearlo a mano una vez.</span> Es un Atajo de iPhone
+          que no viene puesto, y la app no puede instalártelo: iOS no deja que una web cree Atajos, ni
+          siquiera saber cuáles tienes. Si tocas el botón sin haberlo creado, iOS te dirá{' '}
+          <span className="italic">"el archivo de atajo no existe"</span> — no es un fallo de la app,
+          es que falta.
         </p>
       )}
 
-      <div className="mt-1 flex gap-2">
+      {HAY_ENLACES_DE_INSTALACION && (
         <a
-          href={urlEjecutar(ATAJOS.grabar.nombre)}
-          className="flex-1 rounded-xl bg-lavanda-700 py-2.5 text-center text-sm font-semibold text-white"
+          href={ATAJOS.grabar.instalarUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="rounded-xl border border-lavanda-300 bg-lavanda-50 py-2 text-center text-xs font-semibold text-lavanda-800"
         >
-          ▶️ Grabar clase
+          ⬇️ Instalar “Grabar clase”
         </a>
-        <a
-          href={urlEjecutar(ATAJOS.terminar.nombre)}
-          className="flex-1 rounded-xl bg-morado-900 py-2.5 text-center text-sm font-semibold text-white"
+      )}
+
+      {/* El menú colapsable: hay que elegir de qué es la clase ANTES de grabar, porque el Atajo no
+          tiene forma de preguntarlo después. */}
+      <div className="mt-1">
+        <button
+          onClick={() => setMenuMaterias((v) => !v)}
+          className="flex w-full items-center justify-between rounded-xl border border-lavanda-200 bg-lavanda-50/60 px-3 py-2.5 text-left text-sm"
         >
-          ⏹️ Terminar clase
-        </a>
+          <span className={listoParaGrabar ? 'font-medium text-morado-900' : 'text-morado-900/50'}>
+            {listoParaGrabar ? `📎 ${textoParaAtajo}` : '¿De qué clase es? — toca para elegir'}
+          </span>
+          <span className="text-lavanda-700">{menuMaterias ? '▲' : '▼'}</span>
+        </button>
+
+        {menuMaterias && (
+          <div className="mt-1.5 max-h-56 overflow-y-auto rounded-xl border border-lavanda-100 bg-white p-1.5">
+            {TODAS_LAS_MATERIAS.map((m) => (
+              <button
+                key={`${m.kbCode}-${m.titulo}`}
+                onClick={() => elegir(m.kbCode)}
+                className={`block w-full rounded-lg px-2.5 py-2 text-left text-xs ${
+                  materiaKb === m.kbCode ? 'bg-lavanda-100 font-semibold text-lavanda-800' : 'text-morado-900'
+                }`}
+              >
+                {m.titulo} <span className="text-morado-900/40">({m.curso}º)</span>
+              </button>
+            ))}
+            <button
+              onClick={() => elegir('otras')}
+              className={`mt-1 block w-full rounded-lg border-t border-lavanda-100 px-2.5 py-2 text-left text-xs ${
+                materiaKb === 'otras' ? 'bg-lavanda-100 font-semibold text-lavanda-800' : 'text-morado-900'
+              }`}
+            >
+              Otras…
+            </button>
+          </div>
+        )}
+
+        {materiaKb === 'otras' && (
+          <input
+            value={temaLibre}
+            onChange={(e) => setTemaLibre(e.target.value)}
+            placeholder="¿Sobre qué es? (nombre libre)"
+            className="mt-1.5 w-full rounded-xl border border-lavanda-200 px-3 py-2 text-sm"
+          />
+        )}
+      </div>
+
+      <div className="mt-1">
+        {listoParaGrabar ? (
+          <a
+            href={urlEjecutar(ATAJOS.grabar.nombre, textoParaAtajo)}
+            className="block rounded-xl bg-lavanda-700 py-2.5 text-center text-sm font-semibold text-white"
+          >
+            ▶️ Grabar clase
+          </a>
+        ) : (
+          <button
+            disabled
+            className="block w-full rounded-xl bg-lavanda-700/40 py-2.5 text-center text-sm font-semibold text-white"
+          >
+            ▶️ Elige primero de qué clase es ↑
+          </button>
+        )}
       </div>
 
       {/* Fuera del acordeón a propósito: es lo que más tranquiliza y lo que menos se debe esconder
-          detrás de un "ver más". Si los Atajos no van, no pasa nada. */}
+          detrás de un "ver más". Si el Atajo no va, no pasa nada. */}
       <p className="text-xs leading-relaxed text-morado-900/55">
-        No hacen falta: el botón del micrófono de arriba graba desde la propia app y sube el audio
-        igual. Los Atajos solo ahorran toques.
+        No hace falta el Atajo: el botón del micrófono en Académico → Captura graba desde la propia
+        app y sube el audio igual, con su propia pantalla para elegir materia y revisar antes de
+        guardar.
       </p>
 
       <button
         onClick={() => setAbierto((x) => !x)}
         className="mt-1 text-left text-xs font-semibold text-lavanda-700 underline decoration-dotted"
       >
-        {abierto ? 'Ocultar cómo se crean' : 'Cómo se crean a mano (5 minutos, una sola vez)'}
+        {abierto ? 'Ocultar cómo se crea' : 'Cómo se crea a mano (5 minutos, una sola vez)'}
       </button>
 
       {abierto && (
@@ -107,27 +156,36 @@ export default function BotonesAtajos() {
               Si cambia una letra, el botón no lo encuentra.
             </li>
             <li>
-              Añádele la acción <span className="font-semibold">Grabar audio</span>. Si tu iOS no la tiene,
-              vale con <span className="font-semibold">Abrir app → Notas de Voz</span>: es un toque más y ya.
+              Añádele la acción <span className="font-semibold">Grabar audio</span>. Al ejecutar el
+              Atajo, esta acción se queda en pantalla grabando — no hace falta un segundo Atajo para
+              parar: se para tocando "Listo" ahí mismo, y el propio Atajo sigue solo al siguiente paso.
             </li>
             <li>
-              Crea otro llamado{' '}
-              <span className="rounded bg-white px-1 font-mono font-semibold">{ATAJOS.terminar.nombre}</span>{' '}
-              que pare la grabación, coja la última nota de voz y la mande con{' '}
-              <span className="font-semibold">Obtener contenido de URL</span> a{' '}
-              <span className="break-all font-mono">asistentecarmen.erictoled564.workers.dev/audio</span> por{' '}
-              <span className="font-semibold">POST</span>, en un campo de formulario llamado{' '}
-              <span className="font-mono">audio</span>.
+              Justo después, añade <span className="font-semibold">Obtener contenido de URL</span>{' '}
+              hacia <span className="break-all font-mono">asistentecarmen.erictoled564.workers.dev/audio</span>,
+              método <span className="font-semibold">POST</span>, cuerpo <span className="font-semibold">Formulario</span>,
+              con dos campos:
+              <ul className="mt-1 list-disc space-y-1 pl-4">
+                <li>
+                  <span className="font-mono">audio</span> (tipo Archivo) = la salida de "Grabar audio".
+                </li>
+                <li>
+                  <span className="font-mono">materia</span> (tipo Texto) = la variable{' '}
+                  <span className="italic">"Entrada de acceso directo"</span> (lo que esta app le manda al
+                  ejecutar el Atajo) — no un texto fijo. Así cada clase queda guardada con la materia que
+                  elegiste aquí arriba, no siempre como "Sin clasificar".
+                </li>
+              </ul>
             </li>
             <li>
-              Cuando estén los dos, tócale a <span className="font-semibold">Compartir</span> en cada uno y
-              guarda los dos enlaces de iCloud: pegándolos en la app, esto se convierte en un botón de
-              instalar y nadie más tiene que repetir estos pasos.
+              Tócale a <span className="font-semibold">Compartir</span> y guarda el enlace de iCloud:
+              pegándolo en la app, este botón se convierte en un simple "Instalar" y nadie más tiene que
+              repetir estos pasos.
             </li>
           </ol>
           <p className="mt-2.5 rounded-lg bg-white p-2">
             <span className="font-semibold">Si algo de esto se atasca, déjalo.</span> Es un atajo para
-            ahorrarte toques, no la forma de grabar. El botón de arriba de esta pantalla graba desde la
+            ahorrarte toques, no la forma de grabar. El micrófono de Académico → Captura graba desde la
             propia app y sube el audio igual.
           </p>
         </div>

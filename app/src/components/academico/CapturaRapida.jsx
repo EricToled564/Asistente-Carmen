@@ -1,15 +1,12 @@
 import { useRef, useState } from 'react'
 import { api } from '../../lib/api.js'
-import { INDICE_ACADEMICO } from '../../data/indiceAcademico.js'
+import { TODAS_LAS_MATERIAS } from '../../data/indiceAcademico.js'
 
 const MAX_MS = 2 * 60 * 1000
 
-// Todas las materias del grado, para etiquetar la grabación. No se filtra por el semestre en
-// curso: si repite una asignatura o se mete a una clase que no le toca, tiene que poder guardarla
-// igual.
-const MATERIAS = INDICE_ACADEMICO.flatMap((c) =>
-  c.semestres.flatMap((s) => s.materias.map((m) => ({ ...m, curso: c.curso })))
-)
+// No se filtra por el semestre en curso: si repite una asignatura o se mete a una clase que no le
+// toca, tiene que poder guardarla igual.
+const MATERIAS = TODAS_LAS_MATERIAS
 
 // Captura rápida post-clase: graba, transcribe y estructura, y —esto es lo que la hace útil— la
 // guarda. Antes el resultado se pintaba en pantalla y se perdía al cambiar de pestaña.

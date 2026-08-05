@@ -4,6 +4,28 @@ import { transcribirAudio } from '../lib/elevenlabs.js'
 import { structureText } from '../lib/claude.js'
 import { guardarApunte } from '../lib/apuntesStore.js'
 import { agregarApunteAlKb } from '../lib/kbApuntes.js'
+import { PLAN_ESTUDIOS } from '../data/planEstudios.js'
+
+function normalizar(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .trim()
+}
+
+// El Atajo solo puede mandar el NOMBRE de la materia (una sola variable de texto, ver
+// data/atajos.js en la app) — no su kbCode. Si el nombre coincide con una del plan de estudios, se
+// guarda con su kbCode real y entra en el mismo cajón que las clases grabadas desde la app. Si no
+// coincide (Carmen eligió "Otras" y escribió un tema libre), se guarda igual pero sin kbCode.
+function kbCodePorTitulo(materia: string): string | undefined {
+  const objetivo = normalizar(materia)
+  for (const bloque of PLAN_ESTUDIOS) {
+    const encontrada = bloque.materias.find((m) => normalizar(m.titulo) === objetivo)
+    if (encontrada) return encontrada.kbCode
+  }
+  return undefined
+}
 
 export const audio = new Hono<{ Bindings: Env }>()
 
@@ -43,7 +65,13 @@ audio.post('/audio', async (c) => {
     const texto = await structureText(c.env.ANTHROPIC_API_KEY, SYSTEM_PROMPT, transcripcion)
 
     if (typeof materia === 'string' && materia.trim()) {
-      const apunte = await guardarApunte(c.env, { materia: materia.trim(), apuntes: texto, transcripcion })
+      const materiaTexto = materia.trim()
+      const apunte = await guardarApunte(c.env, {
+        kbCode: kbCodePorTitulo(materiaTexto),
+        materia: materiaTexto,
+        apuntes: texto,
+        transcripcion
+      })
       // No bloquea la respuesta ni la deshace si falla: el apunte ya está a salvo en KV en este
       // punto (mismo razonamiento que en routes/apuntes.ts).
       const kb = await agregarApunteAlKb(c.env, apunte).catch((err) => {

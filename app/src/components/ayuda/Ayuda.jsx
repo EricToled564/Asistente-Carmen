@@ -235,15 +235,16 @@ export default function Ayuda({ onIrASeccion, onNavigate }) {
         )}
       </Bloque>
 
-      <Bloque icono="⚡" titulo="Los botones de grabar clase con 2 taps">
+      <Bloque icono="⚡" titulo="El botón de grabar clase con 2 taps">
         <p className="mb-2">
-          Sin ellos, grabar es tres toques: Académico → Captura → micrófono. Con ellos, dos: los botones
-          <span className="font-semibold"> Grabar clase</span> y <span className="font-semibold">Terminar clase</span> están
-          también ahí arriba. Pero hay un paso a mano antes de que sirvan de algo.
+          Sin él, grabar es tres toques: Académico → Captura → micrófono. Con él, dos: el botón
+          <span className="font-semibold"> Grabar clase</span> está también ahí arriba, en la propia
+          pantalla de Captura, junto a un menú para elegir de qué materia es antes de grabar. Pero hay un
+          paso a mano antes de que sirva de algo.
         </p>
 
         <p className="mb-2 rounded-xl bg-melocoton-300/50 p-2.5 text-xs leading-relaxed text-morado-900">
-          <span className="font-semibold">La app NO puede crearlos sola.</span> iOS no deja que una página
+          <span className="font-semibold">La app NO puede crearlo sola.</span> iOS no deja que una página
           web cree Atajos, ni siquiera que pregunte cuáles tienes — no existe esa función, a propósito: si
           existiera, cualquier web podría meterte automatizaciones en el teléfono sin que lo supieras. Lo
           único que la app puede hacer es pedirle a iOS que EJECUTE un Atajo por su nombre. Si ese Atajo no
@@ -252,7 +253,7 @@ export default function Ayuda({ onIrASeccion, onNavigate }) {
           por fuera parece que algo se rompió, pero es solo que falta el paso de abajo.
         </p>
 
-        <p className="mb-1 text-sm font-semibold text-morado-900">Cómo crearlos (una vez, ~5 minutos):</p>
+        <p className="mb-1 text-sm font-semibold text-morado-900">Cómo crearlo (una vez, ~5 minutos):</p>
         <Pasos>
           <li>Abre la app <span className="font-semibold">Atajos</span> del iPhone (icono azul).</li>
           <li>
@@ -261,66 +262,48 @@ export default function Ayuda({ onIrASeccion, onNavigate }) {
             las mayúsculas donde están, sin acentos ni espacios. Si cambia una letra, el botón no lo encuentra.
           </li>
           <li>
-            Añádele la acción <span className="font-semibold">Grabar audio</span>. Si tu versión de iOS no la
-            tiene, vale con <span className="font-semibold">Abrir app → Notas de Voz</span> (un toque más, pero
-            funciona igual).
+            Añádele la acción <span className="font-semibold">Grabar audio</span>. Al ejecutarse, esta
+            acción se queda en pantalla grabando — no hace falta un segundo Atajo para "terminar": se
+            para tocando "Listo" ahí mismo, y el propio Atajo sigue solo al paso siguiente.
           </li>
           <li>
-            Crea un segundo atajo llamado exactamente{' '}
-            <span className="rounded bg-crema-100 px-1 font-mono font-semibold">{ATAJOS.terminar.nombre}</span>, que pare
-            la grabación, coja la última nota de voz y la mande por{' '}
-            <span className="font-semibold">Obtener contenido de URL</span> a{' '}
+            Justo después, añade <span className="font-semibold">Obtener contenido de URL</span> hacia{' '}
             <span className="break-all font-mono text-[11px]">asistentecarmen.erictoled564.workers.dev/audio</span>, método{' '}
-            <span className="font-semibold">POST</span>, con el audio en un campo de formulario llamado{' '}
-            <span className="font-mono">audio</span>.
+            <span className="font-semibold">POST</span>, cuerpo <span className="font-semibold">Formulario</span>, con dos
+            campos: <span className="font-mono">audio</span> (tipo Archivo) = la salida de "Grabar audio", y{' '}
+            <span className="font-mono">materia</span> (tipo Texto) = la variable{' '}
+            <span className="italic">"Entrada de acceso directo"</span> — no un texto fijo. Es lo que hace que la
+            clase se guarde ya con la materia que Carmen eligió en la app, en vez de sin clasificar.
           </li>
           <li>
-            Con los dos creados, tócale a <span className="font-semibold">Compartir</span> en cada uno: el
-            enlace de iCloud que te da se lo puedes pasar a quien mantiene la app para que estos botones
-            pasen a ser un simple "Instalar" — así nadie más tiene que repetir estos pasos.
+            Tócale a <span className="font-semibold">Compartir</span> y guarda el enlace de iCloud:
+            pegándolo en la app, este botón pasa a ser un simple "Instalar" y nadie más tiene que repetir
+            estos pasos.
           </li>
         </Pasos>
 
         {HAY_ENLACES_DE_INSTALACION && (
-          <div className="mt-2 flex gap-2">
-            <a
-              href={ATAJOS.grabar.instalarUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="flex-1 rounded-xl border border-lavanda-300 bg-lavanda-50 py-2 text-center text-xs font-semibold text-lavanda-800"
-            >
-              ⬇️ Instalar “Grabar”
-            </a>
-            <a
-              href={ATAJOS.terminar.instalarUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="flex-1 rounded-xl border border-lavanda-300 bg-lavanda-50 py-2 text-center text-xs font-semibold text-lavanda-800"
-            >
-              ⬇️ Instalar “Terminar”
-            </a>
-          </div>
+          <a
+            href={ATAJOS.grabar.instalarUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-2 block rounded-xl border border-lavanda-300 bg-lavanda-50 py-2 text-center text-xs font-semibold text-lavanda-800"
+          >
+            ⬇️ Instalar “Grabar clase”
+          </a>
         )}
 
         <p className="mt-3 text-xs text-morado-900/60">
           Si algo de esto se atasca, no pasa nada: en <span className="font-semibold">Académico → Captura</span>{' '}
-          el botón del micrófono graba y sube el audio igual, sin ningún Atajo. Estos dos solo ahorran toques.
+          el botón del micrófono graba y sube el audio igual, sin ningún Atajo.
         </p>
 
-        <div className="mt-2 flex gap-2">
-          <a
-            href={urlEjecutar(ATAJOS.grabar.nombre)}
-            className="flex-1 rounded-xl bg-lavanda-700 py-2 text-center text-xs font-semibold text-white"
-          >
-            ▶️ Probar Grabar clase
-          </a>
-          <a
-            href={urlEjecutar(ATAJOS.terminar.nombre)}
-            className="flex-1 rounded-xl bg-morado-900 py-2 text-center text-xs font-semibold text-white"
-          >
-            ⏹️ Probar Terminar clase
-          </a>
-        </div>
+        <a
+          href={urlEjecutar(ATAJOS.grabar.nombre)}
+          className="mt-2 block rounded-xl bg-lavanda-700 py-2 text-center text-xs font-semibold text-white"
+        >
+          ▶️ Probar Grabar clase (sin materia — solo para comprobar que el Atajo existe)
+        </a>
       </Bloque>
 
       <Bloque icono="🔒" titulo="¿Qué sabe Maite de mí?">

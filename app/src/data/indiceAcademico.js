@@ -119,3 +119,10 @@ export const INDICE_ACADEMICO = [
     ]
   }
 ]
+
+// Lista plana de todas las materias del grado, sin agrupar por curso/semestre — para selectores
+// donde eso no importa (elegir materia antes de grabar, o al guardar una captura). Vive aquí para
+// que no haya dos copias mantenidas a mano en CapturaRapida y BotonesAtajos.
+export const TODAS_LAS_MATERIAS = INDICE_ACADEMICO.flatMap((c) =>
+  c.semestres.flatMap((s) => s.materias.map((m) => ({ ...m, curso: c.curso })))
+)

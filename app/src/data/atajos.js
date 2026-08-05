@@ -17,20 +17,23 @@
 //
 // Mientras estén vacíos NO se inventa nada ni se esconde el problema: la app dice claramente que
 // hay que crearlos a mano y explica cómo, ahí mismo.
+// Un solo Atajo, no dos: "Grabar audio" no es un paso que corre y sigue solo, se queda parado en
+// pantalla grabando hasta que Carmen toca "Listo" ahí mismo — y solo entonces el propio Atajo
+// continúa solo al paso de subir el archivo. No hace falta un segundo Atajo para "terminar".
 export const ATAJOS = {
   grabar: {
     nombre: 'GrabarClase',
     // Pega aquí el enlace de iCloud, o ponlo en VITE_ATAJO_GRABAR_URL.
     instalarUrl: import.meta.env.VITE_ATAJO_GRABAR_URL || ''
-  },
-  terminar: {
-    nombre: 'TerminarClase',
-    instalarUrl: import.meta.env.VITE_ATAJO_TERMINAR_URL || ''
   }
 }
 
-export const HAY_ENLACES_DE_INSTALACION = Boolean(ATAJOS.grabar.instalarUrl && ATAJOS.terminar.instalarUrl)
+export const HAY_ENLACES_DE_INSTALACION = Boolean(ATAJOS.grabar.instalarUrl)
 
-export function urlEjecutar(nombre) {
-  return `shortcuts://run-shortcut?name=${encodeURIComponent(nombre)}`
+// `texto`, si se manda, es lo que Carmen eligió como materia en la app — llega al Atajo como su
+// "Entrada de acceso directo" (Shortcut Input), y de ahí el Atajo lo usa como valor del campo
+// `materia` que /audio necesita para guardar el apunte ya clasificado.
+export function urlEjecutar(nombre, texto) {
+  const base = `shortcuts://run-shortcut?name=${encodeURIComponent(nombre)}`
+  return texto ? `${base}&input=text&text=${encodeURIComponent(texto)}` : base
 }
