@@ -6,6 +6,7 @@ import { extraerEvaluacionDeGuia } from '../lib/extraerEvaluacion.js'
 import { leer, escribir, calcular, estructuraDe, type CalculoMateria } from '../lib/calificacionesStore.js'
 import { obtenerHorarioPortal, vistaDelCurso, porDias, fijarCurso, cursoActual } from '../lib/horarioOficialStore.js'
 import { espejarRadarSinRomper } from '../lib/kbRadar.js'
+import { cerrarSemestre, listarCerrados } from '../lib/cierreSemestre.js'
 
 export const calificaciones = new Hono<{ Bindings: Env }>()
 
@@ -424,4 +425,57 @@ calificaciones.post('/calificaciones/confirmar-semestre', async (c) => {
   if (guardadas.length) await escribir(c.env, almacen)
 
   return c.json({ ok: guardadas.length > 0, guardadas, rechazadas })
+})
+
+// POST /calificaciones/cerrar-semestre — {curso, semestre}
+//
+// La foto final del semestre que acaba, guardada aparte antes de moverse al siguiente. No borra
+// nada: las notas parciales siguen intactas; esto congela el cálculo completo (componentes, pesos,
+// resultado) tal como era al cerrar. Lo llama la pantalla de Preparar semestre justo antes de
+// preparar el bloque nuevo. Ver lib/cierreSemestre.ts.
+calificaciones.post('/calificaciones/cerrar-semestre', async (c) => {
+  const body = await c.req
+    .json<{ curso?: number; semestre?: number }>()
+    .catch((): { curso?: number; semestre?: number } => ({}))
+  const curso = Number(body.curso)
+  const semestre = Number(body.semestre)
+  if (!Number.isInteger(curso) || curso < 1 || curso > 4 || (semestre !== 1 && semestre !== 2)) {
+    return c.json({ error: 'Hace falta curso (1-4) y semestre (1-2)' }, 400)
+  }
+
+  const { cerrado, reemplazo } = await cerrarSemestre(c.env, curso, semestre)
+  const conNotas = cerrado.materias.filter((m) => m.pesoEvaluado > 0)
+  return c.json({
+    ok: true,
+    reemplazo,
+    curso,
+    semestre,
+    materias: cerrado.materias.length,
+    conNotas: conNotas.length,
+    mensaje: conNotas.length
+      ? `Cerré ${curso}º/semestre ${semestre}: guardé la foto final de ${conNotas.length} asignatura${conNotas.length === 1 ? '' : 's'} con notas. Nada se borró — el histórico queda consultable.`
+      : `Cerré ${curso}º/semestre ${semestre}. No había notas apuntadas en ese bloque, pero la foto queda guardada igual.`
+  })
+})
+
+// GET /calificaciones/cerrados — el histórico de semestres cerrados, el más reciente primero.
+calificaciones.get('/calificaciones/cerrados', async (c) => {
+  const lista = await listarCerrados(c.env)
+  return c.json({
+    cerrados: lista
+      .sort((a, b) => b.curso - a.curso || b.semestre - a.semestre)
+      .map((s) => ({
+        curso: s.curso,
+        semestre: s.semestre,
+        cerradoEn: s.cerradoEn,
+        materias: s.materias.map((m) => ({
+          kbCode: m.kbCode,
+          materia: m.materia,
+          pesoEvaluado: m.pesoEvaluado,
+          notaHastaAhora: m.notaHastaAhora,
+          proyeccionSiMantiene: m.proyeccionSiMantiene,
+          aprobadaYa: m.aprobadaYa
+        }))
+      }))
+  })
 })

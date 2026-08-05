@@ -68,6 +68,9 @@ export const api = {
   calificacionesPreparar: (payload) => request('/calificaciones/preparar', { method: 'POST', body: JSON.stringify(payload) }),
   calificacionesConfirmarSemestre: (payload) =>
     request('/calificaciones/confirmar-semestre', { method: 'POST', body: JSON.stringify(payload) }),
+  calificacionesCerrarSemestre: (payload) =>
+    request('/calificaciones/cerrar-semestre', { method: 'POST', body: JSON.stringify(payload) }),
+  calificacionesCerrados: () => request('/calificaciones/cerrados', { method: 'GET' }),
   calificacionGuardar: (payload) => request('/calificaciones', { method: 'POST', body: JSON.stringify(payload) }),
   calificacionBorrar: (kbCode, componenteId) =>
     request(`/calificaciones/${encodeURIComponent(kbCode)}/${encodeURIComponent(componenteId)}`, { method: 'DELETE' }),

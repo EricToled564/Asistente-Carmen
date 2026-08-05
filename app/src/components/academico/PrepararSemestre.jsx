@@ -140,8 +140,31 @@ export default function PrepararSemestre({ onListo }) {
     }
   }
 
+  // El bloque que se cierra al preparar `b`: el inmediatamente anterior en la carrera.
+  // Preparar 1º/2 cierra 1º/1; preparar 2º/1 cierra 1º/2. Preparar 1º/1 no cierra nada.
+  function bloqueAnterior(b) {
+    if (b.semestre === 2) return { curso: b.curso, semestre: 1 }
+    return b.curso > 1 ? { curso: b.curso - 1, semestre: 2 } : null
+  }
+
   async function guardar() {
     setEstado('guardando')
+
+    // Cerrar el semestre que acaba ANTES de preparar el nuevo: la foto final de sus notas queda
+    // guardada aparte (nada se borra) y el histórico se puede consultar después. Si el cierre
+    // falla no se bloquea la preparación — las notas parciales siguen intactas de todas formas —
+    // pero se dice.
+    let cierre = ''
+    const anterior = bloqueAnterior(elegido)
+    if (anterior) {
+      try {
+        const cr = await api.calificacionesCerrarSemestre(anterior)
+        cierre = ` ${cr.mensaje}`
+      } catch {
+        cierre = ` No pude cerrar el semestre anterior ahorita (tus notas no se pierden: siguen guardadas); puedes reintentarlo preparando de nuevo.`
+      }
+    }
+
     try {
       const utiles = propuestas.filter((p) => p.componentes?.length)
       const r = await api.calificacionesConfirmarSemestre({ materias: utiles })
@@ -162,7 +185,7 @@ export default function PrepararSemestre({ onListo }) {
       setMensaje(
         (r.rechazadas?.length
           ? `Guardé ${r.guardadas.length}. No pude con ${r.rechazadas.length}: ${r.rechazadas.map((x) => x.motivo).join('; ')}`
-          : `Listo, ${r.guardadas.length} asignaturas preparadas ✅`) + extra
+          : `Listo, ${r.guardadas.length} asignaturas preparadas ✅`) + extra + cierre
       )
       await cargar()
       onListo?.()
