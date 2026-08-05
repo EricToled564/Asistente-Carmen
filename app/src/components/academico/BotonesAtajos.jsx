@@ -21,7 +21,6 @@ export default function BotonesAtajos() {
   const [menuMaterias, setMenuMaterias] = useState(false)
   const [materiaKb, setMateriaKb] = useState('') // '' = nada elegido, 'otras' = tema libre
   const [temaLibre, setTemaLibre] = useState('')
-  const [avisando, setAvisando] = useState(false)
   const [avisoError, setAvisoError] = useState(null)
 
   const materiaDeLista = TODAS_LAS_MATERIAS.find((m) => m.kbCode === materiaKb)
@@ -38,23 +37,27 @@ export default function BotonesAtajos() {
   }
 
   // La materia viaja por DOS caminos a la vez, y con uno que llegue basta:
-  //   1. Se aparca en el servidor por HTTP (esto es lo fiable — mismo mecanismo que el resto de
-  //      la app) ANTES de lanzar el Atajo.
+  //   1. Se aparca en el servidor por HTTP (mismo mecanismo que el resto de la app).
   //   2. Va también como Entrada de atajo en la URL shortcuts://, que es lo elegante… y lo que
   //      llegó vacío en el teléfono real, por eso no puede ser el único camino.
-  // El aviso al servidor NO es opcional: si falla (sin conexión), mejor decirlo aquí que grabar
-  // una clase entera y descubrir al final que quedó sin materia.
-  async function lanzarAtajo() {
+  //
+  // El Atajo se abre EN EL MISMO INSTANTE del toque, no después de esperar al servidor. La
+  // primera versión hacía `await` del aviso y luego navegaba, y iOS puede bloquear en silencio un
+  // enlace shortcuts:// que no ocurra inmediatamente con el gesto del usuario — el aviso llegaba
+  // (se vio en el servidor) pero el Atajo podía no abrirse. El aviso ahora viaja en paralelo con
+  // `keepalive`, que le pide al navegador completarlo aunque la página pase a segundo plano al
+  // abrirse la app de Atajos.
+  function lanzarAtajo() {
     setAvisoError(null)
-    setAvisando(true)
-    try {
-      await api.audioProximaMateria(textoParaAtajo)
-      window.location.href = urlEjecutar(ATAJOS.grabar.nombre, textoParaAtajo)
-    } catch {
-      setAvisoError('No pude avisarle al servidor de qué materia es. Revisa tu conexión y vuelve a tocar.')
-    } finally {
-      setAvisando(false)
-    }
+    fetch(`${import.meta.env?.VITE_WORKER_URL || 'https://asistentecarmen.erictoled564.workers.dev'}/audio/proxima-materia`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ materia: textoParaAtajo }),
+      keepalive: true
+    }).catch(() => {
+      setAvisoError('No pude avisarle al servidor de qué materia es (¿sin conexión?). La grabación vale igual, pero puede salir sin materia.')
+    })
+    window.location.href = urlEjecutar(ATAJOS.grabar.nombre, textoParaAtajo)
   }
 
   return (
@@ -139,10 +142,9 @@ export default function BotonesAtajos() {
         {listoParaGrabar ? (
           <button
             onClick={lanzarAtajo}
-            disabled={avisando}
-            className="block w-full rounded-xl bg-lavanda-700 py-2.5 text-center text-sm font-semibold text-white disabled:opacity-60"
+            className="block w-full rounded-xl bg-lavanda-700 py-2.5 text-center text-sm font-semibold text-white"
           >
-            {avisando ? 'Avisando al servidor…' : '▶️ Grabar clase'}
+            ▶️ Grabar clase
           </button>
         ) : (
           <button
