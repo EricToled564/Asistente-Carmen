@@ -29,6 +29,34 @@ function kbCodePorTitulo(materia: string): string | undefined {
 
 export const audio = new Hono<{ Bindings: Env }>()
 
+// La materia que Carmen eligió en la app JUSTO ANTES de lanzar el Atajo de grabar.
+//
+// Existe porque la vía "bonita" (pasar la materia como Entrada de atajo por la URL
+// shortcuts://run-shortcut) falló en el teléfono real: la petición llegaba al Worker sin el campo
+// `materia`, y no hay forma de depurar el porqué desde fuera de un iPhone. Esta vía no depende de
+// iOS para nada: la app lo manda por HTTP normal (que está probado), el Worker lo aparca en KV, y
+// cuando el audio del Atajo llega sin materia, se usa lo aparcado.
+//
+// TTL corto a propósito: es un "voy a grabar AHORA", no una preferencia. Si la grabación nunca
+// llega (se arrepintió, se quedó sin batería), caduca solo y no contamina una grabación de días
+// después.
+const KEY_PROXIMA_MATERIA = 'audio:proximaMateria'
+const TTL_PROXIMA_MATERIA = 60 * 60 // 1 hora: clase larga entre "elegir" y "terminar de grabar"
+
+audio.post('/audio/proxima-materia', async (c) => {
+  const body = await c.req.json<{ materia?: string }>().catch(() => ({ materia: undefined }))
+  if (!body.materia?.trim()) return c.json({ error: 'Falta "materia"' }, 400)
+  await c.env.KV.put(KEY_PROXIMA_MATERIA, body.materia.trim(), { expirationTtl: TTL_PROXIMA_MATERIA })
+  return c.json({ ok: true, materia: body.materia.trim() })
+})
+
+// La grabación desde la propia app (CapturaRapida) tiene su propio flujo de revisar-y-guardar y
+// no debe heredar una materia aparcada: se limpia al empezar a grabar ahí.
+audio.delete('/audio/proxima-materia', async (c) => {
+  await c.env.KV.delete(KEY_PROXIMA_MATERIA)
+  return c.json({ ok: true })
+})
+
 const SYSTEM_PROMPT = `Eres Maite, companion académico de una estudiante de Diseño en la Universidad \
 de Navarra. Te llega la transcripción cruda de una grabación corta que hizo justo después de \
 clase (notas dictadas de viva voz, puede tener muletillas o desorden). Estructura esto en \
@@ -55,7 +83,28 @@ audio.post('/audio', async (c) => {
   // Campo opcional, solo lo manda el Atajo de iOS (la app web nunca lo incluye). Su presencia es
   // la señal de "guarda esto ya, no hay pantalla donde Carmen pueda revisarlo antes" — el atajo no
   // tiene forma de mostrarle un borrador para corregir ni de preguntarle la materia.
-  const materia = formData.get('materia')
+  // OJO: puede llegar como texto plano O como archivo. Atajos de iOS, al poner una variable en un
+  // campo de formulario, puede mandarla como adjunto de texto en vez de como string — y la primera
+  // versión de esto exigía string, así que una materia que SÍ venía llena se descartaba en
+  // silencio y la respuesta era "Ok" sin guardar nada. Aceptar los dos formatos cierra ese hueco.
+  const materiaDelFormulario = formData.get('materia') as unknown as string | File | null
+  let materia: string | null = null
+  if (typeof materiaDelFormulario === 'string') {
+    materia = materiaDelFormulario.trim() || null
+  } else if (materiaDelFormulario instanceof File) {
+    materia = (await materiaDelFormulario.text()).trim() || null
+  }
+
+  // Respaldo: si el Atajo no trajo la materia (la Entrada de atajo llegó vacía — pasó en el
+  // teléfono real), se usa la que la app aparcó al tocar "Grabar clase". Se consume al usarla:
+  // vale para UNA grabación, no es un estado que se quede pegado.
+  if (!materia) {
+    const aparcada = await c.env.KV.get(KEY_PROXIMA_MATERIA)
+    if (aparcada) {
+      materia = aparcada
+      await c.env.KV.delete(KEY_PROXIMA_MATERIA)
+    }
+  }
 
   try {
     const transcripcion = await transcribirAudio(c.env.ELEVENLABS_API_KEY, file, file.name || 'audio.webm')

@@ -34,6 +34,10 @@ export default function CapturaRapida({ onGuardado }) {
     setError(null)
     setBorrador(null)
     setGuardado(false)
+    // Si quedó una materia aparcada de un intento con el Atajo, no debe heredarla esta grabación:
+    // este flujo tiene su propia pantalla de revisar y elegir materia. Ignorar el fallo está bien —
+    // es limpieza, no un requisito.
+    api.audioProximaMateriaBorrar().catch(() => {})
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
       const recorder = new MediaRecorder(stream)

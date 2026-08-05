@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { api } from '../../lib/api.js'
 import { ATAJOS, HAY_ENLACES_DE_INSTALACION, urlEjecutar } from '../../data/atajos.js'
 import { TODAS_LAS_MATERIAS } from '../../data/indiceAcademico.js'
 
@@ -20,6 +21,8 @@ export default function BotonesAtajos() {
   const [menuMaterias, setMenuMaterias] = useState(false)
   const [materiaKb, setMateriaKb] = useState('') // '' = nada elegido, 'otras' = tema libre
   const [temaLibre, setTemaLibre] = useState('')
+  const [avisando, setAvisando] = useState(false)
+  const [avisoError, setAvisoError] = useState(null)
 
   const materiaDeLista = TODAS_LAS_MATERIAS.find((m) => m.kbCode === materiaKb)
   // Esto es justo lo que faltaba: sin elegir materia ANTES de grabar, todo lo grabado por Atajo
@@ -32,6 +35,26 @@ export default function BotonesAtajos() {
   function elegir(kb) {
     setMateriaKb(kb)
     if (kb !== 'otras') setMenuMaterias(false)
+  }
+
+  // La materia viaja por DOS caminos a la vez, y con uno que llegue basta:
+  //   1. Se aparca en el servidor por HTTP (esto es lo fiable — mismo mecanismo que el resto de
+  //      la app) ANTES de lanzar el Atajo.
+  //   2. Va también como Entrada de atajo en la URL shortcuts://, que es lo elegante… y lo que
+  //      llegó vacío en el teléfono real, por eso no puede ser el único camino.
+  // El aviso al servidor NO es opcional: si falla (sin conexión), mejor decirlo aquí que grabar
+  // una clase entera y descubrir al final que quedó sin materia.
+  async function lanzarAtajo() {
+    setAvisoError(null)
+    setAvisando(true)
+    try {
+      await api.audioProximaMateria(textoParaAtajo)
+      window.location.href = urlEjecutar(ATAJOS.grabar.nombre, textoParaAtajo)
+    } catch {
+      setAvisoError('No pude avisarle al servidor de qué materia es. Revisa tu conexión y vuelve a tocar.')
+    } finally {
+      setAvisando(false)
+    }
   }
 
   return (
@@ -114,12 +137,13 @@ export default function BotonesAtajos() {
 
       <div className="mt-1">
         {listoParaGrabar ? (
-          <a
-            href={urlEjecutar(ATAJOS.grabar.nombre, textoParaAtajo)}
-            className="block rounded-xl bg-lavanda-700 py-2.5 text-center text-sm font-semibold text-white"
+          <button
+            onClick={lanzarAtajo}
+            disabled={avisando}
+            className="block w-full rounded-xl bg-lavanda-700 py-2.5 text-center text-sm font-semibold text-white disabled:opacity-60"
           >
-            ▶️ Grabar clase
-          </a>
+            {avisando ? 'Avisando al servidor…' : '▶️ Grabar clase'}
+          </button>
         ) : (
           <button
             disabled
@@ -128,6 +152,7 @@ export default function BotonesAtajos() {
             ▶️ Elige primero de qué clase es ↑
           </button>
         )}
+        {avisoError && <p className="mt-1.5 text-xs text-red-700">{avisoError}</p>}
       </div>
 
       {/* Fuera del acordeón a propósito: es lo que más tranquiliza y lo que menos se debe esconder

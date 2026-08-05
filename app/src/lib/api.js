@@ -53,6 +53,11 @@ export const api = {
   salud: () => request('/', { method: 'GET' }),
   vision: (formData) => request('/vision', { method: 'POST', body: formData }),
   audio: (formData) => request('/audio', { method: 'POST', body: formData }),
+  // La materia elegida antes de lanzar el Atajo de grabar. Va por HTTP normal porque pasarla como
+  // Entrada de atajo en la URL shortcuts:// llegó vacía en el teléfono real (ver routes/audio.ts).
+  audioProximaMateria: (materia) =>
+    request('/audio/proxima-materia', { method: 'POST', body: JSON.stringify({ materia }) }),
+  audioProximaMateriaBorrar: () => request('/audio/proxima-materia', { method: 'DELETE' }),
   sos: (payload) => request('/sos', { method: 'POST', body: JSON.stringify(payload) }),
   pushSubscribe: (payload) => request('/push/subscribe', { method: 'POST', body: JSON.stringify(payload) }),
   kbUpload: (formData) => request('/kb-upload', { method: 'POST', body: formData }),
