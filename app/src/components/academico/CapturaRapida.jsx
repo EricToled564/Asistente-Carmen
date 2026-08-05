@@ -1,42 +1,86 @@
 import { useRef, useState } from 'react'
 import { api } from '../../lib/api.js'
 import { TODAS_LAS_MATERIAS } from '../../data/indiceAcademico.js'
+import TextoDeMaite from '../comun/TextoDeMaite.jsx'
 
-const MAX_MS = 2 * 60 * 1000
+// 90 minutos: una clase entera, no una nota de voz. El tope existe solo como red de seguridad
+// (que un olvido no grabe toda la tarde), no como límite de uso. Subir ~1 hora de audio opus son
+// ~30-50 MB, dentro de lo que aceptan tanto el Worker como la transcripción.
+const MAX_MS = 90 * 60 * 1000
 
 // No se filtra por el semestre en curso: si repite una asignatura o se mete a una clase que no le
 // toca, tiene que poder guardarla igual.
 const MATERIAS = TODAS_LAS_MATERIAS
 
-// Captura rápida post-clase: graba, transcribe y estructura, y —esto es lo que la hace útil— la
-// guarda. Antes el resultado se pintaba en pantalla y se perdía al cambiar de pestaña.
+// Grabar la clase desde la propia app, con el MISMO número de toques que tenía el flujo con el
+// Atajo de iOS: elegir materia → grabar → parar. Todo lo demás es automático — sube, transcribe,
+// estructura y GUARDA en Mis apuntes, sin pantalla de revisión intermedia.
 //
-// Los apuntes se muestran editables antes de guardar, y con la transcripción cruda a la vista si
-// la quiere: el texto sale de un reconocimiento de voz sobre una grabación de aula, con ruido y
-// nombres propios que se transcriben mal. Guardar automáticamente lo que salga sería guardarle
-// errores como si fueran sus apuntes.
+// Por qué se quitó la revisión intermedia: el flujo con Atajos (que era el patrón a igualar)
+// guardaba directo sin revisar, y mantener aquí un paso más lo hacía estrictamente peor en toques.
+// El texto queda a la vista al terminar, y en Mis apuntes se puede borrar y regrabar si salió mal.
+//
+// Por qué existe esto en vez de (solo) el Atajo: el tramo Atajo→servidor resultó no depurable —
+// fallaba sin que ni la app ni el servidor pudieran ver por qué. Este camino es 100% código de la
+// app: cada paso se puede probar y ver.
 export default function CapturaRapida({ onGuardado }) {
   const [grabando, setGrabando] = useState(false)
   const [segundos, setSegundos] = useState(0)
   const [procesando, setProcesando] = useState(false)
-  const [borrador, setBorrador] = useState(null) // { apuntes, transcripcion }
-  const [kbCode, setKbCode] = useState('')
-  const [verTranscripcion, setVerTranscripcion] = useState(false)
-  const [guardando, setGuardando] = useState(false)
-  const [guardado, setGuardado] = useState(false)
+  const [resultado, setResultado] = useState(null) // respuesta de /audio con guardado:true
   const [error, setError] = useState(null)
+  const [menuMaterias, setMenuMaterias] = useState(false)
+  const [materiaKb, setMateriaKb] = useState('') // '' = nada elegido, 'otras' = tema libre
+  const [temaLibre, setTemaLibre] = useState('')
 
   const mediaRecorderRef = useRef(null)
   const chunksRef = useRef([])
   const timerRef = useRef(null)
+  const wakeLockRef = useRef(null)
+  const materiaAlGrabarRef = useRef('')
+
+  const materiaDeLista = MATERIAS.find((m) => m.kbCode === materiaKb)
+  const materiaElegida = materiaKb === 'otras' ? temaLibre.trim() : materiaDeLista?.titulo || ''
+
+  function elegir(kb) {
+    setMateriaKb(kb)
+    if (kb !== 'otras') setMenuMaterias(false)
+  }
+
+  // Mientras se graba, la pantalla no se apaga sola. Sin esto, el bloqueo automático del iPhone
+  // corta la grabación a los pocos minutos — el problema número uno para grabar una clase entera.
+  // Es la API estándar del navegador para esto (Safari la tiene desde iOS 16.4); se pide al
+  // empezar y se suelta sola al parar. Si el navegador no la tiene, se sigue sin ella — grabar
+  // funciona igual, solo que Carmen tendría que tocar la pantalla de vez en cuando.
+  async function pedirPantallaEncendida() {
+    try {
+      wakeLockRef.current = await navigator.wakeLock?.request('screen')
+    } catch {
+      wakeLockRef.current = null
+    }
+  }
+
+  function soltarPantalla() {
+    wakeLockRef.current?.release().catch(() => {})
+    wakeLockRef.current = null
+  }
+
+  // iOS suelta el wake lock si la app pasa a segundo plano (llamada, cambio de app). Al volver,
+  // se vuelve a pedir — sin esto, la primera interrupción dejaría el resto de la clase con la
+  // pantalla apagándose.
+  function revalidarAlVolver() {
+    if (document.visibilityState === 'visible' && mediaRecorderRef.current?.state === 'recording') {
+      pedirPantallaEncendida()
+    }
+  }
 
   async function iniciar() {
     setError(null)
-    setBorrador(null)
-    setGuardado(false)
-    // Si quedó una materia aparcada de un intento con el Atajo, no debe heredarla esta grabación:
-    // este flujo tiene su propia pantalla de revisar y elegir materia. Ignorar el fallo está bien —
-    // es limpieza, no un requisito.
+    setResultado(null)
+    // La materia se congela al empezar: si Carmen tocara el menú durante la clase, la grabación
+    // en curso se guarda con la materia con la que EMPEZÓ, que es la que era verdad.
+    materiaAlGrabarRef.current = materiaElegida
+    // Limpieza del mecanismo del Atajo, por si quedó una materia aparcada de un intento anterior.
     api.audioProximaMateriaBorrar().catch(() => {})
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
@@ -47,10 +91,14 @@ export default function CapturaRapida({ onGuardado }) {
         stream.getTracks().forEach((t) => t.stop())
         enviar(new Blob(chunksRef.current, { type: 'audio/webm' }))
       }
-      recorder.start()
+      // Trozos cada 30 s en vez de un solo bloque al final: en una grabación de una hora, un solo
+      // bloque gigante es más frágil (todo o nada) y algunos navegadores lo manejan peor.
+      recorder.start(30000)
       mediaRecorderRef.current = recorder
       setGrabando(true)
       setSegundos(0)
+      pedirPantallaEncendida()
+      document.addEventListener('visibilitychange', revalidarAlVolver)
       timerRef.current = setInterval(() => {
         setSegundos((s) => {
           const next = s + 1
@@ -65,6 +113,8 @@ export default function CapturaRapida({ onGuardado }) {
 
   function detener() {
     clearInterval(timerRef.current)
+    document.removeEventListener('visibilitychange', revalidarAlVolver)
+    soltarPantalla()
     setGrabando(false)
     mediaRecorderRef.current?.stop()
   }
@@ -74,11 +124,17 @@ export default function CapturaRapida({ onGuardado }) {
     try {
       const formData = new FormData()
       formData.append('audio', blob, 'captura.webm')
+      // Con la materia en la petición, el servidor guarda el apunte él solo — el mismo mecanismo
+      // (ya probado) que se hizo para el Atajo. Un solo camino de guardado para los dos mundos.
+      formData.append('materia', materiaAlGrabarRef.current)
       const result = await api.audio(formData)
-      setBorrador({
-        apuntes: result.texto || result.text || '',
-        transcripcion: result.transcripcion || ''
-      })
+      if (result.guardado) {
+        setResultado(result)
+        onGuardado?.()
+      } else {
+        // Sin `guardado` no hubo apunte: casi siempre es que no se detectó voz en el audio.
+        setError(result.texto || 'No se pudo procesar la grabación.')
+      }
     } catch (err) {
       setError('No pude procesar el audio. (' + err.message + ')')
     } finally {
@@ -86,139 +142,103 @@ export default function CapturaRapida({ onGuardado }) {
     }
   }
 
-  async function guardar() {
-    const materia = MATERIAS.find((m) => m.kbCode === kbCode)
-    if (!materia || !borrador?.apuntes.trim()) return
-    setGuardando(true)
-    setError(null)
-    try {
-      await api.apunteGuardar({
-        kbCode: materia.kbCode,
-        materia: materia.titulo,
-        apuntes: borrador.apuntes,
-        transcripcion: borrador.transcripcion
-      })
-      setGuardado(true)
-      setBorrador(null)
-      setKbCode('')
-      setVerTranscripcion(false)
-      onGuardado?.()
-    } catch (err) {
-      setError('No pude guardar los apuntes. (' + err.message + ')')
-    } finally {
-      setGuardando(false)
-    }
-  }
-
   return (
     <div className="flex flex-col items-center gap-3 rounded-3xl bg-white p-4 shadow-soft">
-      <p className="text-sm font-semibold text-lavanda-800">Captura rápida post-clase (máx. 2 min)</p>
+      <p className="text-sm font-semibold text-lavanda-800">Grabar la clase (hasta 90 min)</p>
 
-      {!borrador && (
-        <>
-          {!grabando ? (
-            <button
-              onClick={iniciar}
-              disabled={procesando}
-              className="flex h-16 w-16 items-center justify-center rounded-full bg-lavanda-700 text-2xl text-white shadow-soft disabled:opacity-50"
-            >
-              🎙️
-            </button>
-          ) : (
-            <button
-              onClick={detener}
-              className="flex h-16 w-16 animate-pulse items-center justify-center rounded-full bg-red-600 text-2xl text-white shadow-soft"
-            >
-              ⏹️
-            </button>
-          )}
-          {grabando && <p className="text-sm text-morado-900/60">{segundos}s / 120s</p>}
-          {procesando && <p className="text-sm text-morado-900/60">Maite está estructurando tus apuntes…</p>}
-          {guardado && (
-            <p className="rounded-full bg-lavanda-50 px-3 py-1.5 text-xs font-semibold text-lavanda-800">
-              ✓ Guardado en Mis apuntes
-            </p>
-          )}
-        </>
-      )}
+      {!grabando && !procesando && (
+        <div className="w-full">
+          <button
+            onClick={() => setMenuMaterias((v) => !v)}
+            className="flex w-full items-center justify-between rounded-xl border border-lavanda-200 bg-lavanda-50/60 px-3 py-2.5 text-left text-sm"
+          >
+            <span className={materiaElegida ? 'font-medium text-morado-900' : 'text-morado-900/50'}>
+              {materiaElegida ? `📎 ${materiaElegida}` : '¿De qué clase es? — toca para elegir'}
+            </span>
+            <span className="text-lavanda-700">{menuMaterias ? '▲' : '▼'}</span>
+          </button>
 
-      {error && <p className="text-sm text-red-700">{error}</p>}
-
-      {borrador && (
-        <div className="flex w-full flex-col gap-3 text-left">
-          <div className="rounded-2xl bg-crema-100 p-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-lavanda-800">Revisa antes de guardar</p>
-            <p className="mt-1 text-xs text-morado-900/60">
-              Esto salió de una transcripción automática. Corrige lo que haya entendido mal —
-              después estos apuntes son los que Maite usa para repasar contigo.
-            </p>
-          </div>
-
-          <label className="flex flex-col gap-1.5 text-sm">
-            <span className="font-medium text-morado-900">¿De qué materia?</span>
-            <select
-              value={kbCode}
-              onChange={(e) => setKbCode(e.target.value)}
-              className="rounded-xl border border-lavanda-200 bg-lavanda-50/50 px-3 py-2.5 text-morado-900"
-            >
-              <option value="">Selecciona una materia…</option>
+          {menuMaterias && (
+            <div className="mt-1.5 max-h-56 overflow-y-auto rounded-xl border border-lavanda-100 bg-white p-1.5">
               {MATERIAS.map((m) => (
-                <option key={`${m.kbCode}-${m.titulo}`} value={m.kbCode}>
-                  {m.titulo} ({m.curso}º)
-                </option>
+                <button
+                  key={`${m.kbCode}-${m.titulo}`}
+                  onClick={() => elegir(m.kbCode)}
+                  className={`block w-full rounded-lg px-2.5 py-2 text-left text-xs ${
+                    materiaKb === m.kbCode ? 'bg-lavanda-100 font-semibold text-lavanda-800' : 'text-morado-900'
+                  }`}
+                >
+                  {m.titulo} <span className="text-morado-900/40">({m.curso}º)</span>
+                </button>
               ))}
-            </select>
-          </label>
-
-          <label className="flex flex-col gap-1.5 text-sm">
-            <span className="font-medium text-morado-900">Tus apuntes</span>
-            <textarea
-              value={borrador.apuntes}
-              onChange={(e) => setBorrador((b) => ({ ...b, apuntes: e.target.value }))}
-              rows={10}
-              className="rounded-xl border border-lavanda-200 bg-white px-3 py-2.5 text-sm text-morado-900"
-            />
-          </label>
-
-          {borrador.transcripcion && (
-            <div className="rounded-2xl bg-lavanda-50/60 p-3">
               <button
-                onClick={() => setVerTranscripcion((v) => !v)}
-                className="text-xs font-semibold text-lavanda-800 underline decoration-dotted"
+                onClick={() => elegir('otras')}
+                className={`mt-1 block w-full rounded-lg border-t border-lavanda-100 px-2.5 py-2 text-left text-xs ${
+                  materiaKb === 'otras' ? 'bg-lavanda-100 font-semibold text-lavanda-800' : 'text-morado-900'
+                }`}
               >
-                {verTranscripcion ? 'Ocultar' : 'Ver'} la transcripción completa
+                Otras…
               </button>
-              {verTranscripcion && (
-                <p className="mt-2 max-h-48 overflow-y-auto whitespace-pre-wrap text-xs text-morado-900/70">
-                  {borrador.transcripcion}
-                </p>
-              )}
-              <p className="mt-2 text-[11px] text-morado-900/45">
-                La transcripción completa se guarda también, aunque no la edites: sirve cuando el resumen se
-                dejó fuera un detalle.
-              </p>
             </div>
           )}
 
-          <div className="flex gap-2">
-            <button
-              onClick={() => {
-                setBorrador(null)
-                setKbCode('')
-                setVerTranscripcion(false)
-              }}
-              className="flex-1 rounded-full bg-lavanda-50 px-4 py-2.5 text-sm font-semibold text-lavanda-800"
-            >
-              Descartar
-            </button>
-            <button
-              onClick={guardar}
-              disabled={!kbCode || guardando || !borrador.apuntes.trim()}
-              className="flex-[2] rounded-full bg-gradient-to-r from-lavanda-700 to-lavanda-600 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40"
-            >
-              {guardando ? 'Guardando…' : 'Guardar apuntes'}
-            </button>
+          {materiaKb === 'otras' && (
+            <input
+              value={temaLibre}
+              onChange={(e) => setTemaLibre(e.target.value)}
+              placeholder="¿Sobre qué es? (nombre libre)"
+              className="mt-1.5 w-full rounded-xl border border-lavanda-200 px-3 py-2 text-sm"
+            />
+          )}
+        </div>
+      )}
+
+      {grabando && (
+        <p className="rounded-xl bg-lavanda-50 px-3 py-1.5 text-center text-xs text-morado-900/70">
+          La pantalla se queda encendida mientras grabas. Deja la app abierta — si cambias de app o
+          bloqueas el teléfono, la grabación se corta.
+        </p>
+      )}
+
+      {!grabando ? (
+        <button
+          onClick={iniciar}
+          disabled={procesando || !materiaElegida}
+          className="flex h-16 w-16 items-center justify-center rounded-full bg-lavanda-700 text-2xl text-white shadow-soft disabled:opacity-40"
+        >
+          🎙️
+        </button>
+      ) : (
+        <button
+          onClick={detener}
+          className="flex h-16 w-16 animate-pulse items-center justify-center rounded-full bg-red-600 text-2xl text-white shadow-soft"
+        >
+          ⏹️
+        </button>
+      )}
+      {!grabando && !procesando && !materiaElegida && (
+        <p className="text-xs text-morado-900/50">Elige primero de qué clase es ↑</p>
+      )}
+      {grabando && (
+        <p className="text-sm text-morado-900/60">
+          {Math.floor(segundos / 60)}:{String(segundos % 60).padStart(2, '0')} · máx. 90 min
+        </p>
+      )}
+      {procesando && <p className="text-sm text-morado-900/60">Maite está transcribiendo y guardando tus apuntes…</p>}
+
+      {error && <p className="text-sm text-red-700">{error}</p>}
+
+      {resultado && (
+        <div className="flex w-full flex-col gap-2 text-left">
+          <p className="self-center rounded-full bg-lavanda-50 px-3 py-1.5 text-xs font-semibold text-lavanda-800">
+            ✓ Guardado en Mis apuntes — {resultado.apunte?.materia}
+          </p>
+          <div className="rounded-2xl bg-crema-100 p-3 text-sm text-morado-900">
+            <TextoDeMaite texto={resultado.texto} />
           </div>
+          <p className="text-xs text-morado-900/50">
+            Si algo salió mal transcrito, en Mis apuntes puedes borrarlo y volver a grabar.
+          </p>
         </div>
       )}
     </div>

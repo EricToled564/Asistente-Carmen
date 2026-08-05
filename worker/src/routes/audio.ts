@@ -80,9 +80,9 @@ audio.post('/audio', async (c) => {
     return c.json({ error: 'Falta el campo "audio"' }, 400)
   }
 
-  // Campo opcional, solo lo manda el Atajo de iOS (la app web nunca lo incluye). Su presencia es
-  // la señal de "guarda esto ya, no hay pantalla donde Carmen pueda revisarlo antes" — el atajo no
-  // tiene forma de mostrarle un borrador para corregir ni de preguntarle la materia.
+  // Campo opcional. Su presencia es la señal de "guarda esto ya como apunte": lo mandan tanto el
+  // Atajo de iOS como la grabación de la propia app (que elige materia ANTES de grabar y guarda
+  // directo, mismo número de toques que el Atajo).
   // OJO: puede llegar como texto plano O como archivo. Atajos de iOS, al poner una variable en un
   // campo de formulario, puede mandarla como adjunto de texto en vez de como string — y la primera
   // versión de esto exigía string, así que una materia que SÍ venía llena se descartaba en
