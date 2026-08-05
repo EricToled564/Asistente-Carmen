@@ -113,7 +113,10 @@ export default function CapturaRapida({ onGuardado }) {
   function detener() {
     clearInterval(timerRef.current)
     document.removeEventListener('visibilitychange', revalidarAlVolver)
-    soltarPantalla()
+    // OJO: el wake lock NO se suelta aquí. Parar la grabación no es el final del trabajo: subir y
+    // transcribir una clase de una hora tarda minutos, y si la pantalla se apaga en ese rato, iOS
+    // suspende la página y mata la subida a mitad — sin apunte y sin error visible. Se suelta al
+    // terminar enviar(), cuando el apunte ya está guardado (o falló de verdad).
     setGrabando(false)
     mediaRecorderRef.current?.stop()
   }
@@ -138,6 +141,7 @@ export default function CapturaRapida({ onGuardado }) {
       setError('No pude procesar el audio. (' + err.message + ')')
     } finally {
       setProcesando(false)
+      soltarPantalla()
     }
   }
 
