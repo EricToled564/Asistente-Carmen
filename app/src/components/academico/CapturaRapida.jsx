@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
 import { api } from '../../lib/api.js'
-import { TODAS_LAS_MATERIAS } from '../../data/indiceAcademico.js'
+import { materiasDelSemestre } from '../../data/indiceAcademico.js'
 import TextoDeMaite from '../comun/TextoDeMaite.jsx'
 
 // 90 minutos: una clase entera, no una nota de voz. El tope existe solo como red de seguridad
@@ -8,9 +8,8 @@ import TextoDeMaite from '../comun/TextoDeMaite.jsx'
 // ~30-50 MB, dentro de lo que aceptan tanto el Worker como la transcripción.
 const MAX_MS = 90 * 60 * 1000
 
-// No se filtra por el semestre en curso: si repite una asignatura o se mete a una clase que no le
-// toca, tiene que poder guardarla igual.
-const MATERIAS = TODAS_LAS_MATERIAS
+// Solo las del semestre en curso: 5 opciones en vez de 45. Cualquier otra cosa cabe en "Otras".
+const MATERIAS = materiasDelSemestre()
 
 // Grabar la clase desde la propia app, con el MISMO número de toques que tenía el flujo con el
 // Atajo de iOS: elegir materia → grabar → parar. Todo lo demás es automático — sube, transcribe,

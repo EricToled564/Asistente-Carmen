@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import RadarFechas from '../components/academico/RadarFechas.jsx'
 import CapturaRapida from '../components/academico/CapturaRapida.jsx'
-import BotonesAtajos from '../components/academico/BotonesAtajos.jsx'
 import IndiceAcademico from '../components/academico/IndiceAcademico.jsx'
 import Horario from '../components/academico/Horario.jsx'
 import TipsAcademicos from '../components/academico/TipsAcademicos.jsx'
@@ -80,12 +79,11 @@ export default function Academico({ onNavigate }) {
 
         {seccion === 'apuntes' && <MisApuntes recargarToken={apuntesToken} onNavigate={onNavigate} />}
 
-        {seccion === 'captura' && (
-          <div className="flex flex-col gap-4">
-            <CapturaRapida onGuardado={() => setApuntesToken((t) => t + 1)} />
-            <BotonesAtajos />
-          </div>
-        )}
+        {/* Solo el grabador de la app. La tarjeta de los Atajos de iOS se quitó a propósito:
+            tenía su propio botón "Grabar clase" más vistoso que el micrófono, y con dos formas de
+            grabar en la misma pantalla se tocaba la equivocada. El grabador de la app hace lo
+            mismo con los mismos toques y es depurable de punta a punta. */}
+        {seccion === 'captura' && <CapturaRapida onGuardado={() => setApuntesToken((t) => t + 1)} />}
       </div>
     </div>
   )

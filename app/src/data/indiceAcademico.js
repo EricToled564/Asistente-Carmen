@@ -120,9 +120,23 @@ export const INDICE_ACADEMICO = [
   }
 ]
 
-// Lista plana de todas las materias del grado, sin agrupar por curso/semestre — para selectores
-// donde eso no importa (elegir materia antes de grabar, o al guardar una captura). Vive aquí para
-// que no haya dos copias mantenidas a mano en CapturaRapida y BotonesAtajos.
+// Lista plana de todas las materias del grado, sin agrupar por curso/semestre.
 export const TODAS_LAS_MATERIAS = INDICE_ACADEMICO.flatMap((c) =>
   c.semestres.flatMap((s) => s.materias.map((m) => ({ ...m, curso: c.curso })))
 )
+
+// Las materias del semestre en curso — para el selector de "¿de qué clase es?" al grabar. Enseñar
+// las ~45 del grado entero era ruido: Carmen cursa 5 a la vez, y las demás solo estorban (para lo
+// raro está "Otras" en el propio selector).
+//
+// El curso académico empieza en septiembre de 2026 (su 1º). Agosto-diciembre = 1er semestre;
+// enero-julio = 2º. Es un cálculo de calendario, no una consulta — el plan cambia una vez al año.
+export function materiasDelSemestre(fecha = new Date()) {
+  const anio = fecha.getFullYear()
+  const mes = fecha.getMonth() + 1
+  const enPrimeraMitad = mes >= 8 // agosto-diciembre
+  const curso = Math.min(4, Math.max(1, anio - 2026 + (enPrimeraMitad ? 1 : 0)))
+  const semestre = enPrimeraMitad ? 1 : 2
+  const bloque = INDICE_ACADEMICO.find((c) => c.curso === curso)?.semestres.find((s) => s.semestre === semestre)
+  return (bloque?.materias || []).map((m) => ({ ...m, curso }))
+}

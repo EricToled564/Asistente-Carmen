@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { api } from '../../lib/api.js'
 import { estaInstalada, esIOS } from '../../lib/instalacion.js'
-import { ATAJOS, HAY_ENLACES_DE_INSTALACION, urlEjecutar } from '../../data/atajos.js'
 
 // La sección de Ayuda anterior tenía dos párrafos y los dos estaban mal:
 //
@@ -221,10 +220,18 @@ export default function Ayuda({ onIrASeccion, onNavigate }) {
       <Bloque icono="🎙️" titulo="¿Cómo grabo una clase?">
         <Pasos>
           <li>Ve a <span className="font-semibold">Académico → 🎙️ Captura</span>.</li>
-          <li>Dale a grabar al empezar la clase y a parar al terminar.</li>
-          <li>Se transcribe y se ordena sola. Aparece en <span className="font-semibold">📝 Apuntes</span>.</li>
-          <li>Desde ahí puedes pedirle a Maite un quiz de esa clase concreta.</li>
+          <li>Elige de qué clase es (o «Otras» y escribe el tema).</li>
+          <li>Dale a grabar al empezar la clase y a parar al terminar — hasta 90 minutos.</li>
+          <li>
+            Lo demás es automático: se transcribe, se ordena y se guarda en{' '}
+            <span className="font-semibold">📝 Apuntes</span>. Desde ahí puedes pedirle a Maite un quiz de
+            esa clase concreta.
+          </li>
         </Pasos>
+        <p className="mt-2 rounded-xl bg-lavanda-50 p-2.5 text-xs leading-relaxed text-morado-900/80">
+          Mientras grabas, la pantalla se queda encendida sola. Eso sí: deja la app abierta y a la
+          vista — si cambias de app o bloqueas el teléfono con el botón, la grabación se corta ahí.
+        </p>
         {onNavigate && (
           <button
             onClick={() => onNavigate('academico')}
@@ -233,77 +240,6 @@ export default function Ayuda({ onIrASeccion, onNavigate }) {
             Ir a Académico
           </button>
         )}
-      </Bloque>
-
-      <Bloque icono="⚡" titulo="El botón de grabar clase con 2 taps">
-        <p className="mb-2">
-          Sin él, grabar es tres toques: Académico → Captura → micrófono. Con él, dos: el botón
-          <span className="font-semibold"> Grabar clase</span> está también ahí arriba, en la propia
-          pantalla de Captura, junto a un menú para elegir de qué materia es antes de grabar. Pero hay un
-          paso a mano antes de que sirva de algo.
-        </p>
-
-        <p className="mb-2 rounded-xl bg-melocoton-300/50 p-2.5 text-xs leading-relaxed text-morado-900">
-          <span className="font-semibold">La app NO puede crearlo sola.</span> iOS no deja que una página
-          web cree Atajos, ni siquiera que pregunte cuáles tienes — no existe esa función, a propósito: si
-          existiera, cualquier web podría meterte automatizaciones en el teléfono sin que lo supieras. Lo
-          único que la app puede hacer es pedirle a iOS que EJECUTE un Atajo por su nombre. Si ese Atajo no
-          existe todavía, iOS contesta con su propio aviso —
-          <span className="italic">"el archivo de atajo no existe"</span>— y eso lo pinta iOS, no esta app:
-          por fuera parece que algo se rompió, pero es solo que falta el paso de abajo.
-        </p>
-
-        <p className="mb-1 text-sm font-semibold text-morado-900">Cómo crearlo (una vez, ~5 minutos):</p>
-        <Pasos>
-          <li>Abre la app <span className="font-semibold">Atajos</span> del iPhone (icono azul).</li>
-          <li>
-            Toca <span className="font-semibold">+</span> arriba a la derecha y llama al atajo exactamente{' '}
-            <span className="rounded bg-crema-100 px-1 font-mono font-semibold">{ATAJOS.grabar.nombre}</span> — junto, con
-            las mayúsculas donde están, sin acentos ni espacios. Si cambia una letra, el botón no lo encuentra.
-          </li>
-          <li>
-            Añádele la acción <span className="font-semibold">Grabar audio</span>. Al ejecutarse, esta
-            acción se queda en pantalla grabando — no hace falta un segundo Atajo para "terminar": se
-            para tocando "Listo" ahí mismo, y el propio Atajo sigue solo al paso siguiente.
-          </li>
-          <li>
-            Justo después, añade <span className="font-semibold">Obtener contenido de URL</span> hacia{' '}
-            <span className="break-all font-mono text-[11px]">asistentecarmen.erictoled564.workers.dev/audio</span>, método{' '}
-            <span className="font-semibold">POST</span>, cuerpo <span className="font-semibold">Formulario</span>, con dos
-            campos: <span className="font-mono">audio</span> (tipo Archivo) = la salida de "Grabar audio", y{' '}
-            <span className="font-mono">materia</span> (tipo Texto) = la variable{' '}
-            <span className="italic">"Entrada de acceso directo"</span> — no un texto fijo. Es lo que hace que la
-            clase se guarde ya con la materia que Carmen eligió en la app, en vez de sin clasificar.
-          </li>
-          <li>
-            Tócale a <span className="font-semibold">Compartir</span> y guarda el enlace de iCloud:
-            pegándolo en la app, este botón pasa a ser un simple "Instalar" y nadie más tiene que repetir
-            estos pasos.
-          </li>
-        </Pasos>
-
-        {HAY_ENLACES_DE_INSTALACION && (
-          <a
-            href={ATAJOS.grabar.instalarUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="mt-2 block rounded-xl border border-lavanda-300 bg-lavanda-50 py-2 text-center text-xs font-semibold text-lavanda-800"
-          >
-            ⬇️ Instalar “Grabar clase”
-          </a>
-        )}
-
-        <p className="mt-3 text-xs text-morado-900/60">
-          Si algo de esto se atasca, no pasa nada: en <span className="font-semibold">Académico → Captura</span>{' '}
-          el botón del micrófono graba y sube el audio igual, sin ningún Atajo.
-        </p>
-
-        <a
-          href={urlEjecutar(ATAJOS.grabar.nombre)}
-          className="mt-2 block rounded-xl bg-lavanda-700 py-2 text-center text-xs font-semibold text-white"
-        >
-          ▶️ Probar Grabar clase (sin materia — solo para comprobar que el Atajo existe)
-        </a>
       </Bloque>
 
       <Bloque icono="🔒" titulo="¿Qué sabe Maite de mí?">
