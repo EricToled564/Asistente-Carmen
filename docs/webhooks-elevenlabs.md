@@ -333,6 +333,33 @@ de aula: si contradicen al KB en un dato duro, gana el KB); **no** presentar el
 `extractoTranscripcion` como si fuera la clase completa (es una ventana alrededor de la
 coincidencia); y **no** inventar que grabó algo cuando la búsqueda vino vacía.
 
+## 11. `corregir_radar`
+
+**Cuándo debe llamarlo:** cuando el error en una fecha se detecta EN LA CONVERSACIÓN ("no, la
+entrega es el 15, no el 12") o Carmen le dicta una fecha nueva. En vez de mandarla a la app a
+teclearlo, Maite lo arregla ahí mismo. El cambio cae en el mismo almacén que usa la pantalla del
+radar, y el espejo (`lib/kbRadar.ts`) regenera el documento "Radar de fechas de Carmen" del KB — un
+solo dato, tres sitios, sin duplicados.
+
+- **Name:** `corregir_radar`
+- **Method:** `POST`
+- **URL:** `https://asistentecarmen.erictoled564.workers.dev/fechas/corregir`
+- **Body:**
+  - `accion` (string, obligatorio) — `agregar` | `corregir` | `borrar`.
+  - `titulo` (string) — al agregar, el título nuevo; al corregir/borrar, el nombre (o parte) de la
+    fecha existente.
+  - `fecha` (string AAAA-MM-DD) — al agregar, la fecha del evento; al corregir/borrar, la fecha
+    ACTUAL del registro para desambiguar. Opcional.
+  - `fechaNueva`, `tituloNuevo`, `tipo` (`examen`/`entrega`/`otro`), `nota` — solo para corregir.
+- **Respuestas:** siempre traen `mensaje` redactado para que el agente lo diga tal cual. Casos:
+  `ok:true` con la acción hecha; `ambiguo:true` con `opciones` cuando el título matchea varias
+  (el agente pregunta cuál); `ok:false` con explicación cuando la fecha es oficial del portal
+  (no se edita: se oculta y se apunta la buena como propia).
+
+Reglas escritas en el prompt: confirmar con Carmen antes de llamar, no inventar el `tipo`, y leer
+siempre el `mensaje`. Verificado el 5-ago-2026 con `simulate-conversation`: el agente confirma
+primero y llama con los parámetros correctos.
+
 ---
 
 ## Después de registrarlos

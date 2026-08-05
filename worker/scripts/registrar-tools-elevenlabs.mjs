@@ -198,6 +198,34 @@ const TOOLS = [
         materia: { type: 'string', description: "Código de la asignatura ('KB9-2') para acotar la búsqueda. Opcional." }
       }
     }
+  },
+  {
+    name: 'corregir_radar',
+    description:
+      'Corrige el radar de fechas de Carmen cuando el error se detecta hablando: ella dice "no, la entrega es el 15, no el 12" y tú lo arreglas al momento con esta tool — el cambio queda en la app y en tu base de conocimiento a la vez. Acciones: "agregar" (titulo + fecha AAAA-MM-DD, y tipo examen/entrega si lo dijo), "corregir" (titulo de la fecha existente + lo nuevo en fechaNueva/tituloNuevo/tipo/nota) y "borrar". Confirma SIEMPRE con Carmen lo que vas a cambiar antes de llamar, y lee el campo "mensaje" de la respuesta: te dice qué pasó y qué decirle.',
+    method: 'POST',
+    path: '/fechas/corregir',
+    body: {
+      type: 'object',
+      required: ['accion'],
+      properties: {
+        accion: { type: 'string', description: "'agregar', 'corregir' o 'borrar'." },
+        titulo: {
+          type: 'string',
+          description:
+            'El nombre de la fecha, tal como Carmen lo dice. Para agregar es el título nuevo; para corregir/borrar es cómo se llama la que ya está (vale una parte del nombre).'
+        },
+        fecha: {
+          type: 'string',
+          description:
+            'AAAA-MM-DD. Al agregar: la fecha del evento. Al corregir/borrar: la fecha ACTUAL del registro, para distinguir si hay dos con el mismo nombre. Opcional.'
+        },
+        fechaNueva: { type: 'string', description: 'Solo para corregir: la fecha correcta, AAAA-MM-DD.' },
+        tituloNuevo: { type: 'string', description: 'Solo para corregir: el nombre correcto, si lo que estaba mal era el nombre.' },
+        tipo: { type: 'string', description: "'examen', 'entrega' u 'otro'. Solo si Carmen lo dijo — no lo inventes." },
+        nota: { type: 'string', description: 'Detalle que Carmen quiera dejar apuntado. Opcional.' }
+      }
+    }
   }
 ]
 

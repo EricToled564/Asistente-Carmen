@@ -5,6 +5,7 @@ import { PLAN_ESTUDIOS, bloqueDe } from '../data/planEstudios.js'
 import { extraerEvaluacionDeGuia } from '../lib/extraerEvaluacion.js'
 import { leer, escribir, calcular, estructuraDe, type CalculoMateria } from '../lib/calificacionesStore.js'
 import { obtenerHorarioPortal, vistaDelCurso, porDias, fijarCurso, cursoActual } from '../lib/horarioOficialStore.js'
+import { espejarRadarSinRomper } from '../lib/kbRadar.js'
 
 export const calificaciones = new Hono<{ Bindings: Env }>()
 
@@ -329,6 +330,14 @@ calificaciones.post('/calificaciones/sincronizar-horario', async (c) => {
   const antes = await cursoActual(c.env)
   const avanza = curso <= antes + 1
   if (avanza && curso !== antes) await fijarCurso(c.env, curso)
+
+  // El radar cambia con el portal (sesiones nuevas del semestre que entra), así que su espejo en
+  // el KB de Maite se regenera aquí también — en segundo plano, sin retrasar la respuesta.
+  try {
+    c.executionCtx.waitUntil(espejarRadarSinRomper(c.env))
+  } catch {
+    // Fuera de Workers (tests) no hay executionCtx.
+  }
 
   return c.json({
     ok: clases.length > 0,
