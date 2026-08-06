@@ -1,16 +1,30 @@
-import { useState } from 'react'
-import { TIPS_POR_SEMESTRE, HAY_TIPS, semestreActual } from '../../data/tipsAcademicos.js'
+import { useEffect, useState } from 'react'
+import { TIPS_POR_SEMESTRE, HAY_TIPS } from '../../data/tipsAcademicos.js'
+import { obtenerBloqueActual, bloqueSabido } from '../../lib/semestreActual.js'
 
 // Tips académicos — navegación en dos niveles: semestre → materia.
 //
 // Es contenido de LECTURA: Carmen no lo edita, se actualiza cuando se edita kb/KB10 y se vuelve
 // a desplegar. La misma fuente la consulta Maite en conversación, así que pantalla y agente
-// nunca se contradicen. Arranca abierto en su semestre actual (1º curso), el resto colapsado.
-const CURSO_ACTUAL = 1
+// nunca se contradicen. Arranca abierto en SU semestre — el que dice el servidor (el fijado al
+// preparar el semestre), no el del calendario — con el resto colapsado.
 
 export default function TipsAcademicos() {
-  const [abierto, setAbierto] = useState(`${CURSO_ACTUAL}-${semestreActual()}`)
+  const [bloque, setBloque] = useState(() => bloqueSabido())
+  const [abierto, setAbierto] = useState(() => {
+    const b = bloqueSabido()
+    return `${b.curso}-${b.semestre}`
+  })
+  const [tocoAlguno, setTocoAlguno] = useState(false)
   const [materiaAbierta, setMateriaAbierta] = useState(null)
+  useEffect(() => {
+    obtenerBloqueActual().then((b) => {
+      setBloque(b)
+      if (!tocoAlguno) setAbierto(`${b.curso}-${b.semestre}`)
+    })
+    // Solo al montar: si ella ya tocó un acordeón, su elección manda.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   if (!HAY_TIPS || TIPS_POR_SEMESTRE.length === 0) {
     return (
@@ -33,12 +47,13 @@ export default function TipsAcademicos() {
       {TIPS_POR_SEMESTRE.map((s) => {
         const clave = `${s.curso}-${s.semestre}`
         const estaAbierto = abierto === clave
-        const esElSuyo = s.curso === CURSO_ACTUAL && s.semestre === semestreActual()
+        const esElSuyo = s.curso === bloque.curso && s.semestre === bloque.semestre
 
         return (
           <div key={clave} className="overflow-hidden rounded-2xl bg-white shadow-soft">
             <button
               onClick={() => {
+                setTocoAlguno(true)
                 setAbierto(estaAbierto ? null : clave)
                 setMateriaAbierta(null)
               }}

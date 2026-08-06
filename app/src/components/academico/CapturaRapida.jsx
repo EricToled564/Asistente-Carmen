@@ -1,7 +1,7 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { api } from '../../lib/api.js'
-import { materiasDelSemestre } from '../../data/indiceAcademico.js'
 import { marcarProcesando, terminarProceso } from '../../lib/procesoApunte.js'
+import { obtenerBloqueActual, bloqueSabido, materiasDelBloque } from '../../lib/semestreActual.js'
 import TextoDeMaite from '../comun/TextoDeMaite.jsx'
 
 // 90 minutos: una clase entera, no una nota de voz. El tope existe solo como red de seguridad
@@ -9,8 +9,6 @@ import TextoDeMaite from '../comun/TextoDeMaite.jsx'
 // ~30-50 MB, dentro de lo que aceptan tanto el Worker como la transcripción.
 const MAX_MS = 90 * 60 * 1000
 
-// Solo las del semestre en curso: 5 opciones en vez de 45. Cualquier otra cosa cabe en "Otras".
-const MATERIAS = materiasDelSemestre()
 
 // Grabar la clase desde la propia app, con el MISMO número de toques que tenía el flujo con el
 // Atajo de iOS: elegir materia → grabar → parar. Todo lo demás es automático — sube, transcribe,
@@ -32,6 +30,12 @@ export default function CapturaRapida({ onGuardado }) {
   const [menuMaterias, setMenuMaterias] = useState(false)
   const [materiaKb, setMateriaKb] = useState('') // '' = nada elegido, 'otras' = tema libre
   const [temaLibre, setTemaLibre] = useState('')
+  // Las 5 materias del bloque en el que Carmen ESTÁ, según el servidor (lo fijado al preparar el
+  // semestre). Arranca con lo último sabido y se corrige al confirmar — así el menú no parpadea.
+  const [MATERIAS, setMaterias] = useState(() => materiasDelBloque(bloqueSabido()))
+  useEffect(() => {
+    obtenerBloqueActual().then((b) => setMaterias(materiasDelBloque(b)))
+  }, [])
 
   const mediaRecorderRef = useRef(null)
   const chunksRef = useRef([])

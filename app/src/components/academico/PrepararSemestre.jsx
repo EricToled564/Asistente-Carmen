@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../../lib/api.js'
+import { invalidarBloque } from '../../lib/semestreActual.js'
 
 // "Preparar el siguiente semestre": leer las guías docentes de las asignaturas que vienen y sacar
 // de ahí cómo se evalúa cada una.
@@ -176,6 +177,9 @@ export default function PrepararSemestre({ onListo }) {
       try {
         const h = await api.calificacionesSincronizarHorario({ curso: elegido.curso, semestre: elegido.semestre })
         setHorario(h)
+        // El semestre de Carmen acaba de cambiar: la app entera debe enterarse YA, no cuando
+        // caduque la caché.
+        invalidarBloque()
         extra = h.ok ? ` ${h.mensaje}` : ` ${h.mensaje}`
       } catch {
         extra = ' Los pesos quedaron guardados, pero no pude traer el horario del portal — inténtalo desde Horario más tarde.'

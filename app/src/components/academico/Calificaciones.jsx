@@ -254,7 +254,10 @@ export default function Calificaciones({ recargarToken }) {
       <AvisoSinConexion desde={datos.__cache} />
 
       <div className="rounded-2xl bg-lavanda-50 p-4">
-        <p className="text-sm font-semibold text-morado-900">Tus notas, apartado por apartado</p>
+        <p className="text-sm font-semibold text-morado-900">
+          Tus notas, apartado por apartado
+          {datos.curso && datos.semestre ? ` — ${datos.curso}º · ${datos.semestre}º semestre` : ''}
+        </p>
         <p className="mt-1 text-xs leading-relaxed text-morado-900/60">
           Cada asignatura se evalúa por partes, con su peso. Ve metiendo cada nota según te la den y
           aquí sale tu media real y cuánto necesitas en lo que falta. Los porcentajes salen de tu guía

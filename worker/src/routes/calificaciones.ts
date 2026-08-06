@@ -4,7 +4,15 @@ import { EVALUACION } from '../data/evaluacion.js'
 import { PLAN_ESTUDIOS, bloqueDe } from '../data/planEstudios.js'
 import { extraerEvaluacionDeGuia } from '../lib/extraerEvaluacion.js'
 import { leer, escribir, calcular, estructuraDe, type CalculoMateria } from '../lib/calificacionesStore.js'
-import { obtenerHorarioPortal, vistaDelCurso, porDias, fijarCurso, cursoActual } from '../lib/horarioOficialStore.js'
+import {
+  obtenerHorarioPortal,
+  vistaDelCurso,
+  porDias,
+  fijarCurso,
+  cursoActual,
+  fijarSemestre,
+  semestreActualGuardado
+} from '../lib/horarioOficialStore.js'
 import { espejarRadarSinRomper } from '../lib/kbRadar.js'
 import { cerrarSemestre, listarCerrados } from '../lib/cierreSemestre.js'
 
@@ -41,12 +49,22 @@ function codigosConEstructura(
 calificaciones.get('/calificaciones', async (c) => {
   const { notas, personalizados, derivados } = await leer(c.env)
 
-  // Las oficiales primero, y después cualquier materia que ella se haya montado a mano.
-  const codigos = codigosConEstructura(personalizados, derivados)
+  // SOLO las del bloque en el que Carmen está (curso + semestre actual). Antes salían TODAS las
+  // materias con estructura — Antropología I y II juntas, las del semestre pasado mezcladas con
+  // las del nuevo — y "Este semestre" era mentira. El semestre pasado no se pierde: vive en el
+  // histórico de cierres (/calificaciones/cerrados) y las notas siguen guardadas por si vuelve.
+  const curso = await cursoActual(c.env)
+  const semestre = (await semestreActualGuardado(c.env)) ?? 1
+  const bloque = PLAN_ESTUDIOS.find((b) => b.curso === curso && b.semestre === semestre)
+  const codigosDelBloque = new Set((bloque?.materias || []).map((m) => m.kbCode))
+
+  const codigos = codigosConEstructura(personalizados, derivados).filter((k) => codigosDelBloque.has(k))
 
   const materias = codigos.map((kbCode) => calcular(kbCode, nombreDe(kbCode), notas[kbCode] || {}, personalizados, derivados))
 
   return c.json({
+    curso,
+    semestre,
     materias,
     resumen: {
       total: materias.length,
@@ -331,6 +349,9 @@ calificaciones.post('/calificaciones/sincronizar-horario', async (c) => {
   const antes = await cursoActual(c.env)
   const avanza = curso <= antes + 1
   if (avanza && curso !== antes) await fijarCurso(c.env, curso)
+  // El semestre preparado pasa a ser EL SUYO: es lo que hace que toda la app (horario por defecto,
+  // materias de calificaciones, tips, selector al grabar) se mueva de semestre de una vez.
+  if (avanza && (semestre === 1 || semestre === 2)) await fijarSemestre(c.env, semestre)
 
   // El radar cambia con el portal (sesiones nuevas del semestre que entra), así que su espejo en
   // el KB de Maite se regenera aquí también — en segundo plano, sin retrasar la respuesta.

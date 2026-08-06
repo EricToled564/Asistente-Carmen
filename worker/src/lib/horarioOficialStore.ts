@@ -28,6 +28,22 @@ export async function cursoActual(env: Env): Promise<number> {
   return Number.isInteger(n) && n >= 1 && n <= 4 ? n : 1
 }
 
+// El semestre en el que Carmen ESTÁ, fijado al preparar/sincronizar un semestre — no deducido del
+// calendario. Existe porque "preparé el semestre 2" tiene que cambiar lo que la app enseña
+// (horario por defecto, materias de calificaciones, tips, selector al grabar), y el calendario
+// solo sabe qué mes es, no qué decidió ella. null = nunca fijado; el que lea cae al calendario.
+const KEY_SEMESTRE = 'horario:semestreActual'
+
+export async function semestreActualGuardado(env: Env): Promise<number | null> {
+  const v = await env.KV.get(KEY_SEMESTRE)
+  const n = Number(v)
+  return n === 1 || n === 2 ? n : null
+}
+
+export async function fijarSemestre(env: Env, semestre: number): Promise<void> {
+  await env.KV.put(KEY_SEMESTRE, String(semestre))
+}
+
 export async function fijarCurso(env: Env, curso: number): Promise<void> {
   await env.KV.put(CURSO_DE_CARMEN, String(curso))
 }

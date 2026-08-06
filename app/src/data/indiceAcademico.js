@@ -129,14 +129,21 @@ export const TODAS_LAS_MATERIAS = INDICE_ACADEMICO.flatMap((c) =>
 // las ~45 del grado entero era ruido: Carmen cursa 5 a la vez, y las demás solo estorban (para lo
 // raro está "Otras" en el propio selector).
 //
-// El curso académico empieza en septiembre de 2026 (su 1º). Agosto-diciembre = 1er semestre;
-// enero-julio = 2º. Es un cálculo de calendario, no una consulta — el plan cambia una vez al año.
-export function materiasDelSemestre(fecha = new Date()) {
-  const anio = fecha.getFullYear()
-  const mes = fecha.getMonth() + 1
-  const enPrimeraMitad = mes >= 8 // agosto-diciembre
-  const curso = Math.min(4, Math.max(1, anio - 2026 + (enPrimeraMitad ? 1 : 0)))
-  const semestre = enPrimeraMitad ? 1 : 2
-  const bloque = INDICE_ACADEMICO.find((c) => c.curso === curso)?.semestres.find((s) => s.semestre === semestre)
-  return (bloque?.materias || []).map((m) => ({ ...m, curso }))
+// Si llega `bloque` ({curso, semestre}, normalmente del servidor vía lib/semestreActual.js), manda
+// él. Sin bloque, cae al calendario: el curso académico empieza en septiembre de 2026 (su 1º);
+// agosto-diciembre = 1er semestre, enero-julio = 2º.
+export function materiasDelSemestre(fecha = new Date(), bloque = null) {
+  let curso, semestre
+  if (bloque?.curso) {
+    curso = bloque.curso
+    semestre = bloque.semestre
+  } else {
+    const anio = fecha.getFullYear()
+    const mes = fecha.getMonth() + 1
+    const enPrimeraMitad = mes >= 8 // agosto-diciembre
+    curso = Math.min(4, Math.max(1, anio - 2026 + (enPrimeraMitad ? 1 : 0)))
+    semestre = enPrimeraMitad ? 1 : 2
+  }
+  const b = INDICE_ACADEMICO.find((c) => c.curso === curso)?.semestres.find((s) => s.semestre === semestre)
+  return (b?.materias || []).map((m) => ({ ...m, curso }))
 }

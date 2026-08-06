@@ -94,6 +94,8 @@ export const api = {
     return request(`/horario/oficial${q ? `?${q}` : ''}`, { method: 'GET' })
   },
   horarioFijarCurso: (curso) => request('/horario/curso', { method: 'POST', body: JSON.stringify({ curso }) }),
+  // El bloque en el que Carmen está ({curso, semestre}) — fijado al preparar un semestre.
+  semestreActual: () => request('/semestre-actual', { method: 'GET' }),
   calificacionesSincronizarHorario: (payload) =>
     request('/calificaciones/sincronizar-horario', { method: 'POST', body: JSON.stringify(payload) }),
   fechasListar: () => request('/fechas', { method: 'GET' }),
