@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../../lib/api.js'
 import { conCache } from '../../lib/cacheApi.js'
+import { procesoActivo } from '../../lib/procesoApunte.js'
 import TextoDeMaite from '../comun/TextoDeMaite.jsx'
 import AvisoSinConexion from '../comun/AvisoSinConexion.jsx'
 import BotonMaite from '../agente/BotonMaite.jsx'
@@ -42,6 +43,21 @@ export default function MisApuntes({ recargarToken, onNavigate }) {
   useEffect(() => {
     cargar()
   }, [cargar, recargarToken])
+
+  // "⏳ en proceso": si hay una grabación procesándose (señal compartida con Captura), se enseña
+  // aquí — que es donde se viene a mirar — y la lista se refresca sola cada 15 s hasta que el
+  // apunte aparezca. Sin esto, una lista vacía durante los 2-4 minutos de transcripción se lee
+  // como "no se guardó nada", que fue exactamente lo que pasó el primer día.
+  const [procesando, setProcesando] = useState(() => procesoActivo())
+  useEffect(() => {
+    if (!procesando) return undefined
+    const revisar = setInterval(() => {
+      const p = procesoActivo()
+      setProcesando(p)
+      if (p) cargar()
+    }, 15000)
+    return () => clearInterval(revisar)
+  }, [procesando, cargar])
 
   async function abrir(id) {
     setCargandoDetalle(true)
@@ -129,6 +145,18 @@ export default function MisApuntes({ recargarToken, onNavigate }) {
   return (
     <div className="flex flex-col gap-3">
       <AvisoSinConexion desde={desdeCache} />
+      {procesando && (
+        <div className="animate-pulse rounded-2xl border border-lavanda-200 bg-lavanda-50 p-4">
+          <p className="text-sm font-semibold text-lavanda-800">
+            ⏳ Procesando tu grabación{procesando.materia ? ` de ${procesando.materia}` : ''}…
+          </p>
+          <p className="mt-1 text-xs text-morado-900/60">
+            {procesando.minutos < 1 ? 'Empezó hace menos de un minuto' : `Lleva ${procesando.minutos} min`}
+            {' '}— una clase entera tarda 2-4 minutos. El apunte aparecerá aquí solo; esta lista se
+            actualiza cada pocos segundos.
+          </p>
+        </div>
+      )}
       {error && <p className="text-sm text-red-700">{error}</p>}
       {cargandoDetalle && <p className="text-sm text-morado-900/50">Abriendo…</p>}
 

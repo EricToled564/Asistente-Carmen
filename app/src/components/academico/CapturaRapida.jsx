@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react'
 import { api } from '../../lib/api.js'
 import { materiasDelSemestre } from '../../data/indiceAcademico.js'
+import { marcarProcesando, terminarProceso } from '../../lib/procesoApunte.js'
 import TextoDeMaite from '../comun/TextoDeMaite.jsx'
 
 // 90 minutos: una clase entera, no una nota de voz. El tope existe solo como red de seguridad
@@ -123,6 +124,9 @@ export default function CapturaRapida({ onGuardado }) {
 
   async function enviar(blob) {
     setProcesando(true)
+    // La señal compartida: Mis apuntes la lee para enseñar "⏳ en proceso" aunque Carmen se salga
+    // de esta pantalla mientras se procesa.
+    marcarProcesando(materiaAlGrabarRef.current)
     try {
       const formData = new FormData()
       formData.append('audio', blob, 'captura.webm')
@@ -141,6 +145,7 @@ export default function CapturaRapida({ onGuardado }) {
       setError('No pude procesar el audio. (' + err.message + ')')
     } finally {
       setProcesando(false)
+      terminarProceso()
       soltarPantalla()
     }
   }
@@ -227,7 +232,15 @@ export default function CapturaRapida({ onGuardado }) {
           {Math.floor(segundos / 60)}:{String(segundos % 60).padStart(2, '0')} · máx. 90 min
         </p>
       )}
-      {procesando && <p className="text-sm text-morado-900/60">Maite está transcribiendo y guardando tus apuntes…</p>}
+      {procesando && (
+        <div className="rounded-xl bg-lavanda-50 p-3 text-center">
+          <p className="text-sm font-semibold text-lavanda-800">⏳ Maite está transcribiendo y guardando tus apuntes…</p>
+          <p className="mt-1 text-xs text-morado-900/60">
+            Una nota corta tarda segundos; una clase entera, 2-4 minutos. No cierres la app — cuando
+            termine, aquí sale el ✓ y el apunte aparece en Mis apuntes.
+          </p>
+        </div>
+      )}
 
       {error && <p className="text-sm text-red-700">{error}</p>}
 
