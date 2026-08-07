@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useApp } from './context/AppContext.jsx'
+import Splash from './components/onboarding/Splash.jsx'
 import OnboardingFlow from './components/onboarding/OnboardingFlow.jsx'
 import NavTabs from './components/NavTabs.jsx'
 import Inicio from './pages/Inicio.jsx'
@@ -30,12 +31,18 @@ export default function App() {
   const { onboardingDone } = useApp()
   const [active, setActive] = useState('inicio')
   const [overlay, setOverlay] = useState(null)
+  // Sin persistir: se ve cada vez que la app arranca de cero, no solo la primera vez en la vida.
+  const [splashVisto, setSplashVisto] = useState(false)
 
   // "?familia=1" no es la app de Carmen: es la pantalla de un familiar que solo viene a activar
-  // las alertas. Se comprueba ANTES del onboarding a propósito — hacerle pasar por el onboarding
-  // de una estudiante recién mudada a Pamplona sería absurdo, y es justo donde abandonaría.
+  // las alertas. Se comprueba ANTES que nada — hacerle pasar por el escudo y el onboarding de una
+  // estudiante recién mudada a Pamplona sería absurdo, y es justo donde abandonaría.
   const esFamilia = new URLSearchParams(window.location.search).get('familia') === '1'
   if (esFamilia) return <ModoFamilia />
+
+  if (!splashVisto) {
+    return <Splash onEntrar={() => setSplashVisto(true)} />
+  }
 
   if (!onboardingDone) {
     return <OnboardingFlow onGoTo={setActive} />
