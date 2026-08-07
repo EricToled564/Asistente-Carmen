@@ -10,6 +10,7 @@ import {
   semestreActualGuardado
 } from '../lib/horarioOficialStore.js'
 import { fechaEnPamplona } from '../lib/tramitesStore.js'
+import { esDelSemestre } from '../lib/fechasStore.js'
 
 export const horarioPortal = new Hono<{ Bindings: Env }>()
 
@@ -31,6 +32,10 @@ horarioPortal.get('/horario/oficial', async (c) => {
 
   const { clases, sesiones } = vistaDelCurso(portal, curso, semestre)
 
+  // El portal mete sesiones de junio en su vista del primer semestre (y al revés). Se filtran por
+  // mes: del semestre que no es el suyo, Carmen no ve NADA.
+  const sesionesDelSemestre = sesiones.filter((s) => esDelSemestre(s.fecha, semestre))
+
   return c.json({
     curso,
     semestre,
@@ -43,7 +48,7 @@ horarioPortal.get('/horario/oficial', async (c) => {
     aviso: portal.fallo || null,
     hoy,
     dias: porDias(clases),
-    sesiones,
+    sesiones: sesionesDelSemestre,
     profesores: [...new Set(clases.flatMap((x) => x.profesores))].sort(),
     // Para que la pantalla pueda ofrecer el otro semestre sin adivinar si existe.
     semestresDisponibles: [...new Set(todasDelCurso.map((x) => x.semestre).filter((x): x is number => x !== null))].sort()

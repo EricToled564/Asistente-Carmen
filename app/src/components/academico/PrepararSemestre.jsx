@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../../lib/api.js'
-import { invalidarBloque } from '../../lib/semestreActual.js'
+import { invalidarBloque, obtenerBloqueActual, bloqueSabido } from '../../lib/semestreActual.js'
+
+// El siguiente bloque en la carrera: 1º/1 → 1º/2 → 2º/1 → …
+function bloqueSiguiente(b) {
+  if (b.semestre === 1) return { curso: b.curso, semestre: 2 }
+  return b.curso < 4 ? { curso: b.curso + 1, semestre: 1 } : null
+}
 
 // "Preparar el siguiente semestre": leer las guías docentes de las asignaturas que vienen y sacar
 // de ahí cómo se evalúa cada una.
@@ -90,6 +96,13 @@ function Propuesta({ p, onCambiar }) {
 
 export default function PrepararSemestre({ onListo }) {
   const [semestres, setSemestres] = useState(null)
+  // Solo se ofrecen el bloque actual y el siguiente. Los otros seis no pintan nada aquí: preparar
+  // 4º curso yendo en 1º solo produce datos viejos para dentro de tres años — y la lista entera
+  // era enseñar "los otros semestres" que no deben aparecer.
+  const [bloque, setBloque] = useState(() => bloqueSabido())
+  useEffect(() => {
+    obtenerBloqueActual().then(setBloque)
+  }, [])
   const [elegido, setElegido] = useState(null)
   const [estado, setEstado] = useState('idle') // idle | leyendo | revisar | guardando | listo | error
   const [propuestas, setPropuestas] = useState([])
@@ -297,7 +310,15 @@ export default function PrepararSemestre({ onListo }) {
           </button>
         </div>
       ) : (
-        semestres.map((b) => {
+        semestres
+          .filter((b) => {
+            const sig = bloqueSiguiente(bloque)
+            return (
+              (b.curso === bloque.curso && b.semestre === bloque.semestre) ||
+              (sig && b.curso === sig.curso && b.semestre === sig.semestre)
+            )
+          })
+          .map((b) => {
           const completo = b.preparadas === b.total
           return (
             <div key={`${b.curso}-${b.semestre}`} className="flex items-center gap-3 rounded-2xl bg-white p-3.5 shadow-soft">

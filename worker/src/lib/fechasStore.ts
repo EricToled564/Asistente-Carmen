@@ -1,6 +1,14 @@
 import type { Env } from '../types.js'
-import { obtenerHorarioPortal, cursoActual, vistaDelCurso } from './horarioOficialStore.js'
+import { obtenerHorarioPortal, cursoActual, vistaDelCurso, semestreActualGuardado } from './horarioOficialStore.js'
 import type { SesionSuelta } from './portalHorarios.js'
+
+// Una fecha pertenece al semestre por su MES, no por cómo la etiqueta el portal: el portal mete
+// sesiones de junio en su vista del primer semestre y viceversa, y Carmen no quiere ver NADA del
+// semestre que no es el suyo. Ago-dic = 1er semestre; ene-jul = 2º.
+export function esDelSemestre(fechaISO: string, semestre: number): boolean {
+  const mes = Number(fechaISO.slice(5, 7))
+  return semestre === 1 ? mes >= 8 : mes <= 7
+}
 
 // El radar de fechas: exámenes, entregas y sesiones señaladas.
 //
@@ -87,6 +95,8 @@ export async function listar(env: Env, hoyISO: string): Promise<{ fechas: FechaR
   const almacen = await leer(env)
   const curso = await cursoActual(env)
 
+  const semestre = (await semestreActualGuardado(env)) ?? (Number(hoyISO.slice(5, 7)) >= 8 ? 1 : 2)
+
   let oficiales: FechaRadar[] = []
   let avisoPortal: string | null = null
   try {
@@ -95,6 +105,8 @@ export async function listar(env: Env, hoyISO: string): Promise<{ fechas: FechaR
     oficiales = vistaDelCurso(portal, curso)
       .sesiones.map((s) => aRadar(s, almacen.hechas))
       .filter((f) => !almacen.ocultas.includes(f.id))
+      // Solo las del semestre de Carmen — las del otro no existen para ella hasta que le toque.
+      .filter((f) => esDelSemestre(f.fecha, semestre))
   } catch {
     // Que el portal esté caído no puede vaciar el radar: sus fechas propias siguen ahí.
     avisoPortal = 'No pude comprobar el horario oficial ahorita. Lo que ves es lo que tú has apuntado.'

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useClock } from '../../hooks/useClock.js'
 import { api } from '../../lib/api.js'
 import { HORARIO_INFO, DIAS_ORDEN, clasesDe, semestreVigente, SESIONES_ESPECIALES } from '../../data/horario.js'
@@ -24,17 +24,12 @@ export default function Horario() {
   const now = useClock()
   const [subido, setSubido] = useState(null) // lo que ella subió a mano
   const [oficial, setOficial] = useState(null) // lo que publica la universidad
-  // La pestaña por defecto es EL SEMESTRE DE CARMEN según el servidor (el fijado al preparar),
-  // no el del calendario. Arranca con lo último sabido y se corrige al confirmar — salvo que ella
-  // ya haya tocado el selector, porque su elección manda.
+  // El ÚNICO semestre que se enseña: el de Carmen según el servidor (el fijado al preparar), con
+  // lo último sabido como arranque. Del otro semestre no se ve nada — ni pestaña.
   const [semestre, setSemestre] = useState(() => bloqueSabido().semestre || semestreVigente())
-  const [semestreDeCarmen, setSemestreDeCarmen] = useState(() => bloqueSabido().semestre || semestreVigente())
-  const tocoElSelector = useRef(false)
   useEffect(() => {
     obtenerBloqueActual().then((b) => {
-      if (b.semestre !== 1 && b.semestre !== 2) return
-      setSemestreDeCarmen(b.semestre)
-      if (!tocoElSelector.current) setSemestre(b.semestre)
+      if (b.semestre === 1 || b.semestre === 2) setSemestre(b.semestre)
     })
   }, [])
   const [cargando, setCargando] = useState(true)
@@ -98,22 +93,11 @@ export default function Horario() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex gap-2">
-        {[1, 2].map((s) => (
-          <button
-            key={s}
-            onClick={() => {
-              tocoElSelector.current = true
-              setSemestre(s)
-            }}
-            className={`flex-1 rounded-xl py-2 text-sm font-semibold transition ${
-              semestre === s ? 'bg-lavanda-700 text-white' : 'bg-white text-morado-900/60 shadow-soft'
-            }`}
-          >
-            {s}º semestre
-            {semestreDeCarmen === s && <span className="ml-1 text-xs font-normal opacity-70">· el tuyo</span>}
-          </button>
-        ))}
+      {/* Sin selector de semestres a propósito: el otro semestre NO existe para Carmen hasta que
+          le toque. Solo se enseña el suyo (el que fija Preparar semestre en el servidor); cuando
+          cambie de semestre, esta pantalla cambia sola. */}
+      <div className="rounded-xl bg-lavanda-700 py-2 text-center text-sm font-semibold text-white">
+        {semestre === 1 ? '1er' : '2º'} semestre
       </div>
 
       <div className="flex items-center justify-between gap-2 text-xs text-morado-900/50">
