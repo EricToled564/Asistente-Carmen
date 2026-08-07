@@ -14,6 +14,7 @@ import {
   semestreActualGuardado
 } from '../lib/horarioOficialStore.js'
 import { espejarRadarSinRomper } from '../lib/kbRadar.js'
+import { espejarHorarioSinRomper } from '../lib/kbHorario.js'
 import { cerrarSemestre, listarCerrados } from '../lib/cierreSemestre.js'
 
 export const calificaciones = new Hono<{ Bindings: Env }>()
@@ -353,10 +354,12 @@ calificaciones.post('/calificaciones/sincronizar-horario', async (c) => {
   // materias de calificaciones, tips, selector al grabar) se mueva de semestre de una vez.
   if (avanza && (semestre === 1 || semestre === 2)) await fijarSemestre(c.env, semestre)
 
-  // El radar cambia con el portal (sesiones nuevas del semestre que entra), así que su espejo en
-  // el KB de Maite se regenera aquí también — en segundo plano, sin retrasar la respuesta.
+  // El radar y KB8 (horario) se regeneran JUNTOS aquí, del mismo semestre — es lo que garantiza
+  // que Maite nunca tenga las dos fuentes hablando de semestres distintos. En segundo plano, sin
+  // retrasar la respuesta a la app.
   try {
     c.executionCtx.waitUntil(espejarRadarSinRomper(c.env))
+    c.executionCtx.waitUntil(espejarHorarioSinRomper(c.env))
   } catch {
     // Fuera de Workers (tests) no hay executionCtx.
   }
