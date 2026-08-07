@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { api } from '../../lib/api.js'
 import { conCache } from '../../lib/cacheApi.js'
+import { urlGoogleCalendar, urlOutlookCalendar } from '../../lib/calendarLinks.js'
 import AvisoSinConexion from '../comun/AvisoSinConexion.jsx'
 
 // El radar de fechas: lo que viene y cuánto falta.
@@ -110,10 +111,32 @@ export default function RadarFechas() {
             {etiquetaDias(d)}
           </span>
         </div>
-        <div className="mt-2 flex gap-2">
+        <div className="mt-2 flex flex-wrap gap-2">
           <button onClick={() => marcar(f)} className="rounded-full bg-crema-100 px-3 py-1 text-xs font-semibold text-morado-900/70">
-            {f.hecha ? 'No, aún no' : 'Ya está'}
+            {/* "Ya está" = marcar como resuelta, no un estado del sistema — deja de contar los días
+                y pasa a "Pasadas". Se puede deshacer con "No, aún no". */}
+            {f.hecha ? 'No, aún no' : 'Ya está ✓'}
           </button>
+          {!f.hecha && (
+            <>
+              <a
+                href={urlGoogleCalendar(f)}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full bg-crema-100 px-3 py-1 text-xs font-semibold text-morado-900/70"
+              >
+                📅 Google
+              </a>
+              <a
+                href={urlOutlookCalendar(f)}
+                target="_blank"
+                rel="noreferrer"
+                className="rounded-full bg-crema-100 px-3 py-1 text-xs font-semibold text-morado-900/70"
+              >
+                📅 Outlook
+              </a>
+            </>
+          )}
           <button onClick={() => quitar(f)} className="rounded-full px-2 py-1 text-xs font-semibold text-red-700">
             {/* Las oficiales no se borran: se ocultan, y vuelven con "restaurar". Borrar de verdad
                 algo que el portal republica cada día sería un bucle sin fin. */}
