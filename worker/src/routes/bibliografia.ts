@@ -53,7 +53,7 @@ bibliografia.get('/bibliografia/consulta', async (c) => {
     materia: e.materia,
     libro: e.libro,
     autor: e.autor || null,
-    mensaje: `El libro de ${e.materia} es "${e.libro}"${e.autor ? `, de ${e.autor}` : ''}. Puedes referirte a él por nombre y ayudarle a repasar el tema en ese marco — no tienes el contenido del libro, así que no inventes citas ni capítulos que no conoces.`
+    mensaje: `El libro de ${e.materia} es "${e.libro}"${e.autor ? `, de ${e.autor}` : ''}. Esto es lo único que Carmen apuntó — un título y un autor, no el texto del libro. Si de verdad reconoces esta obra por tu propio conocimiento, úsalo para explicar mejor el tema, situándolo en ese libro. Pero si no la reconoces, o no estás segura de un dato concreto (una cita exacta, un capítulo, una página), dilo así — no completes con algo que suena plausible pero no sabes si es cierto.`
   })
 })
 
