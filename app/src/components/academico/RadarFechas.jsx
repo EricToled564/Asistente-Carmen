@@ -155,6 +155,18 @@ export default function RadarFechas() {
         <p className="rounded-xl bg-melocoton-300/60 p-3 text-xs leading-relaxed text-morado-900">⚠️ {datos.avisoPortal}</p>
       )}
 
+      {datos.simultaneas?.length > 0 && (
+        <div className="rounded-xl bg-lavanda-50 p-3 text-xs leading-relaxed text-morado-900/70">
+          <p className="font-semibold text-morado-900">No es que se repita:</p>
+          {datos.simultaneas.map((s, i) => (
+            <p key={i} className="mt-1">
+              El {nombreFecha(s.fecha)} a las {s.hora.split(/[–-]/)[0]} coinciden {s.materias.join(' y ')} — son dos
+              asignaturas distintas que la universidad juntó en la misma sesión, no un error del radar.
+            </p>
+          ))}
+        </div>
+      )}
+
       {datos.resumen.oficiales > 0 && (
         <p className="rounded-xl bg-lavanda-50 p-3 text-xs leading-relaxed text-morado-900/70">
           Las que llevan 🏛️ las publica la universidad, con su aula y su hora. El portal no dice cuáles

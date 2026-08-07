@@ -119,6 +119,26 @@ function notaPartidas(filas: FilaClase[]): string | null {
   return lineas.length ? lineas.join('\n') : null
 }
 
+// Igual que notaSimultaneas() pero para sesiones sueltas (fecha, no día de la semana): dos
+// asignaturas distintas —p. ej. "Design Studio I" y "Design Studio II"— pueden compartir un crit
+// final el mismo día a la misma hora. El portal las publica como dos eventos separados; sin esta
+// nota parecen una sesión repetida por error.
+function notaSimultaneasSesiones(filas: FilaSesion[]): string | null {
+  const grupos = new Map<string, FilaSesion[]>()
+  for (const f of filas) {
+    const clave = `${f.fecha}|${f.inicio}`
+    if (!grupos.has(clave)) grupos.set(clave, [])
+    grupos.get(clave)!.push(f)
+  }
+  const lineas: string[] = []
+  for (const [, xs] of grupos) {
+    const materias = [...new Set(xs.map((x) => x.materia))]
+    if (materias.length < 2) continue
+    lineas.push(`- **${fechaLegibleLarga(xs[0].fecha)} a las ${xs[0].inicio}:** coinciden ${materias.join(' y ')} — son dos asignaturas reales publicadas por separado, no una sesión duplicada.`)
+  }
+  return lineas.length ? lineas.join('\n') : null
+}
+
 export interface ResultadoHorarioKb {
   ok: boolean
   motivo?: string
@@ -144,7 +164,9 @@ export async function espejarHorarioEnKb(env: Env): Promise<ResultadoHorarioKb> 
     .sort((a, b) => `${a.fecha}${a.inicio}`.localeCompare(`${b.fecha}${b.inicio}`))
     .map((s) => ({ fecha: s.fecha, inicio: s.inicio, fin: s.fin, materia: s.materia, aula: s.aulas.join(' / ') || 'sin aula publicada' }))
 
-  const notas = [notaSimultaneas(filasSemana), notaPartidas(filasSemana)].filter((x): x is string => Boolean(x))
+  const notas = [notaSimultaneas(filasSemana), notaPartidas(filasSemana), notaSimultaneasSesiones(filasSesiones)].filter(
+    (x): x is string => Boolean(x)
+  )
 
   const documento = `# KB8 — Horario de Clases: ${curso}º Curso, Grado en Diseño (${portal.cursoAcademico || ''})
 

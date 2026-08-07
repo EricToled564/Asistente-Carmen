@@ -1,5 +1,5 @@
 import type { Env } from '../types.js'
-import { listar } from './fechasStore.js'
+import { listar, detectarSimultaneas } from './fechasStore.js'
 import { fechaEnPamplona } from './tramitesStore.js'
 import {
   getKbDocument,
@@ -92,11 +92,23 @@ export async function espejarRadarEnKb(env: Env): Promise<ResultadoRadarKb> {
     return partes.filter(Boolean).join(' ')
   })
 
+  const colisiones = detectarSimultaneas(porVenir)
+  const notaColisiones = colisiones.length
+    ? `\n## Sesiones que coinciden en fecha y hora\n\n` +
+      `Esto NO es que el radar repita una fecha: son dos asignaturas reales, cada una publicada por la ` +
+      `universidad como su propio evento, que caen en el mismo horario (un crit o una jornada compartida). ` +
+      `Si Carmen pregunta por una de las dos, no le digas que hay un error — dile las dos y cuál aula tiene ` +
+      `cada una.\n\n` +
+      colisiones.map((c) => `- ${fechaLegible(c.fecha)} a las ${c.hora.split(/[–-]/)[0]}: ${c.materias.join(' y ')}.`).join('\n') +
+      '\n'
+    : ''
+
   const documento =
     cabecera(hoy) +
     `\n## Fechas por venir (${porVenir.length})\n\n` +
     (lineas.length ? lineas.join('\n') : 'Ahora mismo no hay ninguna fecha por venir en el radar.') +
-    '\n'
+    '\n' +
+    notaColisiones
 
   let documentId = await getKbDocId(env, KB_CODE)
 

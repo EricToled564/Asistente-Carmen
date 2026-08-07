@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import type { Env } from '../types.js'
-import { leer, escribir, listar, esFechaValida, type FechaPropia } from '../lib/fechasStore.js'
+import { leer, escribir, listar, esFechaValida, detectarSimultaneas, type FechaPropia } from '../lib/fechasStore.js'
 import { fechaEnPamplona } from '../lib/tramitesStore.js'
 import { espejarRadarSinRomper } from '../lib/kbRadar.js'
 
@@ -21,13 +21,18 @@ function espejarEnSegundoPlano(c: { env: Env; executionCtx: { waitUntil(p: Promi
 fechas.get('/fechas', async (c) => {
   const hoy = fechaEnPamplona()
   const { fechas: lista, avisoPortal } = await listar(c.env, hoy)
+  const porVenir = lista.filter((f) => f.fecha >= hoy && !f.hecha)
   return c.json({
     hoy,
     fechas: lista,
     avisoPortal,
+    // Sesiones oficiales que coinciden en fecha y hora con otra asignatura: no es que el radar las
+    // repita, son dos eventos reales publicados por la universidad. Sin esto en pantalla parece un
+    // fallo.
+    simultaneas: detectarSimultaneas(porVenir),
     resumen: {
       total: lista.length,
-      porVenir: lista.filter((f) => f.fecha >= hoy && !f.hecha).length,
+      porVenir: porVenir.length,
       oficiales: lista.filter((f) => f.origen === 'oficial').length
     }
   })

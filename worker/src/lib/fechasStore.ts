@@ -127,6 +127,32 @@ export async function listar(env: Env, hoyISO: string): Promise<{ fechas: FechaR
   return { fechas: todas, avisoPortal }
 }
 
+export type ColisionHoraria = { fecha: string; hora: string; materias: string[] }
+
+// Detecta sesiones OFICIALES con la misma fecha y la misma hora pero distinta materia — el caso de
+// "Design Studio I" y "Design Studio II" con un crit final compartido el mismo día a las 09:00 en
+// la misma aula. No es un duplicado del radar ni un fallo de sincronización: son dos asignaturas
+// reales, cada una publicada por la universidad como su propio evento, que coinciden en el horario.
+// Se detecta desde los propios datos (fecha+hora repetidos con título distinto), no de nombres a
+// mano, para que siga funcionando si el portal cambia qué asignaturas comparten sesión.
+export function detectarSimultaneas(fechas: FechaRadar[]): ColisionHoraria[] {
+  const grupos = new Map<string, FechaRadar[]>()
+  for (const f of fechas) {
+    if (f.origen !== 'oficial' || !f.hora) continue
+    const clave = `${f.fecha}|${f.hora}`
+    if (!grupos.has(clave)) grupos.set(clave, [])
+    grupos.get(clave)!.push(f)
+  }
+  const resultado: ColisionHoraria[] = []
+  for (const [clave, xs] of grupos) {
+    const materias = [...new Set(xs.map((x) => x.titulo))]
+    if (materias.length < 2) continue
+    const [fecha, hora] = clave.split('|')
+    resultado.push({ fecha, hora, materias })
+  }
+  return resultado.sort((a, b) => a.fecha.localeCompare(b.fecha))
+}
+
 export function esFechaValida(v: unknown): v is string {
   return typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v) && !Number.isNaN(Date.parse(`${v}T00:00:00Z`))
 }
