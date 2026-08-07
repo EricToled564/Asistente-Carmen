@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useClock } from '../../hooks/useClock.js'
 import { api } from '../../lib/api.js'
-import { HORARIO_INFO, DIAS_ORDEN, clasesDe, semestreVigente, SESIONES_ESPECIALES } from '../../data/horario.js'
+import { HORARIO_INFO, DIAS_ORDEN, clasesDe, semestreVigente } from '../../data/horario.js'
 import { obtenerBloqueActual, bloqueSabido } from '../../lib/semestreActual.js'
 
 // El horario de Carmen.
@@ -14,13 +14,7 @@ import { obtenerBloqueActual, bloqueSabido } from '../../lib/semestreActual.js'
 // El selector de semestre no es un adorno. Antes esta pantalla enseñaba una sola parrilla, la del
 // primer semestre, sin decir que lo era. En febrero le habría mandado a un aula donde no hay nadie.
 
-function nombreFecha(iso) {
-  return new Intl.DateTimeFormat('es-ES', { weekday: 'long', day: 'numeric', month: 'long' }).format(
-    new Date(`${iso}T12:00:00`)
-  )
-}
-
-export default function Horario() {
+export default function Horario({ onVerRadar }) {
   const now = useClock()
   const [subido, setSubido] = useState(null) // lo que ella subió a mano
   const [oficial, setOficial] = useState(null) // lo que publica la universidad
@@ -78,15 +72,6 @@ export default function Horario() {
     procedencia = 'Copia guardada en la app'
     actualizado = HORARIO_INFO.ultimaActualizacion
   }
-
-  const sesiones = oficial?.sesiones?.length
-    ? oficial.sesiones.map((s) => ({
-        fecha: s.fecha,
-        hora: `${s.inicio}–${s.fin}`,
-        materia: s.materia,
-        aula: s.aulas.join(' / ')
-      }))
-    : SESIONES_ESPECIALES.filter((s) => s.semestre === semestre || s.semestre === null)
 
   const porDia = DIAS_ORDEN.map((dia) => ({ dia, clases: clases.filter((h) => h.dia === dia) }))
   const notas = subido?.notas?.length ? subido.notas : HORARIO_INFO.notas
@@ -148,41 +133,21 @@ export default function Horario() {
         </div>
       ))}
 
-      {sesiones.length > 0 && (
-        <div className="rounded-2xl bg-white p-4 shadow-soft">
-          <p className="text-xs font-semibold uppercase tracking-wide text-lavanda-700">Fechas señaladas</p>
-          {/* Se dice lo que son y lo que no. El portal no distingue examen de entrega, y ponerle una
-              etiqueta que no tiene sería inventarle a Carmen un dato que se creería. */}
-          <p className="mt-1 text-xs leading-relaxed text-morado-900/55">
-            Sesiones sueltas que la universidad tiene publicadas fuera del horario semanal. El día, la
-            hora y el aula son exactos. Lo que el portal <strong>no</strong> dice es qué son: si un examen,
-            una entrega o una sesión de correcciones. Tampoco dice de qué semestre son las de mayo y junio,
-            así que salen por fecha.{' '}
-            <a
-              href="https://unav-publish.bulletscheduling.com/ArquitecturayDiseno"
-              target="_blank"
-              rel="noreferrer"
-              className="underline decoration-dotted"
-            >
-              Compruébalo en el portal
-            </a>
-            .
-          </p>
-          <div className="mt-2.5 flex flex-col gap-2">
-            {sesiones.map((s, i) => (
-              <div key={i} className="flex items-start justify-between gap-3 rounded-xl bg-crema-100 p-2.5">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-morado-900">{s.materia}</p>
-                  <p className="text-xs text-morado-900/55">
-                    {nombreFecha(s.fecha)} · {s.aula}
-                  </p>
-                </div>
-                <p className="shrink-0 text-xs font-semibold tabular-nums text-lavanda-800">{s.hora}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Los exámenes, entregas y demás sesiones sueltas NO se listan aquí también: es la misma
+          información que ya está en Radar, con más — ahí se pueden ocultar, marcar como hechas y
+          mandar al calendario. Repetirla en dos pestañas de Académico no la hace más fiable, solo
+          duplica lo que hay que leer para encontrarla. */}
+      <button
+        type="button"
+        onClick={onVerRadar}
+        className="rounded-2xl bg-white p-4 text-left shadow-soft"
+      >
+        <p className="text-xs font-semibold uppercase tracking-wide text-lavanda-700">📅 Exámenes y entregas sueltos</p>
+        <p className="mt-1 text-xs leading-relaxed text-morado-900/55">
+          Las sesiones que la universidad publica fuera del horario semanal están en Radar de fechas,
+          junto con lo que tú apuntes. Ver Radar →
+        </p>
+      </button>
 
       {notas?.length > 0 && (
         <div className="rounded-2xl bg-crema-100 p-4 text-xs leading-relaxed text-morado-900/70">

@@ -49,7 +49,7 @@ export default function Academico({ onNavigate }) {
       <MenuColapsable secciones={SECCIONES} activa={seccion} onCambiar={setSeccion} etiqueta="Secciones de Académico" />
 
       <div className="flex-1 overflow-y-auto px-5 pb-8">
-        {seccion === 'horario' && <Horario />}
+        {seccion === 'horario' && <Horario onVerRadar={() => setSeccion('radar')} />}
 
         {seccion === 'calificaciones' && <MisCalificaciones />}
 
