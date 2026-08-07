@@ -93,7 +93,17 @@ const ATRIBUTOS_TEXTO = {
   // ese estado, no pasa solo por hablar o escribir. Quitando el botón (show-resize-button=false)
   // el panel se queda siempre en su tamaño compacto, y con eso deja de haber pantalla completa de
   // la que sea casi imposible salir.
-  'show-resize-button': 'false'
+  'show-resize-button': 'false',
+  // Por si acaso alguna vez cambiara el valor por defecto de la librería: estos dos SIEMPRE tienen
+  // que quedar apagados, porque cualquiera de los dos arrancaría el panel ya expandido — exacto lo
+  // contrario de lo que se acaba de apagar arriba con show-resize-button.
+  'default-expanded': 'false',
+  'always-expanded': 'false',
+  // Con la llamada en curso, esto pone una X visible en el panel para minimizarlo a una pastilla
+  // pequeña SIN colgar — comprobado en el bundle: 'dismissible' es justo el interruptor de ese
+  // botón (onDismiss), no del placement ni del tamaño. Sin él no hay ninguna salida a la vista
+  // dentro del panel mismo; con él, salir no depende de encontrar la barra de pestañas de abajo.
+  dismissible: 'true'
 }
 
 /**
