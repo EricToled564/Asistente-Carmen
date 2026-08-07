@@ -11,7 +11,11 @@ export default function Agente() {
   const { config, contextoAgente } = useApp()
 
   return (
-    <div className="flex h-full flex-col gap-4 p-5 pb-32">
+    // pt-40 (no p-5 arriba): el widget flota centrado y ARRIBA de la pantalla (placement="top"),
+    // y su burbuja de saludo ("¿Necesitas ayuda?" + botones) es bastante alta — sin este hueco de
+    // separación, tapaba el título "Maite" y el párrafo de abajo. Se comprobó con una captura real
+    // de la pantalla en el teléfono, no a ojo.
+    <div className="flex h-full flex-col gap-4 px-5 pb-32 pt-40">
       <header>
         <h1 className="font-display text-2xl font-bold text-lavanda-800">Maite</h1>
         <p className="text-sm text-morado-900/60">

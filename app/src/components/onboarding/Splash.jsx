@@ -9,17 +9,19 @@ import escudoUnav from '../../assets/escudo-unav.png'
 // contrario de "pantalla de inicio".
 export default function Splash({ onEntrar }) {
   return (
-    <div className="flex h-full flex-col items-center justify-center gap-8 bg-lavanda-glow px-8 text-center safe-top">
+    <div className="flex h-full flex-col items-center justify-center gap-8 bg-lavanda-glow px-4 text-center safe-top">
       <button
         type="button"
         onClick={onEntrar}
         aria-label="Entrar a la app"
         className="flex flex-col items-center gap-6 transition-transform active:scale-95"
       >
+        {/* 3 veces el tamaño que tenía (192px -> 576px), con tope en el 85% del ancho de pantalla
+            para que no se salga en un teléfono angosto: 576px no cabe entero en ~390px de ancho. */}
         <img
           src={escudoUnav}
           alt="Escudo de la Universidad de Navarra"
-          className="h-48 w-48 drop-shadow-xl"
+          className="h-[85vw] w-[85vw] max-h-[576px] max-w-[576px] drop-shadow-xl"
           draggable={false}
         />
         <div>
