@@ -3,7 +3,7 @@ import type { Env } from '../types.js'
 import { EVALUACION } from '../data/evaluacion.js'
 import { PLAN_ESTUDIOS, bloqueDe } from '../data/planEstudios.js'
 import { extraerEvaluacionDeGuia } from '../lib/extraerEvaluacion.js'
-import { leer, escribir, calcular, estructuraDe, type CalculoMateria } from '../lib/calificacionesStore.js'
+import { leer, escribir, calcular, estructuraDe, necesarioParaObjetivo, type CalculoMateria } from '../lib/calificacionesStore.js'
 import {
   obtenerHorarioPortal,
   vistaDelCurso,
@@ -224,6 +224,77 @@ function frase(m: CalculoMateria): string {
   }
   return partes.join(' ')
 }
+
+// GET /calificaciones/simulador?materia=&objetivo= — "¿qué necesito sacar en lo que me falta para
+// llegar a un 8,6?". Vive aparte de /consulta porque responde una pregunta distinta: /consulta
+// dice cómo va AHORA; esto proyecta un objetivo que Carmen elige, no el mínimo para aprobar.
+//
+// No hay una "base de datos" nueva ni un número guardado en ningún sitio: se recalcula desde las
+// mismas notas parciales que ya existen, en el momento en que se pregunta. Guardar el resultado
+// aparte lo dejaría desactualizado en cuanto entrara una nota nueva, que es justo el fallo que el
+// resto de esta app evita a propósito.
+calificaciones.get('/calificaciones/simulador', async (c) => {
+  const { notas, personalizados, derivados } = await leer(c.env)
+  const buscada = (c.req.query('materia') || '').trim().toLowerCase()
+  const objetivo = Number(c.req.query('objetivo'))
+
+  if (!buscada) {
+    return c.json({ error: 'Falta "materia": a qué asignatura le calculo el objetivo.' }, 400)
+  }
+  if (!Number.isFinite(objetivo) || objetivo < 0 || objetivo > 10) {
+    return c.json({ error: '"objetivo" tiene que ser un número entre 0 y 10.' }, 400)
+  }
+
+  const codigos = codigosConEstructura(personalizados, derivados)
+  const materias = codigos.map((kbCode) => calcular(kbCode, nombreDe(kbCode), notas[kbCode] || {}, personalizados, derivados))
+  const coincide = materias.filter((m) => m.materia.toLowerCase().includes(buscada) || m.kbCode.toLowerCase() === buscada)
+
+  if (!coincide.length) {
+    return c.json({
+      encontradas: 0,
+      mensaje: `No tengo ninguna asignatura que se llame "${c.req.query('materia')}". Pregúntale a Carmen cuál es exactamente.`
+    })
+  }
+  if (coincide.length > 1) {
+    return c.json({
+      encontradas: coincide.length,
+      mensaje: `Hay varias asignaturas que coinciden: ${coincide.map((m) => m.materia).join(', ')}. Pregúntale a Carmen a cuál se refiere.`
+    })
+  }
+
+  const m = coincide[0]
+  if (m.pesoEvaluado === 0) {
+    return c.json({
+      encontradas: 0,
+      mensaje: `Carmen todavía no tiene ninguna nota parcial en ${m.materia}, así que no hay desde dónde proyectar un objetivo.`
+    })
+  }
+
+  const r = necesarioParaObjetivo(m, objetivo)
+
+  let resumen: string
+  if (r.yaAlcanzado) {
+    resumen = `En ${m.materia} ya tiene asegurado un ${objetivo}, aunque saque un 0 en lo que le falta.`
+  } else if (r.imposible) {
+    resumen = `En ${m.materia}, con lo que le queda por evaluar, ya no le dan los números para llegar a un ${objetivo} — ni sacando un 10 en todo lo que falta.`
+  } else {
+    resumen = `En ${m.materia} lleva ${m.notaHastaAhora} de media con el ${m.pesoEvaluado}% evaluado. Para llegar a un ${objetivo} necesita sacar ${r.necesario} de media en el ${m.pesoPendiente}% que le queda.`
+  }
+
+  return c.json({
+    encontradas: 1,
+    materia: m.materia,
+    objetivo,
+    notaHastaAhora: m.notaHastaAhora,
+    pesoEvaluado: m.pesoEvaluado,
+    pesoPendiente: m.pesoPendiente,
+    necesario: r.necesario,
+    yaAlcanzado: r.yaAlcanzado,
+    imposible: r.imposible,
+    resumen,
+    comoDecirlo: 'Lee los números como se dicen hablando: "ocho coma seis", no "8.6".'
+  })
+})
 
 // --- Preparar el siguiente semestre ---------------------------------------------------------
 //

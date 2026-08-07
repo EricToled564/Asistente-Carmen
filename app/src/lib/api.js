@@ -74,6 +74,10 @@ export const api = {
   calificacionGuardar: (payload) => request('/calificaciones', { method: 'POST', body: JSON.stringify(payload) }),
   calificacionBorrar: (kbCode, componenteId) =>
     request(`/calificaciones/${encodeURIComponent(kbCode)}/${encodeURIComponent(componenteId)}`, { method: 'DELETE' }),
+  calificacionSimular: (materia, objetivo) =>
+    request(`/calificaciones/simulador?materia=${encodeURIComponent(materia)}&objetivo=${encodeURIComponent(objetivo)}`, {
+      method: 'GET'
+    }),
   tramiteAgendar: (id, cita) => request(`/tramites/${id}/agendar`, { method: 'POST', body: JSON.stringify(cita) }),
   tramiteQuitarCita: (id) => request(`/tramites/${id}/cita`, { method: 'DELETE' }),
   tramiteCompletar: (id) => request(`/tramites/${id}/completar`, { method: 'POST' }),

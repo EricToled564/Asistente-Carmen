@@ -101,6 +101,8 @@ export interface CalculoMateria {
   oficial: boolean
   componentes: Array<ComponenteEvaluacion & { nota: number | null }>
   pesoEvaluado: number // cuánto porcentaje de la asignatura ya tiene nota
+  pesoPendiente: number // el resto: 100 - pesoEvaluado, salvo redondeos de la guía
+  puntosGanados: number // lo ya asegurado sobre la nota final (sobre 10, no sobre lo evaluado)
   notaHastaAhora: number | null // media de lo evaluado, sobre 10 — NO la nota final
   proyeccionSiMantiene: number | null // la final si sacara lo mismo en lo que falta
   necesarioParaAprobar: number | null // qué media hace falta en lo que queda
@@ -165,6 +167,8 @@ export function calcular(
     oficial,
     componentes: conNota,
     pesoEvaluado,
+    pesoPendiente,
+    puntosGanados: redondear(puntosGanados),
     notaHastaAhora,
     proyeccionSiMantiene,
     necesarioParaAprobar:
@@ -177,4 +181,27 @@ export function calcular(
     asistenciaMinima: meta?.asistenciaMinima,
     aviso: meta?.aviso
   }
+}
+
+export interface ObjetivoMateria {
+  objetivo: number
+  necesario: number | null // qué media hace falta en lo que queda para llegar al objetivo
+  yaAlcanzado: boolean // ya lo tiene asegurado aunque saque 0 en lo que falta
+  imposible: boolean // ya no llega ni sacando 10 en todo lo que falta
+}
+
+// Generaliza necesarioParaAprobar a CUALQUIER objetivo, no solo el mínimo para aprobar. Es el
+// mismo cálculo (mismo servidor, misma fuente) que ya usa la asignatura para "qué necesito para
+// aprobar" — esto solo lo reutiliza con el número que Carmen pida en vez del mínimo fijo. Sin
+// esto, "qué necesito para llegar a un 8,6" habría que estimarlo en la conversación, y ahí es
+// donde un cálculo mental de un LLM se equivoca y dice un número que la pantalla no respalda.
+export function necesarioParaObjetivo(m: CalculoMateria, objetivo: number): ObjetivoMateria {
+  if (m.pesoPendiente <= 0) {
+    const yaAlcanzado = m.puntosGanados >= objetivo
+    return { objetivo, necesario: null, yaAlcanzado, imposible: !yaAlcanzado }
+  }
+  const bruto = ((objetivo - m.puntosGanados) / m.pesoPendiente) * 100
+  const yaAlcanzado = bruto <= 0
+  const imposible = bruto > 10
+  return { objetivo, necesario: yaAlcanzado || imposible ? null : redondear(bruto), yaAlcanzado, imposible }
 }

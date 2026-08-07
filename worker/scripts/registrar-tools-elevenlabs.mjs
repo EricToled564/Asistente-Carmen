@@ -226,6 +226,26 @@ const TOOLS = [
         nota: { type: 'string', description: 'Detalle que Carmen quiera dejar apuntado. Opcional.' }
       }
     }
+  },
+  {
+    name: 'simular_calificacion',
+    description:
+      'Calcula qué media necesita Carmen en lo que le falta de UNA asignatura para llegar a un promedio objetivo que ella elija — por ejemplo "qué necesito para que Diseño me quede en un 8,6". Distinta de consultar_calificaciones (que solo da el mínimo para aprobar): aquí el objetivo lo pone ella, no el 5. Nunca hagas esta cuenta de cabeza ni la estimes tú — llama siempre a la tool, es el mismo cálculo exacto que ve en su pantalla.',
+    method: 'GET',
+    path: '/calificaciones/simulador',
+    query: {
+      properties: {
+        materia: {
+          type: 'string',
+          description: "Nombre o parte del nombre de la asignatura ('Creative Traditions', 'geometrías')."
+        },
+        objetivo: {
+          type: 'string',
+          description: 'La nota objetivo que Carmen quiere alcanzar en esa asignatura, entre 0 y 10 (por ejemplo "8.6").'
+        }
+      },
+      required: ['materia', 'objetivo']
+    }
   }
 ]
 

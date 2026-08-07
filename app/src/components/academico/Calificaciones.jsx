@@ -3,6 +3,82 @@ import { api } from '../../lib/api.js'
 import { conCache } from '../../lib/cacheApi.js'
 import AvisoSinConexion from '../comun/AvisoSinConexion.jsx'
 
+// "¿Qué necesito sacar en lo que me falta para llegar a un 8,6?" — un objetivo que ella elige,
+// no el mínimo para aprobar. El número lo calcula el Worker (mismo endpoint que usa Maite por
+// voz, /calificaciones/simulador): no se guarda nada nuevo, se recalcula cada vez que se pregunta,
+// para que nunca pueda quedar desactualizado en cuanto entre una nota nueva.
+function Objetivo({ materia, pesoEvaluado }) {
+  const [abierto, setAbierto] = useState(false)
+  const [valor, setValor] = useState('')
+  const [resultado, setResultado] = useState(null)
+  const [error, setError] = useState('')
+  const [cargando, setCargando] = useState(false)
+
+  if (pesoEvaluado === 0) return null
+
+  async function calcular(e) {
+    e.preventDefault()
+    const objetivo = Number(String(valor).replace(',', '.'))
+    if (!valor.trim() || Number.isNaN(objetivo) || objetivo < 0 || objetivo > 10) {
+      setError('Pon un número del 0 al 10.')
+      return
+    }
+    setError('')
+    setCargando(true)
+    try {
+      const d = await api.calificacionSimular(materia, objetivo)
+      setResultado(d)
+    } catch {
+      setError('No pude calcularlo ahorita. Inténtalo otra vez.')
+    }
+    setCargando(false)
+  }
+
+  return (
+    <div className="mt-2.5">
+      <button
+        onClick={() => setAbierto((v) => !v)}
+        className="text-xs font-semibold text-lavanda-800 underline decoration-dotted"
+      >
+        {abierto ? 'Ocultar simulador de nota' : '¿Qué necesito para llegar a una nota concreta?'}
+      </button>
+      {abierto && (
+        <form onSubmit={calcular} className="mt-2 flex items-center gap-2">
+          <input
+            type="text"
+            inputMode="decimal"
+            value={valor}
+            onChange={(e) => setValor(e.target.value)}
+            placeholder="Ej. 8.6"
+            className="w-20 rounded-lg border border-lavanda-200 p-1.5 text-center text-sm"
+          />
+          <button
+            type="submit"
+            disabled={cargando}
+            className="rounded-lg bg-lavanda-700 px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+          >
+            {cargando ? 'Calculando…' : 'Calcular'}
+          </button>
+        </form>
+      )}
+      {error && <p className="mt-1.5 text-xs text-red-700">{error}</p>}
+      {resultado?.resumen && (
+        <p
+          className={`mt-2 rounded-xl p-2.5 text-xs leading-relaxed ${
+            resultado.imposible
+              ? 'bg-melocoton-300 text-morado-900'
+              : resultado.yaAlcanzado
+                ? 'bg-green-50 text-green-800'
+                : 'bg-crema-100 text-morado-900/80'
+          }`}
+        >
+          {resultado.resumen}
+        </p>
+      )}
+    </div>
+  )
+}
+
 // Notas parciales por asignatura, con el promedio calculado.
 //
 // La vista "Mi expediente" lleva el expediente: una nota final por materia, ponderada por ECTS.
@@ -107,6 +183,8 @@ function Materia({ m, onGuardar, onBorrar }) {
       <div className="mt-2.5">
         <Veredicto m={m} />
       </div>
+
+      <Objetivo materia={m.materia} pesoEvaluado={m.pesoEvaluado} />
 
       <button
         onClick={() => setAbierto((v) => !v)}
