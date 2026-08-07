@@ -7,7 +7,7 @@
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
     "typecheck": "tsc --noEmit",
-    "test": "esbuild src/lib/portalHorarios.ts src/lib/horarioOficialStore.ts src/lib/fechasStore.ts src/data/evaluacion.ts --bundle --format=esm --platform=neutral --outdir=.test-build --out-extension:.js=.mjs --log-level=error && node --test src/lib/*.test.mjs src/data/*.test.mjs"
+    "test": "esbuild src/lib/portalHorarios.ts src/lib/horarioOficialStore.ts src/lib/fechasStore.ts src/lib/calificacionesStore.ts src/data/evaluacion.ts --bundle --format=esm --platform=neutral --outdir=.test-build --out-extension:.js=.mjs --log-level=error && node --test src/lib/*.test.mjs src/data/*.test.mjs"
   },
   "dependencies": {
     "@block65/webcrypto-web-push": "^1.0.2",

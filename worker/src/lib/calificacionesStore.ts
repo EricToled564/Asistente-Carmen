@@ -95,11 +95,22 @@ export function estructuraDe(
   return { componentes: [], oficial: false, origen: 'ninguno' }
 }
 
+// Un apartado evaluado: si es hoja, `nota` es lo que metió Carmen. Si es grupo (tiene
+// `subcomponentes`), `nota` es siempre null — su valor no se mete a mano, se calcula recursivamente
+// de sus hijos — y en su lugar trae `pesoEvaluado`/`notaActual`, el mismo par de números que a nivel
+// de toda la asignatura, pero calculados SOLO dentro de este apartado.
+export type NodoEvaluado = ComponenteEvaluacion & {
+  nota: number | null
+  pesoEvaluado: number // 0-100, dentro del espacio propio de este nodo
+  notaActual: number | null // 0-10, media de lo evaluado dentro de este nodo — null si nada evaluado
+  subcomponentes?: NodoEvaluado[]
+}
+
 export interface CalculoMateria {
   kbCode: string
   materia: string
   oficial: boolean
-  componentes: Array<ComponenteEvaluacion & { nota: number | null }>
+  componentes: NodoEvaluado[]
   pesoEvaluado: number // cuánto porcentaje de la asignatura ya tiene nota
   pesoPendiente: number // el resto: 100 - pesoEvaluado, salvo redondeos de la guía
   puntosGanados: number // lo ya asegurado sobre la nota final (sobre 10, no sobre lo evaluado)
@@ -119,6 +130,46 @@ function redondear(n: number): number {
   return Math.round(n * 100) / 100
 }
 
+// Evalúa UN nodo (hoja o grupo) contra las notas guardadas, recursivamente.
+//
+// Es la pieza central de todo el motor: una hoja SOLO trae lo que Carmen metió; un grupo es
+// siempre el promedio ponderado de sus hijos, contando como "no evaluado" lo que sus hijos aún no
+// tengan. Aplicado a la raíz (la asignatura entera, un grupo cuyos hijos son sus apartados de
+// primer nivel) da EXACTAMENTE la misma fórmula que antes tenía el cálculo plano — no es una
+// fórmula nueva, es la misma generalizada a cualquier profundidad. Con una asignatura sin
+// subcomponentes en ningún apartado (el caso de siempre, ocho de cada nueve materias de primero),
+// el resultado es idéntico bit a bit al de antes.
+function evaluarNodo(nodo: ComponenteEvaluacion, notas: Record<string, number>): NodoEvaluado {
+  if (!nodo.subcomponentes?.length) {
+    const nota = typeof notas[nodo.id] === 'number' ? notas[nodo.id] : null
+    return { ...nodo, nota, pesoEvaluado: nota === null ? 0 : 100, notaActual: nota, subcomponentes: undefined }
+  }
+
+  const hijos = nodo.subcomponentes.map((h) => evaluarNodo(h, notas))
+
+  let pesoEvaluado = 0
+  let puntos = 0 // en la misma escala que "puntosGanados": suma de nota*peso/100 de los hijos evaluados
+  for (const h of hijos) {
+    pesoEvaluado += (h.peso / 100) * h.pesoEvaluado
+    if (h.notaActual !== null) puntos += (h.peso / 100) * (h.pesoEvaluado / 100) * h.notaActual
+  }
+  const notaActual = pesoEvaluado > 0 ? redondear((puntos / pesoEvaluado) * 100) : null
+
+  return { ...nodo, nota: null, pesoEvaluado: redondear(pesoEvaluado), notaActual, subcomponentes: hijos }
+}
+
+// Recorre el árbol entero buscando CUALQUIER nodo —hoja o grupo— con `minimo` que esté por debajo
+// de él. Un grupo con mínimo (p. ej. "Proyectos" en Design Studio IV, mínimo 4 sobre el promedio de
+// P1+P2+PE) se compara igual que una hoja: contra su propia `notaActual`, calculada más arriba.
+function minimosEnRiesgoDe(nodo: NodoEvaluado): string[] {
+  const propios: string[] = []
+  if (nodo.minimo !== undefined && nodo.pesoEvaluado > 0 && (nodo.notaActual as number) < nodo.minimo) {
+    propios.push(`${nodo.nombre}: va en ${nodo.notaActual} y el mínimo es ${nodo.minimo}`)
+  }
+  const deHijos = (nodo.subcomponentes || []).flatMap(minimosEnRiesgoDe)
+  return [...propios, ...deHijos]
+}
+
 // El cálculo entero. Se hace en el servidor y no en la app a propósito: exactamente el mismo
 // número lo tiene que dar la pantalla y lo tiene que decir Maite por voz. Con dos
 // implementaciones, tarde o temprano dicen cosas distintas sobre la misma asignatura, y ahí ella
@@ -133,19 +184,16 @@ export function calcular(
   const { componentes, oficial, origen, meta } = estructuraDe(kbCode, personalizados, derivados)
   const notaMinima = meta?.notaMinima ?? 5
 
-  const conNota = componentes.map((c) => ({ ...c, nota: typeof notas[c.id] === 'number' ? notas[c.id] : null }))
+  // La asignatura entera se trata como un grupo raíz cuyos hijos son sus apartados de primer
+  // nivel — así el mismo evaluarNodo() de arriba sirve tanto para la asignatura completa como para
+  // cualquier subgrupo suyo, sin duplicar la fórmula.
+  const raiz = evaluarNodo({ id: '__raiz__', nombre: materia, peso: 100, subcomponentes: componentes }, notas)
+  const conNota = raiz.subcomponentes || []
 
-  const evaluados = conNota.filter((c) => c.nota !== null)
-  const pesoEvaluado = evaluados.reduce((t, c) => t + c.peso, 0)
-  const pesoPendiente = conNota.filter((c) => c.nota === null).reduce((t, c) => t + c.peso, 0)
-
-  // Puntos ya asegurados sobre la nota final (no sobre 10: sobre lo que vale cada parte).
-  const puntosGanados = evaluados.reduce((t, c) => t + (c.nota as number) * (c.peso / 100), 0)
-
-  // "Cómo voy" = media de lo evaluado, no la nota final. Presentar los puntos ganados como si
-  // fueran la nota daría un 3,2 en octubre a quien va sacando ochos, que es desmoralizador y
-  // además falso.
-  const notaHastaAhora = pesoEvaluado > 0 ? redondear((puntosGanados / pesoEvaluado) * 100) : null
+  const pesoEvaluado = raiz.pesoEvaluado
+  const pesoPendiente = redondear(100 - pesoEvaluado)
+  const notaHastaAhora = raiz.notaActual
+  const puntosGanados = notaHastaAhora === null ? 0 : redondear((notaHastaAhora * pesoEvaluado) / 100)
 
   const proyeccionSiMantiene =
     notaHastaAhora === null ? null : redondear(puntosGanados + notaHastaAhora * (pesoPendiente / 100))
@@ -157,9 +205,7 @@ export function calcular(
   const aprobadaYa = necesarioBruto !== null ? necesarioBruto <= 0 : puntosGanados >= notaMinima
   const imposibleAprobar = necesarioBruto !== null ? necesarioBruto > 10 : puntosGanados < notaMinima
 
-  const minimosEnRiesgo = conNota
-    .filter((c) => c.minimo !== undefined && c.nota !== null && (c.nota as number) < (c.minimo as number))
-    .map((c) => `${c.nombre}: tienes ${c.nota} y el mínimo es ${c.minimo}`)
+  const minimosEnRiesgo = conNota.flatMap(minimosEnRiesgoDe)
 
   return {
     kbCode,
@@ -168,7 +214,7 @@ export function calcular(
     componentes: conNota,
     pesoEvaluado,
     pesoPendiente,
-    puntosGanados: redondear(puntosGanados),
+    puntosGanados,
     notaHastaAhora,
     proyeccionSiMantiene,
     necesarioParaAprobar:
@@ -181,6 +227,20 @@ export function calcular(
     asistenciaMinima: meta?.asistenciaMinima,
     aviso: meta?.aviso
   }
+}
+
+// Busca una hoja por id en todo el árbol (recursivo) — para validar que un `componenteId` que
+// llega de la app es de verdad un apartado donde SE PUEDE meter una nota (una hoja), no el id de
+// un grupo (que no admite nota directa, se calcula solo).
+export function hojaExiste(componentes: ComponenteEvaluacion[], id: string): boolean {
+  for (const c of componentes) {
+    if (c.subcomponentes?.length) {
+      if (hojaExiste(c.subcomponentes, id)) return true
+    } else if (c.id === id) {
+      return true
+    }
+  }
+  return false
 }
 
 export interface ObjetivoMateria {

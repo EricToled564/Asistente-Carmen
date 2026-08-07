@@ -42,11 +42,26 @@ for (const [kbCode, guia] of Object.entries(GUIAS)) {
   })
 }
 
-test('todas suman 100', () => {
-  for (const e of EVALUACION) {
-    const suma = Math.round(e.componentes.reduce((t, c) => t + c.peso, 0) * 100) / 100
-    assert.equal(suma, 100, `${e.kbCode} suma ${suma}`)
+test('todas suman 100, y cada grupo (subcomponentes) suma 100 dentro de sí mismo', () => {
+  function verificar(lista, etiqueta) {
+    const suma = Math.round(lista.reduce((t, c) => t + c.peso, 0) * 100) / 100
+    assert.equal(suma, 100, `${etiqueta} suma ${suma}`)
+    for (const c of lista) {
+      if (c.subcomponentes?.length) verificar(c.subcomponentes, `${etiqueta} > ${c.nombre}`)
+    }
   }
+  for (const e of EVALUACION) verificar(e.componentes, e.kbCode)
+})
+
+test('KB9-18 (Design Studio IV): dos mínimos de grupo a la vez, tal como la guía', () => {
+  const e = EVALUACION.find((x) => x.kbCode === 'KB9-18')
+  assert.ok(e, 'falta KB9-18 en EVALUACION')
+  assert.deepEqual(e.componentes.map((c) => c.peso), [80, 20], 'Proyectos 80 / Revisión final 20')
+  const proyectos = e.componentes.find((c) => c.nombre === 'Proyectos')
+  assert.equal(proyectos.minimo, 4, 'mínimo 4/10 en el bloque Proyectos')
+  assert.deepEqual(proyectos.subcomponentes.map((c) => c.peso), [30, 50, 20], 'P1 30 / P2 50 / PE 20')
+  const p2 = proyectos.subcomponentes.find((c) => c.nombre.startsWith('P2'))
+  assert.equal(p2.minimo, 5, 'P2 tiene que aprobar por su cuenta')
 })
 
 test('Antropología I y II son asignaturas distintas y no comparten reparto', () => {

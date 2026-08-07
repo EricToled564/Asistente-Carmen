@@ -138,6 +138,109 @@ function Veredicto({ m }) {
   return null
 }
 
+// Cuenta solo las hojas (donde de verdad se mete una nota) — un grupo como "Proyectos" no cuenta
+// como un apartado más, sus 3 proyectos internos sí.
+function contarHojas(lista) {
+  return lista.reduce((t, c) => t + (c.subcomponentes?.length ? contarHojas(c.subcomponentes) : 1), 0)
+}
+
+// Un apartado del árbol: si es hoja, la fila editable de siempre. Si es grupo (tiene
+// subcomponentes), no lleva nota directa — se calcula solo de sus hijos — así que en vez del botón
+// de meter nota se enseña lo que ya lleva ese grupo, y debajo, indentados, sus hijos.
+function Nodo({ c, kbCode, editando, valor, setValor, setEditando, setError, guardar, onBorrar }) {
+  if (c.subcomponentes?.length) {
+    const enRiesgo = c.minimo !== undefined && c.notaActual !== null && c.notaActual < c.minimo
+    return (
+      <div className="rounded-xl bg-lavanda-50/60 p-2.5">
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-morado-900">{c.nombre}</p>
+            <p className="text-[10px] text-morado-900/45">
+              vale {c.peso}%{c.minimo !== undefined ? ` · mínimo ${c.minimo}` : ''}
+            </p>
+          </div>
+          <div className="shrink-0 text-right">
+            <p className={`text-sm font-bold tabular-nums ${enRiesgo ? 'text-red-700' : 'text-lavanda-700'}`}>
+              {c.notaActual === null ? '—' : c.notaActual}
+            </p>
+            <p className="text-[9px] text-morado-900/40">{c.pesoEvaluado}% evaluado</p>
+          </div>
+        </div>
+        <div className="mt-2 flex flex-col gap-1.5 border-l-2 border-lavanda-200 pl-2.5">
+          {c.subcomponentes.map((hijo) => (
+            <Nodo
+              key={hijo.id}
+              c={hijo}
+              kbCode={kbCode}
+              editando={editando}
+              valor={valor}
+              setValor={setValor}
+              setEditando={setEditando}
+              setError={setError}
+              guardar={guardar}
+              onBorrar={onBorrar}
+            />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex items-center gap-2 rounded-xl bg-crema-100 p-2.5">
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-xs font-medium text-morado-900">{c.nombre}</p>
+        <p className="text-[10px] text-morado-900/45">
+          vale {c.peso}%
+          {c.cuantos ? ` · ${c.cuantos} entregas` : ''}
+          {c.minimo !== undefined ? ` · mínimo ${c.minimo}` : ''}
+        </p>
+      </div>
+
+      {editando === c.id ? (
+        <div className="flex items-center gap-1">
+          <input
+            type="text"
+            inputMode="decimal"
+            autoFocus
+            value={valor}
+            onChange={(e) => setValor(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && guardar(c.id)}
+            placeholder="0-10"
+            className="w-16 rounded-lg border border-lavanda-200 p-1.5 text-center text-sm"
+          />
+          <button onClick={() => guardar(c.id)} className="rounded-lg bg-lavanda-700 px-2.5 py-1.5 text-xs font-semibold text-white">
+            OK
+          </button>
+        </div>
+      ) : (
+        <button
+          onClick={() => {
+            setEditando(c.id)
+            setValor(c.nota === null ? '' : String(c.nota))
+            setError('')
+          }}
+          className={`rounded-lg px-3 py-1.5 text-sm font-bold tabular-nums ${
+            c.nota === null
+              ? 'bg-white text-lavanda-700 ring-1 ring-lavanda-200'
+              : c.minimo !== undefined && c.nota < c.minimo
+                ? 'bg-red-100 text-red-800'
+                : 'bg-lavanda-700 text-white'
+          }`}
+        >
+          {c.nota === null ? 'Añadir' : c.nota}
+        </button>
+      )}
+
+      {c.nota !== null && editando !== c.id && (
+        <button onClick={() => onBorrar(kbCode, c.id)} className="shrink-0 text-[11px] text-red-700" aria-label={`Borrar la nota de ${c.nombre}`}>
+          ✕
+        </button>
+      )}
+    </div>
+  )
+}
+
 function Materia({ m, onGuardar, onBorrar }) {
   const [abierto, setAbierto] = useState(false)
   const [editando, setEditando] = useState(null)
@@ -164,7 +267,7 @@ function Materia({ m, onGuardar, onBorrar }) {
             <p className="text-sm font-semibold text-morado-900">{m.materia}</p>
             <p className="mt-0.5 text-xs text-morado-900/50">
               {m.pesoEvaluado === 0
-                ? `${m.componentes.length} apartados, ninguno calificado`
+                ? `${contarHojas(m.componentes)} apartados, ninguno calificado`
                 : `${m.pesoEvaluado}% de la asignatura ya evaluado`}
             </p>
           </div>
@@ -224,64 +327,18 @@ function Materia({ m, onGuardar, onBorrar }) {
           )}
 
           {m.componentes.map((c) => (
-            <div key={c.id} className="flex items-center gap-2 rounded-xl bg-crema-100 p-2.5">
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-medium text-morado-900">{c.nombre}</p>
-                <p className="text-[10px] text-morado-900/45">
-                  vale {c.peso}%
-                  {c.cuantos ? ` · ${c.cuantos} entregas` : ''}
-                  {c.minimo !== undefined ? ` · mínimo ${c.minimo}` : ''}
-                </p>
-              </div>
-
-              {editando === c.id ? (
-                <div className="flex items-center gap-1">
-                  <input
-                    type="text"
-                    inputMode="decimal"
-                    autoFocus
-                    value={valor}
-                    onChange={(e) => setValor(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && guardar(c.id)}
-                    placeholder="0-10"
-                    className="w-16 rounded-lg border border-lavanda-200 p-1.5 text-center text-sm"
-                  />
-                  <button
-                    onClick={() => guardar(c.id)}
-                    className="rounded-lg bg-lavanda-700 px-2.5 py-1.5 text-xs font-semibold text-white"
-                  >
-                    OK
-                  </button>
-                </div>
-              ) : (
-                <button
-                  onClick={() => {
-                    setEditando(c.id)
-                    setValor(c.nota === null ? '' : String(c.nota))
-                    setError('')
-                  }}
-                  className={`rounded-lg px-3 py-1.5 text-sm font-bold tabular-nums ${
-                    c.nota === null
-                      ? 'bg-white text-lavanda-700 ring-1 ring-lavanda-200'
-                      : c.minimo !== undefined && c.nota < c.minimo
-                        ? 'bg-red-100 text-red-800'
-                        : 'bg-lavanda-700 text-white'
-                  }`}
-                >
-                  {c.nota === null ? 'Añadir' : c.nota}
-                </button>
-              )}
-
-              {c.nota !== null && editando !== c.id && (
-                <button
-                  onClick={() => onBorrar(m.kbCode, c.id)}
-                  className="shrink-0 text-[11px] text-red-700"
-                  aria-label={`Borrar la nota de ${c.nombre}`}
-                >
-                  ✕
-                </button>
-              )}
-            </div>
+            <Nodo
+              key={c.id}
+              c={c}
+              kbCode={m.kbCode}
+              editando={editando}
+              valor={valor}
+              setValor={setValor}
+              setEditando={setEditando}
+              setError={setError}
+              guardar={guardar}
+              onBorrar={onBorrar}
+            />
           ))}
           {error && <p className="text-xs text-red-700">{error}</p>}
         </div>

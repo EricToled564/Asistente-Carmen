@@ -3,7 +3,7 @@ import type { Env } from '../types.js'
 import { EVALUACION } from '../data/evaluacion.js'
 import { PLAN_ESTUDIOS, bloqueDe } from '../data/planEstudios.js'
 import { extraerEvaluacionDeGuia } from '../lib/extraerEvaluacion.js'
-import { leer, escribir, calcular, estructuraDe, necesarioParaObjetivo, type CalculoMateria } from '../lib/calificacionesStore.js'
+import { leer, escribir, calcular, estructuraDe, hojaExiste, necesarioParaObjetivo, type CalculoMateria } from '../lib/calificacionesStore.js'
 import {
   obtenerHorarioPortal,
   vistaDelCurso,
@@ -93,8 +93,8 @@ calificaciones.post('/calificaciones', async (c) => {
 
   const almacen = await leer(c.env)
   const { componentes } = estructuraDe(kbCode, almacen.personalizados, almacen.derivados)
-  if (!componentes.some((x) => x.id === componenteId)) {
-    return c.json({ error: `"${componenteId}" no es un apartado de ${kbCode}` }, 404)
+  if (!hojaExiste(componentes, componenteId)) {
+    return c.json({ error: `"${componenteId}" no es un apartado de ${kbCode} donde se pueda meter una nota` }, 404)
   }
 
   almacen.notas[kbCode] = { ...(almacen.notas[kbCode] || {}), [componenteId]: body.nota }

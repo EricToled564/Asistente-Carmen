@@ -21,29 +21,49 @@ import type { ComponenteEvaluacion } from '../data/evaluacion.js'
 const PROMPT = `Te doy la guía docente de una asignatura universitaria. Extrae CÓMO SE EVALÚA, como \
 JSON estricto y nada más — sin texto antes ni después, sin cercas de código.
 
-Forma exacta:
-{"componentes":[{"id":"string","nombre":"string","peso":number,"minimo":number|null,"cuantos":number|null}],"notaMinima":number,"asistenciaMinima":number|null,"aviso":string|null}
+Forma exacta (recursiva — un apartado puede tener "subcomponentes" dentro):
+{"componentes":[{"id":"string"|null,"nombre":"string","peso":number,"minimo":number|null,"cuantos":number|null,"subcomponentes":[...]|null}],"notaMinima":number,"asistenciaMinima":number|null,"aviso":string|null}
 
 Reglas:
-1. "peso" es el porcentaje sobre la nota final. Los pesos DEBEN sumar exactamente 100.
+1. "peso" es el porcentaje sobre el nivel que lo contiene: si el apartado está en la lista de \
+arriba del todo, sobre la nota final de la asignatura; si está dentro de "subcomponentes" de otro \
+apartado, sobre el 100% de ESE apartado (no del total). Los pesos DEBEN sumar exactamente 100 EN \
+CADA NIVEL: los de la lista de arriba del todo entre sí, y los "subcomponentes" de cada apartado \
+entre sí, por separado.
 2. "id" es un identificador corto en minúsculas sin espacios ni acentos (ejercicios, examen_final, \
-asistencia, proyecto_1). Único dentro de la asignatura.
-3. "nombre" es como lo verá la alumna: corto, claro, en español.
-4. "minimo" solo si la guía exige una nota mínima EN ESE APARTADO por separado (ej. "el examen \
-final requiere un 5"). Si no lo exige, null. Convierte a escala sobre 10: si la guía dice "mínimo \
-50/100", el mínimo es 5.
-5. "cuantos" solo si la guía dice cuántas entregas o pruebas componen ese apartado (ej. "3 \
-talleres" -> 3). Si no lo dice, null.
-6. "notaMinima" es la nota necesaria para aprobar la asignatura, normalmente 5.
-7. "asistenciaMinima" es el porcentaje de asistencia obligatoria si la guía lo exige; si no, null.
-8. "aviso" es UNA frase con las condiciones que no caben en los números: mínimos por apartado, \
-requisitos de asistencia, reglas de la convocatoria extraordinaria. Si no hay ninguna, null.
+asistencia, proyecto_1), único dentro de la asignatura. SOLO hace falta en los apartados que NO \
+tienen "subcomponentes" — esos son los que llevan la nota, y necesitan un id donde guardarla. Un \
+apartado CON "subcomponentes" no lleva nota directa (se calcula solo de sus hijos), así que su "id" \
+puede ir null.
+3. "nombre" es como lo verá la alumna: corto, claro, en español (o en el idioma de la asignatura si \
+así se llama el proyecto, p. ej. "P2 — Speculative Everything").
+4. "subcomponentes": úsalo SOLO cuando la guía describe un apartado que a su vez se reparte en \
+partes — el caso típico es "Proyectos X% (P1 Y%, P2 Z%...)" donde cada proyecto ADEMÁS se puntúa \
+por dentro (análisis, desarrollo, resultado...). Si la guía solo dice un porcentaje plano sin más \
+desglose interno, no le pongas subcomponentes — no inventes una jerarquía que la guía no da. Puede \
+haber más de un nivel de profundidad si la guía lo describe así.
+5. "minimo": la nota mínima que exige la guía en ESE apartado — y esto YA NO es solo para apartados \
+sueltos: si la guía dice "el bloque de proyectos necesita al menos un 4" o "P2 tiene que aprobarse \
+por su cuenta con un 5", ese mínimo va en el "minimo" del apartado GRUPO correspondiente (el que \
+tiene "subcomponentes"), no como una frase en "aviso". Conviértelo siempre a escala sobre 10.
+6. "cuantos" solo en apartados sin subcomponentes, si la guía dice cuántas entregas o pruebas lo \
+componen (ej. "3 talleres" -> 3). Si no lo dice, null.
+7. "notaMinima" es la nota necesaria para aprobar la asignatura, normalmente 5.
+8. "asistenciaMinima" es el porcentaje de asistencia obligatoria si la guía lo exige; si no, null.
+9. "aviso" es UNA frase con las condiciones que de verdad no caben en los números — la convocatoria \
+extraordinaria, requisitos de asistencia si no hay campo mejor, matices que no son un mínimo \
+numérico claro. Los mínimos numéricos (por apartado o por grupo) van en "minimo", NO en "aviso": si \
+metes ahí un mínimo que sí tiene número, la app no lo puede calcular ni avisar de verdad, solo \
+enseñarlo como texto suelto.
 
 MUY IMPORTANTE — no inventes:
 - Si la guía NO publica porcentajes numéricos, devuelve exactamente {"sinDesglose": true, "motivo": \
 "..."} explicando en una frase qué dice la guía en su lugar. NO repartas los pesos tú.
-- Si los porcentajes que da la guía no suman 100, devuélvelos TAL CUAL como están escritos. No los \
-ajustes para que cuadren: es mejor que se vea el desajuste a que se maquille.`
+- Si los porcentajes que da la guía no suman 100 en algún nivel, devuélvelos TAL CUAL como están \
+escritos. No los ajustes para que cuadren: es mejor que se vea el desajuste a que se maquille.
+- Si la guía dice "promedio de N proyectos" sin dar el peso de cada uno por separado, repártelos en \
+partes iguales dentro de ese grupo (un promedio simple ES partes iguales) — eso no es inventar, es \
+la única lectura posible de "promedio".`
 
 export interface PropuestaEvaluacion {
   kbCode: string
@@ -55,6 +75,11 @@ export interface PropuestaEvaluacion {
   asistenciaMinima?: number
   aviso?: string
   sumaPesos?: number
+  // Si algún nivel de la jerarquía no suma 100 (el total, o los subcomponentes de algún grupo en
+  // particular), se listan aquí para que se vea EXACTAMENTE dónde está el desajuste — con anidación
+  // real, "los pesos no suman 100" a secas no dice si el problema es en el total o en un proyecto
+  // suelto dentro de un grupo.
+  desajustes?: string[]
 }
 
 function limpiarJson(texto: string): string {
@@ -114,50 +139,74 @@ export async function extraerEvaluacionDeGuia(env: Env, kbCode: string, materia:
     return { ...base, motivo: 'No encontré apartados de evaluación en esta guía.' }
   }
 
+  // Los ids se desduplican aquí y no se confía en el modelo: dos hojas con el mismo id harían que
+  // meter la nota de una pisara la de la otra, sin ningún error visible. Solo se pide unicidad
+  // entre HOJAS (las que llevan nota) — un grupo (con subcomponentes) nunca guarda una nota propia,
+  // así que su id no compite por ese espacio.
   const vistos = new Set<string>()
-  const componentes: ComponenteEvaluacion[] = crudos.map((c: Record<string, unknown>, i: number) => {
-    // Los ids se desduplican aquí y no se confía en el modelo: dos apartados con el mismo id
-    // harían que meter la nota de uno pisara la del otro, sin ningún error visible.
-    let id = idValido(c.id, i)
-    while (vistos.has(id)) id = `${id}_${i + 1}`
-    vistos.add(id)
-    return {
-      id,
-      nombre: String(c.nombre || `Apartado ${i + 1}`),
-      peso: Number(c.peso) || 0,
-      minimo: typeof c.minimo === 'number' ? c.minimo : undefined,
-      cuantos: typeof c.cuantos === 'number' ? c.cuantos : undefined
-    }
-  })
 
-  // Fuera los apartados que valen cero.
-  //
-  // Salen de verdad: en Taller de Diseño III el modelo devolvió "Exámenes: 0 %", porque la guía los
-  // menciona para decir que en esa asignatura no hay. Es fiel a la guía y a la vez inútil aquí: en
-  // la pantalla de Carmen sería una fila más donde meter una nota que no cuenta para nada, y si
-  // alguna arrastrara un mínimo podría marcarle en riesgo una asignatura por un apartado que no
-  // existe. Si TODOS valieran cero no se filtra nada, para que se vea que la extracción falló en
-  // vez de devolver una lista vacía.
-  const conPeso = componentes.filter((c) => c.peso > 0)
-  const utiles = conPeso.length ? conPeso : componentes
+  // Recursivo: normaliza una lista de apartados en un nivel cualquiera de la jerarquía. `etiqueta`
+  // es solo para poder decir DÓNDE está el desajuste si los pesos de este nivel no suman 100 (el
+  // total de la asignatura, o "dentro de Proyectos", etc.), no afecta al cálculo.
+  function normalizar(lista: Record<string, unknown>[], etiqueta: string, desajustes: string[]): ComponenteEvaluacion[] {
+    const nodos: ComponenteEvaluacion[] = lista.map((c, i) => {
+      const hijosCrudos = Array.isArray(c.subcomponentes) ? (c.subcomponentes as Record<string, unknown>[]) : null
+      const nombre = String(c.nombre || `Apartado ${i + 1}`)
+      const peso = Number(c.peso) || 0
+      const minimo = typeof c.minimo === 'number' ? c.minimo : undefined
 
-  const sumaPesos = Math.round(utiles.reduce((t, c) => t + c.peso, 0) * 100) / 100
+      if (hijosCrudos?.length) {
+        // Grupo: no lleva nota directa, así que su id no necesita desduplicarse contra las hojas.
+        const id = idValido(c.id, i) || `grupo_${i + 1}`
+        return { id, nombre, peso, minimo, subcomponentes: normalizar(hijosCrudos, nombre, desajustes) }
+      }
+
+      let id = idValido(c.id, i)
+      while (vistos.has(id)) id = `${id}_${i + 1}`
+      vistos.add(id)
+      return {
+        id,
+        nombre,
+        peso,
+        minimo,
+        cuantos: typeof c.cuantos === 'number' ? c.cuantos : undefined
+      }
+    })
+
+    // Fuera los apartados que valen cero, EN ESTE NIVEL.
+    //
+    // Salen de verdad: en Taller de Diseño III el modelo devolvió "Exámenes: 0 %", porque la guía
+    // los menciona para decir que en esa asignatura no hay. Es fiel a la guía y a la vez inútil
+    // aquí: en la pantalla de Carmen sería una fila más donde meter una nota que no cuenta para
+    // nada, y si alguna arrastrara un mínimo podría marcarle en riesgo la asignatura por un
+    // apartado que no existe. Si TODOS valieran cero no se filtra nada en ESTE nivel, para que se
+    // vea que la extracción falló en vez de devolver una lista vacía.
+    const conPeso = nodos.filter((c) => c.peso > 0)
+    const utiles = conPeso.length ? conPeso : nodos
+
+    const suma = Math.round(utiles.reduce((t, c) => t + c.peso, 0) * 100) / 100
+    if (Math.abs(suma - 100) >= 0.5) desajustes.push(`${etiqueta}: suma ${suma}, no 100`)
+
+    return utiles
+  }
+
+  const desajustes: string[] = []
+  const componentes = normalizar(crudos, 'el total de la asignatura', desajustes)
+  const sumaPesos = Math.round(componentes.reduce((t, c) => t + c.peso, 0) * 100) / 100
 
   return {
     kbCode,
     materia,
-    // Se marca ok:false si no suman 100, pero se devuelven igual los componentes: así ella ve qué
-    // salió y puede corregir el que esté mal, en vez de quedarse con un "no se pudo" y a empezar
-    // de cero.
-    ok: Math.abs(sumaPesos - 100) < 0.5,
-    motivo:
-      Math.abs(sumaPesos - 100) < 0.5
-        ? undefined
-        : `Los porcentajes de la guía suman ${sumaPesos}, no 100. Revísalos antes de guardar.`,
-    componentes: utiles,
+    // Se marca ok:false si algún nivel no suma 100, pero se devuelven igual los componentes: así
+    // ella ve qué salió y puede corregir el que esté mal, en vez de quedarse con un "no se pudo" y
+    // a empezar de cero.
+    ok: desajustes.length === 0,
+    motivo: desajustes.length ? `Hay porcentajes que no cuadran — revísalos antes de guardar: ${desajustes.join('; ')}.` : undefined,
+    componentes,
     notaMinima: Number(datos.notaMinima) || 5,
     asistenciaMinima: typeof datos.asistenciaMinima === 'number' ? datos.asistenciaMinima : undefined,
     aviso: datos.aviso ? String(datos.aviso) : undefined,
-    sumaPesos
+    sumaPesos,
+    desajustes: desajustes.length ? desajustes : undefined
   }
 }
