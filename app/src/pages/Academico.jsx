@@ -6,7 +6,7 @@ import Horario from '../components/academico/Horario.jsx'
 import TipsAcademicos from '../components/academico/TipsAcademicos.jsx'
 import MisApuntes from '../components/academico/MisApuntes.jsx'
 import MisCalificaciones from '../components/academico/MisCalificaciones.jsx'
-import BotonMaite from '../components/agente/BotonMaite.jsx'
+import ModoEstudio from '../components/academico/ModoEstudio.jsx'
 import MenuColapsable from '../components/comun/MenuColapsable.jsx'
 
 const SECCIONES = [
@@ -20,13 +20,9 @@ const SECCIONES = [
   { id: 'captura', label: '🎙️ Captura' }
 ]
 
-// Contexto que se le pasa a Maite según la pantalla. En modo tutor se le dice explícitamente que
-// tire de `consultar_apuntes`: si no, se queda con el temario oficial del KB, que es correcto pero
-// genérico — y lo que de verdad le sirve a Carmen para un examen es lo que su profesor dijo en
-// clase, con los ejemplos y los énfasis de él.
+// Contexto que se le pasa a Maite según la pantalla. El de "tutor" ya no está aquí — ModoEstudio.jsx
+// lo arma él mismo, porque ahora depende de qué materia elija Carmen (y de si tiene libro apuntado).
 const CONTEXTO_POR_SECCION = {
-  tutor:
-    'modo estudio: ayuda con quiz y explicación de las materias del Grado en Diseño. Antes de armar un quiz o explicar un tema, usa consultar_apuntes para ver si Carmen grabó esa clase — si tiene apuntes propios, el quiz sale de ahí (lo que dijo su profesor) y el temario oficial del KB solo complementa.',
   apuntes:
     'Carmen está viendo sus apuntes de clase guardados. Si te pide repasar o un quiz, usa consultar_apuntes para trabajar sobre lo que ella grabó, no sobre el temario genérico.'
 }
@@ -59,23 +55,7 @@ export default function Academico({ onNavigate }) {
 
         {seccion === 'indice' && <IndiceAcademico onNavigate={onNavigate} />}
 
-        {seccion === 'tutor' && (
-          <div className="flex flex-col items-center gap-3 rounded-3xl bg-white p-6 text-center shadow-soft">
-            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-lavanda-100 text-3xl">🎓</span>
-            <p className="font-display text-lg font-bold text-morado-900">Modo estudio activado</p>
-            <p className="text-sm text-morado-900/60">
-              Pídele un quiz o que te explique algo de tus materias. Llega sabiendo que estás
-              estudiando, no tienes que explicárselo.
-            </p>
-            <p className="rounded-2xl bg-lavanda-50 p-3 text-xs text-morado-900/70">
-              Si grabaste esa clase, el quiz sale de <span className="font-semibold">tus apuntes</span> — de lo
-              que dijo tu profesor, no de un temario genérico.
-            </p>
-            <BotonMaite contexto={CONTEXTO_POR_SECCION.tutor} onNavigate={onNavigate} className="mt-1 w-full">
-              🎓 Empezar a estudiar con Maite
-            </BotonMaite>
-          </div>
-        )}
+        {seccion === 'tutor' && <ModoEstudio onNavigate={onNavigate} />}
 
         {seccion === 'apuntes' && <MisApuntes recargarToken={apuntesToken} onNavigate={onNavigate} />}
 

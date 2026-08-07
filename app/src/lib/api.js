@@ -120,5 +120,8 @@ export const api = {
   apuntesListar: (materia) => request(`/apuntes${materia ? `?materia=${encodeURIComponent(materia)}` : ''}`, { method: 'GET' }),
   apunteObtener: (id) => request(`/apuntes/${id}`, { method: 'GET' }),
   apunteGuardar: (payload) => request('/apuntes', { method: 'POST', body: JSON.stringify(payload) }),
-  apunteBorrar: (id) => request(`/apuntes/${id}`, { method: 'DELETE' })
+  apunteBorrar: (id) => request(`/apuntes/${id}`, { method: 'DELETE' }),
+  bibliografiaDe: (kbCode) => request(`/bibliografia/${encodeURIComponent(kbCode)}`, { method: 'GET' }),
+  bibliografiaGuardar: (payload) => request('/bibliografia', { method: 'POST', body: JSON.stringify(payload) }),
+  bibliografiaBorrar: (kbCode) => request(`/bibliografia/${encodeURIComponent(kbCode)}`, { method: 'DELETE' })
 }

@@ -228,6 +228,22 @@ const TOOLS = [
     }
   },
   {
+    name: 'consultar_bibliografia',
+    description:
+      'Devuelve el libro (título y autor) que Carmen apuntó para una materia, si lo tiene. Úsala en modo estudio antes de explicar un tema, para poder referirte al libro por nombre — pero NO tienes su contenido, así que no inventes citas ni capítulos.',
+    method: 'GET',
+    path: '/bibliografia/consulta',
+    query: {
+      properties: {
+        materia: {
+          type: 'string',
+          description: "Nombre o parte del nombre de la asignatura ('Antropología', 'geometrías')."
+        }
+      },
+      required: ['materia']
+    }
+  },
+  {
     name: 'simular_calificacion',
     description:
       'Calcula qué media necesita Carmen en lo que le falta de UNA asignatura para llegar a un promedio objetivo que ella elija — por ejemplo "qué necesito para que Diseño me quede en un 8,6". Distinta de consultar_calificaciones (que solo da el mínimo para aprobar): aquí el objetivo lo pone ella, no el 5. Nunca hagas esta cuenta de cabeza ni la estimes tú — llama siempre a la tool, es el mismo cálculo exacto que ve en su pantalla.',

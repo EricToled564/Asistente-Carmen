@@ -24,6 +24,7 @@ import { tramites } from './routes/tramites.js'
 import { calificaciones } from './routes/calificaciones.js'
 import { horarioPortal } from './routes/horarioPortal.js'
 import { fechas } from './routes/fechas.js'
+import { bibliografia } from './routes/bibliografia.js'
 import { ejecutarAutoInvestigacionSemestral, ejecutarAutoInvestigacionMensual } from './cron/kbAutoResearch.js'
 import {
   recordatorioSubirHorario,
@@ -76,6 +77,7 @@ app.route('/', tramites)
 app.route('/', calificaciones)
 app.route('/', horarioPortal)
 app.route('/', fechas)
+app.route('/', bibliografia)
 
 export default {
   fetch: app.fetch,
