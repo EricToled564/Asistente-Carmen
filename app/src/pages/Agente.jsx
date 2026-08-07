@@ -1,17 +1,6 @@
 import { useApp } from '../context/AppContext.jsx'
 import ElevenLabsWidget from '../components/agente/ElevenLabsWidget.jsx'
 
-// Sugerencias para arrancar. Son las preguntas que de verdad va a tener los primeros meses, no
-// ejemplos de demo: cada una toca una capacidad distinta (horario, ruta interior, trámites, KB).
-const SUGERENCIAS = [
-  '¿Qué clase tengo hoy?',
-  'Estoy en la biblioteca, ¿cómo llego al Taller 01?',
-  '¿Qué hora es en México?',
-  '¿Qué necesito para el empadronamiento?',
-  'Hazme un quiz de mi última clase',
-  '¿Cómo voy de promedio?'
-]
-
 // Pantalla dedicada a Maite. Es el ÚNICO sitio donde se monta el widget.
 //
 // El contexto (`contextoAgente`) lo deja puesto quien navegó hasta aquí: si Carmen llegó desde
@@ -38,7 +27,10 @@ export default function Agente() {
           </p>
         </div>
       ) : (
-        <>
+        // El resto de la pantalla ya no tiene nada más que enseñar — se quitaron las preguntas de
+        // ejemplo — así que esta tarjeta se centra en el medio, vertical y horizontalmente, en vez
+        // de quedarse pegada arriba con el resto del espacio vacío debajo.
+        <div className="flex flex-1 flex-col justify-center gap-4">
           {contextoAgente && (
             <div className="rounded-2xl bg-lavanda-100 p-4">
               <p className="text-xs font-semibold uppercase tracking-wide text-lavanda-800">
@@ -60,20 +52,7 @@ export default function Agente() {
               Está en la esquina inferior derecha. Puedes hablarle o escribirle, como prefieras.
             </p>
           </div>
-
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-morado-900/50">
-              Si no sabes por dónde empezar
-            </p>
-            <div className="mt-2 flex flex-col gap-2">
-              {SUGERENCIAS.map((s) => (
-                <p key={s} className="rounded-2xl bg-white px-4 py-3 text-sm text-morado-900/75 shadow-soft">
-                  “{s}”
-                </p>
-              ))}
-            </div>
-          </div>
-        </>
+        </div>
       )}
 
       {/* El widget se monta aquí y solo aquí. Al salir de esta pantalla se destruye. */}

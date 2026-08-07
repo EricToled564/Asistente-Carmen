@@ -87,7 +87,13 @@ const ATRIBUTOS_TEXTO = {
   transcript: 'true',
   'text-input': 'true',
   'strip-audio-tags': 'true',
-  'markdown-link-allowed-hosts': 'google.com,unav.edu,bulletscheduling.com'
+  'markdown-link-allowed-hosts': 'google.com,unav.edu,bulletscheduling.com',
+  // El widget solo llega a "fullscreen" en pantallas <768px (todas las de Carmen) cuando ella toca
+  // el botón de maximizar del panel — comprobado en el bundle 0.15.1: es el ÚNICO sitio que cambia
+  // ese estado, no pasa solo por hablar o escribir. Quitando el botón (show-resize-button=false)
+  // el panel se queda siempre en su tamaño compacto, y con eso deja de haber pantalla completa de
+  // la que sea casi imposible salir.
+  'show-resize-button': 'false'
 }
 
 /**
