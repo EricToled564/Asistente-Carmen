@@ -31,32 +31,20 @@ export default function Agente() {
           </p>
         </div>
       ) : (
-        // El resto de la pantalla ya no tiene nada más que enseñar — se quitaron las preguntas de
-        // ejemplo — así que esta tarjeta se centra en el medio, vertical y horizontalmente, en vez
-        // de quedarse pegada arriba con el resto del espacio vacío debajo.
-        <div className="flex flex-1 flex-col justify-center gap-4">
-          {contextoAgente && (
-            <div className="rounded-2xl bg-lavanda-100 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-lavanda-800">
-                Ya sabe de qué le vas a hablar
-              </p>
-              <p className="mt-1 text-sm text-morado-900/70">
-                Llegaste desde otra pantalla, así que no tienes que explicarle el contexto. Entra
-                directo a lo que querías preguntarle.
-              </p>
-            </div>
-          )}
-
-          <div className="rounded-3xl bg-gradient-to-br from-lavanda-700 via-lavanda-600 to-lavanda-500 p-6 text-center shadow-glow">
-            <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white/15 text-4xl">
-              💬
-            </span>
-            <p className="mt-3 font-display text-xl font-bold text-white">Toca el botón de arriba</p>
-            <p className="mt-1 text-sm text-lavanda-50/85">
-              Está centrado, arriba de la pantalla. Puedes hablarle o escribirle, como prefieras.
+        // Ya no hay tarjeta propia invitando a tocar el widget: el widget mismo enseña su saludo
+        // ("¿Necesitas ayuda?" con sus botones) en cuanto carga, así que una tarjeta aparte
+        // repitiendo lo mismo no aportaba nada — solo ocupaba media pantalla de más.
+        contextoAgente && (
+          <div className="rounded-2xl bg-lavanda-100 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wide text-lavanda-800">
+              Ya sabe de qué le vas a hablar
+            </p>
+            <p className="mt-1 text-sm text-morado-900/70">
+              Llegaste desde otra pantalla, así que no tienes que explicarle el contexto. Entra
+              directo a lo que querías preguntarle.
             </p>
           </div>
-        </div>
+        )
       )}
 
       {/* El widget se monta aquí y solo aquí. Al salir de esta pantalla se destruye. */}
