@@ -102,8 +102,15 @@ const ATRIBUTOS_TEXTO = {
  * Sobre el widget en sí (esto costó una sesión entera de debugging entenderlo): el custom element
  * <elevenlabs-convai> se define internamente con `:host { position: fixed; inset: 0 }` — es
  * SIEMPRE un overlay de posición fija sobre toda la pantalla, sin importar en qué <div> del DOM
- * lo montes. No se puede empotrar dentro de una caja, y solo acepta cuatro posiciones
- * (top-left, top-right, bottom-left, bottom-right); no hay forma de moverlo a otro sitio.
+ * lo montes. No se puede empotrar dentro de una caja.
+ *
+ * `placement` acepta seis valores, no cuatro (esto se pasó por alto la primera vez, mirando solo
+ * las cuatro esquinas): top-left, top, top-right, bottom-left, bottom, bottom-right — comprobado
+ * leyendo el array de valores válidos del bundle 0.15.1 (`ng`), no adivinado. "top" y "bottom" se
+ * quedan centrados en horizontal — no hay un "centro de la pantalla" de verdad (eso movería el
+ * botón a mitad del contenido, tapándolo), pero si lo que molesta es que la esquina inferior
+ * derecha choca con la barra de pestañas de abajo, "top" la evita del todo y además queda
+ * centrado.
  *
  * Antes había UNA instancia global flotando sobre todas las pantallas. Funcionaba, pero el botón
  * quedaba encima del contenido en sitios donde no venía a cuento, y no había manera de quitarlo
@@ -141,7 +148,7 @@ export default function ElevenLabsWidget() {
         if (cancelled || !containerRef.current || elRef.current) return
         const el = document.createElement('elevenlabs-convai')
         el.setAttribute('agent-id', config.elevenLabsAgentId)
-        el.setAttribute('placement', 'bottom-right')
+        el.setAttribute('placement', 'top')
         for (const [attr, valor] of Object.entries(ATRIBUTOS_TEXTO)) el.setAttribute(attr, valor)
 
         // Así se registran las herramientas que corren aquí, en el teléfono. El widget dispara

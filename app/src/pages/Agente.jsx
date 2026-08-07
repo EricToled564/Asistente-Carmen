@@ -47,9 +47,9 @@ export default function Agente() {
             <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-white/15 text-4xl">
               💬
             </span>
-            <p className="mt-3 font-display text-xl font-bold text-white">Toca el botón de abajo</p>
+            <p className="mt-3 font-display text-xl font-bold text-white">Toca el botón de arriba</p>
             <p className="mt-1 text-sm text-lavanda-50/85">
-              Está en la esquina inferior derecha. Puedes hablarle o escribirle, como prefieras.
+              Está centrado, arriba de la pantalla. Puedes hablarle o escribirle, como prefieras.
             </p>
           </div>
         </div>
